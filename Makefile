@@ -2,13 +2,16 @@ VALID_TOOLCHAINS := newlib pnacl
 
 TARGET = moonlight-chrome
 
+# Include Moonlight-Common-C makefile
+include common-c.mk
+
+EXTRA_INC_PATHS := $(EXTRA_INC_PATHS) $(COMMON_C_INCLUDE)
+
 include $(NACL_SDK_ROOT)/tools/common.mk
 
 # Dirty hack to allow 'make serve' to work in this directory
 HTTPD_PY := $(HTTPD_PY) --no-dir-check
 
-# Include Moonlight-Common-C makefile
-include common-c.mk
 
 LIBS = ppapi ppapi_cpp pthread nacl_io
 
