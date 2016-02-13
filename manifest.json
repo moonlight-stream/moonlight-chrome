@@ -16,6 +16,7 @@
         }
     },
     "permissions": [
+        "pointerLock",
         "fullscreen", {
         "socket": [
             "tcp-connect", 
