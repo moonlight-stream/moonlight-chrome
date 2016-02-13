@@ -4,13 +4,6 @@ function attachListeners() {
     document.getElementById('stopButton').addEventListener('click', stopPushed);
 }
 
-// Called by the common.js module.
-function moduleDidLoad() {
-    // The module is not hidden by default so we can easily see if the plugin
-    // failed to load.
-    common.hideModule();
-}
-
 function getGFEHostIPField() {
     return document.getElementById('GFEHostIPField');
 }
@@ -30,4 +23,4 @@ function handleMessage(msg) {
     logEl.value = msg.data;
 }
 
-chrome.app.window.current().fullscreen();
+// chrome.app.window.current().fullscreen();
