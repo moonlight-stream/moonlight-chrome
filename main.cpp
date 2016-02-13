@@ -6,7 +6,10 @@
 
 class MoonlightInstance : public pp::Instance {
     public:
-        explicit MoonlightInstance(PP_Instance instance) : pp::Instance(instance) {}
+        explicit MoonlightInstance(PP_Instance instance) : pp::Instance(instance) {            
+            // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
+            nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
+        }
         virtual ~MoonlightInstance() {}
 };
 
@@ -22,8 +25,6 @@ class MoonlightModule : public pp::Module {
 
 namespace pp {
 Module* CreateModule() {
-    // Initialize nacl_io before entering moonlight-common-c for BSD sockets
-    nacl_io_init();
     
     return new MoonlightModule();
 }
