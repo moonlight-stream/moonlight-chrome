@@ -1,4 +1,4 @@
-VALID_TOOLCHAINS := newlib pnacl
+VALID_TOOLCHAINS := pnacl
 
 TARGET = moonlight-chrome
 

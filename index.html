@@ -5,13 +5,13 @@
   <meta http-equiv="Expires" content="-1">
   <title>Moonlight</title>
 </head>
-<body data-name="moonlight" data-tools="pnacl newlib glibc clang-newlib mac" data-configs="Debug Release" data-path="{tc}/{config}">
+<body data-name="moonlight" data-tools="pnacl" data-configs="Debug Release" data-path="{tc}/{config}">
 
   <div id="listener">
       <embed id="moonlight"
              width=0 height=0
-             src="newlib/Release/moonlight-chrome.nmf"
-             type="application/x-nacl" />
+             src="pnacl/Release/moonlight-chrome.nmf"
+             type="application/x-pnacl" />
 	</div>
 </body>
 </html>
