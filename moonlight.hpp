@@ -48,6 +48,11 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool Init(uint32_t argc, const char* argn[], const char* argv[]);
         
         void HandleMessage(const pp::Var& var_message);
+        void handlePair(std::string pairMessage);
+        void handleShowGames(std::string showGamesMessage);
+        void handleStartStream(std::string startStreamMessage);
+        void handleStopStream(std::string stopStreamMessage);
+
         
         bool HandleInputEvent(const pp::InputEvent& event);
         
