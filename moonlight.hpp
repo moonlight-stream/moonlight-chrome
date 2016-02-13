@@ -12,4 +12,6 @@ class MoonlightInstance : public pp::Instance {
         }
         
         virtual ~MoonlightInstance();
+        
+        bool HandleInputEvent(const pp::InputEvent& event);
 };
