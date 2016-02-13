@@ -30,3 +30,11 @@
 
 # Debug files
 *.dSYM/
+
+# NaCl SDK
+dir.stamp
+*.deps
+*.map
+*.nexe
+*.pexe
+*.nmf
