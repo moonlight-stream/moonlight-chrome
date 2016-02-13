@@ -6,6 +6,7 @@
 #include "ppapi/cpp/video_decoder.h"
 
 #include "ppapi/c/ppb_gamepad.h"
+#include "ppapi/c/pp_input_event.h"
 #include "ppapi/c/ppb_opengles2.h"
 #include "ppapi/cpp/graphics_3d.h"
 #include "ppapi/cpp/graphics_3d_client.h"
@@ -36,7 +37,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             pp::MouseLock(this),
             m_IsPainting(false),
             m_CallbackFactory(this),
-            m_MouseLocked(false) {            
+            m_MouseLocked(false),
+            m_KeyModifiers(0) {            
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
             
@@ -49,6 +51,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         
         void HandleMessage(const pp::Var& var_message);
         
+        void UpdateModifiers(PP_InputEvent_Type eventType, short keyCode);
         bool HandleInputEvent(const pp::InputEvent& event);
         
         void PollGamepads();
@@ -100,6 +103,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         const PPB_Gamepad* m_GamepadApi;
         pp::CompletionCallbackFactory<MoonlightInstance> m_CallbackFactory;
         bool m_MouseLocked;
+        char m_KeyModifiers;
 };
 
 extern MoonlightInstance* g_Instance;
