@@ -73,8 +73,8 @@ void MoonlightInstance::HandleMessage(const pp::Var& var_message) {
     LiInitializeStreamConfiguration(&s_StreamConfig);
     s_StreamConfig.width = 1280;
     s_StreamConfig.height = 720;
-    s_StreamConfig.fps = 30;
-    s_StreamConfig.bitrate = 10; // megabits per second
+    s_StreamConfig.fps = 60;
+    s_StreamConfig.bitrate = 15000; // kilobits per second
     s_StreamConfig.packetSize = 1024;
     s_StreamConfig.streamingRemotely = 0;
     s_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;

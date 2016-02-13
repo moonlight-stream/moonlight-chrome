@@ -12,6 +12,9 @@
 
 #include "ppapi/utility/completion_callback_factory.h"
 
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+
 #include "nacl_io/nacl_io.h"
 
 #include <Limelight.h>
@@ -24,19 +27,17 @@ struct Shader {
   GLint texcoord_scale_location;
 };
 
-class MoonlightInstance : public pp::Instance, public pp::MouseLock, public pp::Graphics3DClient {
+class MoonlightInstance : public pp::Instance, public pp::MouseLock {
     public:
-        MoonlightInstance(PP_Instance instance) :
+        explicit MoonlightInstance(PP_Instance instance) :
             pp::Instance(instance),
             pp::MouseLock(this),
-            pp::Graphics3DClient(this),
             m_CallbackFactory(this),
             m_MouseLocked(false) {            
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
             
             m_GamepadApi = static_cast<const PPB_Gamepad*>(pp::Module::Get()->GetBrowserInterface(PPB_GAMEPAD_INTERFACE));
-            m_GlesApi = static_cast<const PPB_OpenGLES2*>(pp::Module::Get()->GetBrowserInterface(PPB_OPENGLES2_INTERFACE));
         }
         
         virtual ~MoonlightInstance();
@@ -67,12 +68,11 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock, public pp::
         static void ClDisplayMessage(char* message);
         static void ClDisplayTransientMessage(char* message);
         
-        
-        virtual void Graphics3DContextLost() {}
         static Shader CreateProgram(const char* vertexShader, const char* fragmentShader);
         static void CreateShader(GLuint program, GLenum type, const char* source, int size);
         static void PaintPicture(PP_VideoPicture picture);
         
+        void DispatchRendering(int32_t unused);
         void DispatchGetPicture(uint32_t unused);
         void PictureReady(int32_t result, PP_VideoPicture picture);
         
@@ -84,13 +84,13 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock, public pp::
         static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
         static DECODER_RENDERER_CALLBACKS s_DrCallbacks;
     
-        pp::Graphics3D* m_Graphics3D;
+        pp::Graphics3D m_Graphics3D;
         pp::VideoDecoder* m_VideoDecoder;
         pp::Size m_ViewSize;
-        const PPB_OpenGLES2* m_GlesApi;
         Shader m_Texture2DShader;
         Shader m_RectangleArbShader;
         Shader m_ExternalOesShader;
+        PP_VideoPicture m_LastPicture;
         
         double m_LastPadTimestamps[4];
         const PPB_Gamepad* m_GamepadApi;
