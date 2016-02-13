@@ -108,7 +108,7 @@ void MoonlightInstance::DidChangeView(const pp::Rect& position,
                  GL_STATIC_DRAW);
     assertNoGLError();
     
-    g_Instance->m_Graphics3D.SwapBuffers(g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::DispatchRendering));
+    g_Instance->m_Graphics3D.SwapBuffers(pp::BlockUntilComplete());
 }
 
 void MoonlightInstance::VidDecSetup(int width, int height, int redrawRate, void* context, int drFlags) {
@@ -128,12 +128,6 @@ void MoonlightInstance::VidDecSetup(int width, int height, int redrawRate, void*
 }
 
 void MoonlightInstance::DispatchGetPicture(uint32_t unused) {
-    /*glClearColor(0.5, 0.5, 0.5, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
-    
-    m_Graphics3D.SwapBuffers(
-        m_CallbackFactory.NewCallback(&MoonlightInstance::DispatchGetPicture));*/
-    
     // Queue the initial GetPicture callback on the main thread
     g_Instance->m_VideoDecoder->GetPicture(
         g_Instance->m_CallbackFactory.NewCallbackWithOutput(&MoonlightInstance::PictureReady));
@@ -217,7 +211,18 @@ Shader MoonlightInstance::CreateProgram(const char* vertexShader, const char* fr
     return shader;
 }
 
-void MoonlightInstance::PaintPicture(PP_VideoPicture picture) {
+void MoonlightInstance::PaintPicture(void) {
+    m_IsPainting = true;
+    
+    // Free and skip all frames except the latest one
+    PP_VideoPicture picture;
+    while (m_PendingPictureQueue.size() > 1) {
+        picture = m_PendingPictureQueue.front();
+        m_PendingPictureQueue.pop();
+        g_Instance->m_VideoDecoder->RecyclePicture(picture);
+    }
+    
+    picture = m_PendingPictureQueue.front();
     if (picture.texture_target == GL_TEXTURE_2D) {
         if (!g_Instance->m_Texture2DShader.program) {
             g_Instance->m_Texture2DShader = CreateProgram(k_VertexShader, k_FragmentShader2D);
@@ -249,12 +254,21 @@ void MoonlightInstance::PaintPicture(PP_VideoPicture picture) {
         glUseProgram(0);
     }
     
-    g_Instance->m_Graphics3D.SwapBuffers(g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::DispatchRendering));
+    g_Instance->m_Graphics3D.SwapBuffers(
+        g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::PaintFinished));
 }
 
-void MoonlightInstance::DispatchRendering(int32_t unused) {
-    // Paint the image on screen
-    PaintPicture(m_LastPicture);
+void MoonlightInstance::PaintFinished(int32_t result) {
+    m_IsPainting = false;
+    
+    // Recycle the picture now that it's been painted
+    g_Instance->m_VideoDecoder->RecyclePicture(m_PendingPictureQueue.front());
+    m_PendingPictureQueue.pop();
+    
+    // Keep painting if we still have frames
+    if (!m_PendingPictureQueue.empty()) {
+        PaintPicture();
+    }
 }
 
 void MoonlightInstance::PictureReady(int32_t result, PP_VideoPicture picture) {
@@ -262,16 +276,14 @@ void MoonlightInstance::PictureReady(int32_t result, PP_VideoPicture picture) {
         return;
     }
     
-    // Replace the last picture with this one and free the old one
-    PP_VideoPicture oldPic = m_LastPicture;
-    m_LastPicture = picture;
-    if (oldPic.texture_target) {
-        g_Instance->m_VideoDecoder->RecyclePicture(oldPic);
-    }
+    m_PendingPictureQueue.push(picture);
     
-    // Queue another callback
     g_Instance->m_VideoDecoder->GetPicture(
         g_Instance->m_CallbackFactory.NewCallbackWithOutput(&MoonlightInstance::PictureReady));
+    
+    if (!m_IsPainting) {
+        PaintPicture();
+    }
 }
 
 DECODER_RENDERER_CALLBACKS MoonlightInstance::s_DrCallbacks = {

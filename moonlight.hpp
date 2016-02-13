@@ -17,6 +17,8 @@
 
 #include "nacl_io/nacl_io.h"
 
+#include <queue>
+
 #include <Limelight.h>
 
 struct Shader {
@@ -32,6 +34,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         explicit MoonlightInstance(PP_Instance instance) :
             pp::Instance(instance),
             pp::MouseLock(this),
+            m_IsPainting(false),
             m_CallbackFactory(this),
             m_MouseLocked(false) {            
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
@@ -70,11 +73,11 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         
         static Shader CreateProgram(const char* vertexShader, const char* fragmentShader);
         static void CreateShader(GLuint program, GLenum type, const char* source, int size);
-        static void PaintPicture(PP_VideoPicture picture);
         
-        void DispatchRendering(int32_t unused);
+        void PaintFinished(int32_t result);
         void DispatchGetPicture(uint32_t unused);
         void PictureReady(int32_t result, PP_VideoPicture picture);
+        void PaintPicture(void);
         
         static void VidDecSetup(int width, int height, int redrawRate, void* context, int drFlags);
         static void VidDecCleanup(void);
@@ -90,7 +93,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         Shader m_Texture2DShader;
         Shader m_RectangleArbShader;
         Shader m_ExternalOesShader;
-        PP_VideoPicture m_LastPicture;
+        std::queue<PP_VideoPicture> m_PendingPictureQueue;
+        bool m_IsPainting;
         
         double m_LastPadTimestamps[4];
         const PPB_Gamepad* m_GamepadApi;
