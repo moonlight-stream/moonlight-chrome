@@ -54,6 +54,9 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
     
     for (;;) {
         me->PollGamepads();
+        
+        // Poll every 10 ms
+        usleep(10 * 1000);
     }
     
     return NULL;
