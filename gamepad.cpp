@@ -1,0 +1,80 @@
+#include "moonlight.hpp"
+
+#include "ppapi/c/ppb_gamepad.h"
+
+#include <Limelight.h>
+
+static const unsigned short k_XInputButtonMapping[] = {
+    A_FLAG, B_FLAG, X_FLAG, Y_FLAG,
+    LB_FLAG, RB_FLAG,
+    0, 0, // Triggers
+    BACK_FLAG, PLAY_FLAG,
+    LS_CLK_FLAG, RS_CLK_FLAG,
+    UP_FLAG, DOWN_FLAG, LEFT_FLAG, RIGHT_FLAG
+};
+
+static const unsigned int k_XInputTriggerButtonIndexes[] = {
+    6, 7
+};
+
+void MoonlightInstance::PollGamepads() {
+    PP_GamepadsSampleData gamepadData;
+    
+    m_GamepadApi->Sample(pp_instance(), &gamepadData);
+    
+    for (unsigned int p = 0; p < gamepadData.length; p++) {
+        PP_GamepadSampleData& padData = gamepadData.items[p];
+        
+        if (!padData.connected) {
+            // Not connected
+            continue;
+        }
+        
+        if (padData.timestamp == m_LastPadTimestamps[p]) {
+            // No change from last poll
+            continue;
+        }
+        
+        m_LastPadTimestamps[p] = padData.timestamp;
+        
+        short buttonFlags = 0;
+        unsigned char leftTrigger = 0, rightTrigger = 0;
+        short leftStickX = 0, leftStickY = 0;
+        short rightStickX = 0, rightStickY = 0;
+        
+        // Handle buttons and triggers
+        for (unsigned int i = 0; i < padData.buttons_length; i++) {
+            if (i >= sizeof(k_XInputButtonMapping) / sizeof(k_XInputButtonMapping[0])) {
+                // Ignore unmapped buttons
+                break;
+            }
+            
+            // Handle triggers first
+            if (i == k_XInputTriggerButtonIndexes[0]) {
+                leftTrigger = padData.buttons[i] * 0xFF;
+            }
+            else if (i == k_XInputTriggerButtonIndexes[1]) {
+                rightTrigger = padData.buttons[i] * 0xFF;
+            }
+            // Now normal buttons
+            else if (padData.buttons[i] > 0.5f) {
+                buttonFlags |= k_XInputButtonMapping[i];
+            }
+        }
+        
+        // Get left stick values
+        if (padData.axes_length >= 2) {
+            leftStickX = padData.axes[0] * 0x7FFF;
+            leftStickY = -padData.axes[1] * 0x7FFF;
+        }
+        
+        // Get right stick values
+        if (padData.axes_length >= 4) {
+            rightStickX = padData.axes[2] * 0x7FFF;
+            rightStickY = -padData.axes[3] * 0x7FFF;
+        }
+        
+        LiSendMultiControllerEvent(p, buttonFlags, leftTrigger, rightTrigger,
+                                   leftStickX, leftStickY, rightStickX, rightStickY);
+    }
+}
