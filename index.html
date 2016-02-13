@@ -9,16 +9,41 @@
 </head>
 <body data-name="moonlight-chrome" data-width="1280" data-height="720" data-tools="pnacl" data-configs="Debug Release" data-path="{tc}/{config}">
 
-    <h1>Moonlight</h1>
-    <h2>Status: <code id="statusField">NO-STATUS</code></h2>
-    <p>Moonlight Streaming extension for Chrome</p>
+    <div id="title">
+        <h1>Moonlight Streaming</h1>
+        <h2>Chrome App Status: <code id="statusField">NO-STATUS</code></h2>
+    </div>
 
-    <p>Click the buttons. Click them.</p>
-    <button id="startButton">Start</button>
-    <button id="stopButton">Stop</button>
-
-    <p>Enter the IP or Hostname of the GFE streaming computer, then hit enter:</p>
+    <p>Enter the IP/hostname of the GFE streaming computer, or select one from the history:</p>
     <input type="text" size="15" id="GFEHostIPField" value="127.0.0.1">
+
+    <select>
+        <option value="">No history available</option>
+    </select>
+
+    <p></p>
+
+    <button id="pairButton">Pair</button>
+    <button id="showAppsButton">Retrieve App List</button>
+
+    <p></p>
+
+    <div id="testingDiv" style="border:3px solid red">
+        <button id="startButton">Start Testing Stuff</button>
+        <button id="stopButton">Stop Testing Stuff</button>
+    </div>
+
+    <div hidden id="gameSelectionDiv">
+        <p>Select a game to run</p>
+        <select>
+            <option value="game_id_1">Game Name 1</option>
+            <option value="game_id_2">Game Name 2</option>
+            <option value="game_id_3">Game Name 3</option>
+        </select>
+        <button id="startGameButton">Run Game</button>
+        <button id="quitGameButton">Quit Current Game</button>
+    </div>
+
 
     <!-- The NaCl plugin will be embedded inside the element with id "listener".
          See common.js. -->
