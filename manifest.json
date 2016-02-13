@@ -1,9 +1,8 @@
 {
+  "manifest_version": 2,
   "name": "Moonlight Chrome",
   "version": "0.01",
-  "manifest_version": 2,
   "description": "A Moonlight streaming plugin for Google Chrome",
-  "offline_enabled": true,
   "icons": {
     "128": "icons/icon128.png",
     "48": "icons/icon48.png",
@@ -12,9 +11,9 @@
   },
   "app": {
     "background": {
-      "persistent": false
+      "scripts": ["background.js"]
     }
   },
-  "permissions": []
+  "permissions": ["fullscreen", "alwaysOnTopWindows"]
 }
 
