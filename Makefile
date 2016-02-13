@@ -13,7 +13,7 @@ include $(NACL_SDK_ROOT)/tools/common.mk
 HTTPD_PY := $(HTTPD_PY) --no-dir-check
 
 
-LIBS = ppapi ppapi_cpp pthread nacl_io
+LIBS = ppapi_gles2 ppapi ppapi_cpp pthread nacl_io
 
 CFLAGS = -Wall -Wno-missing-braces
 SOURCES = \

@@ -96,24 +96,6 @@ bool MoonlightInstance::Init(uint32_t argc,
                              const char* argn[],
                              const char* argv[]) {
     g_Instance = this;
-    
-    int32_t context_attributes[] = {
-      PP_GRAPHICS3DATTRIB_ALPHA_SIZE,     8,
-      PP_GRAPHICS3DATTRIB_BLUE_SIZE,      8,
-      PP_GRAPHICS3DATTRIB_GREEN_SIZE,     8,
-      PP_GRAPHICS3DATTRIB_RED_SIZE,       8,
-      PP_GRAPHICS3DATTRIB_DEPTH_SIZE,     0,
-      PP_GRAPHICS3DATTRIB_STENCIL_SIZE,   0,
-      PP_GRAPHICS3DATTRIB_SAMPLES,        0,
-      PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
-      PP_GRAPHICS3DATTRIB_WIDTH,          500,
-      PP_GRAPHICS3DATTRIB_HEIGHT,         500,
-      PP_GRAPHICS3DATTRIB_NONE,
-  };
-  m_Graphics3D = new pp::Graphics3D(this, context_attributes);
-  assert(!m_Graphics3D->is_null());
-  assert(BindGraphics(*m_Graphics3D));
-    
     return true;
 }
 
