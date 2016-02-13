@@ -19,12 +19,28 @@ static int ConvertPPButtonToLiButton(PP_InputEvent_MouseButton ppButton) {
     }
 }
 
+void MoonlightInstance::DidLockMouse(int32_t result) {
+    m_MouseLocked = (result == PP_OK);
+}
+
+void MoonlightInstance::MouseLockLost() {
+    m_MouseLocked = false;
+}
+
 bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
     switch (event.GetType()) {
         case PP_INPUTEVENT_TYPE_MOUSEDOWN: {
+            // Lock the mouse cursor when the user clicks on the stream
+            if (!m_MouseLocked) {
+                g_Instance->LockMouse(g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
+                
+                // Assume it worked until we get a callback telling us otherwise
+                m_MouseLocked = true;
+            }
+            
             pp::MouseInputEvent mouseEvent(event);
             
-            LiSendMouseButtonEvent(ConvertPPButtonToLiButton(mouseEvent.GetButton()), BUTTON_ACTION_PRESS);
+            LiSendMouseButtonEvent(BUTTON_ACTION_PRESS, ConvertPPButtonToLiButton(mouseEvent.GetButton()));
             return true;
         }
         
@@ -39,7 +55,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         case PP_INPUTEVENT_TYPE_MOUSEUP: {
             pp::MouseInputEvent mouseEvent(event);
             
-            LiSendMouseButtonEvent(ConvertPPButtonToLiButton(mouseEvent.GetButton()), BUTTON_ACTION_RELEASE);
+            LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, ConvertPPButtonToLiButton(mouseEvent.GetButton()));
             return true;
         }
         
