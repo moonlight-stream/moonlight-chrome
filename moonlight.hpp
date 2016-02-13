@@ -2,6 +2,8 @@
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/var.h"
 #include "ppapi/cpp/mouse_lock.h"
+#include "ppapi/cpp/graphics_3d.h"
+#include "ppapi/cpp/video_decoder.h"
 
 #include "ppapi/c/ppb_gamepad.h"
 
@@ -13,7 +15,7 @@
 
 class MoonlightInstance : public pp::Instance, public pp::MouseLock {
     public:
-        explicit MoonlightInstance(PP_Instance instance) :
+        MoonlightInstance(PP_Instance instance) :
             pp::Instance(instance),
             pp::MouseLock(this),
             m_CallbackFactory(this),
@@ -35,31 +37,35 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void PollGamepads();
         
         void DidLockMouse(int32_t result);
-        
         void MouseLockLost();
         
         void OnConnectionStopped(uint32_t unused);
-        
         void OnConnectionStarted(uint32_t error);
         
         static void* ConnectionThreadFunc(void* context);
         
         static void ClStageStarting(int stage);
-
         static void ClStageFailed(int stage, long errorCode);
-
         static void ClConnectionStarted(void);
-
         static void ClConnectionTerminated(long errorCode);
-
         static void ClDisplayMessage(char* message);
-
         static void ClDisplayTransientMessage(char* message);
+        
+        void DispatchGetPicture(uint32_t unused);
+        void PictureReady(int32_t result, PP_VideoPicture picture);
+        
+        static void VidDecSetup(int width, int height, int redrawRate, void* context, int drFlags);
+        static void VidDecCleanup(void);
+        static int VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit);
 
     private:
+        static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
+        static DECODER_RENDERER_CALLBACKS s_DrCallbacks;
+    
+        pp::Graphics3D* m_Graphics3D;
+        pp::VideoDecoder* m_VideoDecoder;
         double m_LastPadTimestamps[4];
         const PPB_Gamepad* m_GamepadApi;
-        static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
         pp::CompletionCallbackFactory<MoonlightInstance> m_CallbackFactory;
         bool m_MouseLocked;
 };

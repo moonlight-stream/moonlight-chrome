@@ -23,8 +23,6 @@ class MoonlightModule : public pp::Module {
 };
 
 void MoonlightInstance::OnConnectionStarted(uint32_t unused) {
-    printf("Connection started\n");
-    
     // Start receiving input events
     g_Instance->RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE);
     g_Instance->RequestFilteringInputEvents(PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
@@ -45,7 +43,8 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
     err = LiStartConnection(s_Host,
                             &s_StreamConfig,
                             &MoonlightInstance::s_ClCallbacks,
-                            NULL, NULL,
+                            &MoonlightInstance::s_DrCallbacks,
+                            NULL,
                             NULL, 0, 4);
     if (err != 0) {
         pp::Var response("Starting connection failed");
@@ -94,6 +93,24 @@ bool MoonlightInstance::Init(uint32_t argc,
                              const char* argn[],
                              const char* argv[]) {
     g_Instance = this;
+    
+    int32_t context_attributes[] = {
+      PP_GRAPHICS3DATTRIB_ALPHA_SIZE,     8,
+      PP_GRAPHICS3DATTRIB_BLUE_SIZE,      8,
+      PP_GRAPHICS3DATTRIB_GREEN_SIZE,     8,
+      PP_GRAPHICS3DATTRIB_RED_SIZE,       8,
+      PP_GRAPHICS3DATTRIB_DEPTH_SIZE,     0,
+      PP_GRAPHICS3DATTRIB_STENCIL_SIZE,   0,
+      PP_GRAPHICS3DATTRIB_SAMPLES,        0,
+      PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
+      PP_GRAPHICS3DATTRIB_WIDTH,          500,
+      PP_GRAPHICS3DATTRIB_HEIGHT,         500,
+      PP_GRAPHICS3DATTRIB_NONE,
+  };
+  m_Graphics3D = new pp::Graphics3D(this, context_attributes);
+  assert(!m_Graphics3D->is_null());
+  assert(BindGraphics(*m_Graphics3D));
+    
     return true;
 }
 
