@@ -4,6 +4,9 @@ TARGET = moonlight-chrome
 
 include $(NACL_SDK_ROOT)/tools/common.mk
 
+# Dirty hack to allow 'make serve' to work in this directory
+HTTPD_PY := $(HTTPD_PY) --no-dir-check
+
 # Include Moonlight-Common-C makefile
 include common-c.mk
 
