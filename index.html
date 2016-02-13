@@ -12,12 +12,14 @@
     <div id="title">
         <h1>Moonlight Streaming</h1>
         <h2>Chrome App Status: <code id="statusField">NO-STATUS</code></h2>
+        <p></p>
+        <code id="logField">log</code>
     </div>
 
     <p>Enter the IP/hostname of the GFE streaming computer, or select one from the history:</p>
     <input type="text" size="15" id="GFEHostIPField" value="127.0.0.1">
 
-    <select>
+    <select id="selectHost">
         <option value="">No history available</option>
     </select>
 
@@ -35,7 +37,7 @@
 
     <div hidden id="gameSelectionDiv">
         <p>Select a game to run</p>
-        <select>
+        <select id="selectGame">
             <option value="game_id_1">Game Name 1</option>
             <option value="game_id_2">Game Name 2</option>
             <option value="game_id_3">Game Name 3</option>
