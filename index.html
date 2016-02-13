@@ -1,18 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="-1">
-  <title>Moonlight</title>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <title>Moonlight</title>
+    <script src="common.js"></script>
+    <script src="index.js"></script>
 </head>
 <body data-name="moonlight" data-tools="pnacl" data-configs="Debug Release" data-path="{tc}/{config}">
 
-  <div id="listener">
-      <embed id="moonlight"
-             width=0 height=0
-             src="pnacl/Release/moonlight-chrome.nmf"
-             type="application/x-pnacl" />
-	</div>
+    <h1>Moonlight</h1>
+    <h2>Status: <code id="statusField">NO-STATUS</code></h2>
+    <p>Moonlight Streaming extension for Chrome</p>
+
+    <p>Click the buttons. Click them.</p>
+    <button id="startButton">Start</button>
+    <button id="stopButton">Stop</button>
+
+    <p>Enter the IP or Hostname of the GFE streaming computer, then hit enter:</p>
+    <input type="text" size="15" id="GFEHostIPField" value="127.0.0.1">
+
+    <div id="listener">
+        <embed id="moonlight"
+        width=0 height=0
+        src="pnacl/Release/moonlight-chrome.nmf"
+        type="application/x-pnacl" />
+    </div>
 </body>
 </html>
 
