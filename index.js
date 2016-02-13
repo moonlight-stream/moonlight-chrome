@@ -2,7 +2,6 @@
 function attachListeners() {
     document.getElementById('startButton').addEventListener('click', startPushed);
     document.getElementById('stopButton').addEventListener('click', stopPushed);
-    document.getElementById('GFEHostIPField').addEventListener('change', changeGFEHostIPField);
 }
 
 // Called by the common.js module.
@@ -18,15 +17,11 @@ function getGFEHostIPField() {
 
 function startPushed() {
     common.naclModule.postMessage('setGFEHostIPField:' + getGFEHostIPField().value);
-    common.naclModule.postMessage('startPushed');
+    //common.naclModule.postMessage('startPushed');
 }
 
 function stopPushed() {
     common.naclModule.postMessage('stopPushed');
-}
-
-function changeGFEHostIPField() {
-    common.naclModule.postMessage('setGFEHostIPField:' + getGFEHostIPField().value);
 }
 
 // Called by the common.js module.
