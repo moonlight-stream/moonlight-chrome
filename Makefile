@@ -12,6 +12,7 @@ include $(NACL_SDK_ROOT)/tools/common.mk
 # Dirty hack to allow 'make serve' to work in this directory
 HTTPD_PY := $(HTTPD_PY) --no-dir-check
 
+CHROME_ARGS += --allow-nacl-socket-api=localhost
 
 LIBS = ppapi_gles2 ppapi ppapi_cpp pthread nacl_io
 

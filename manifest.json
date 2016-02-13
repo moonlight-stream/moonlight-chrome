@@ -1,6 +1,6 @@
 {
     "manifest_version": 2,
-    "name": "Moonlight Chrome",
+    "name": "Moonlight",
     "version": "0.01",
     "description": "A Moonlight streaming plugin for Google Chrome",
     "icons": {
@@ -15,6 +15,14 @@
             "scripts": ["background.js"]
         }
     },
-    "permissions": ["fullscreen"]
+    "permissions": [
+        "fullscreen", {
+        "socket": [
+            "tcp-connect", 
+            "resolve-host", 
+            "udp-bind:*:*", 
+            "udp-send-to:*:*"
+        ] }
+    ]
 }
 
