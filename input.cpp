@@ -36,6 +36,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
                 
                 // Assume it worked until we get a callback telling us otherwise
                 m_MouseLocked = true;
+                return true;
             }
             
             pp::MouseInputEvent mouseEvent(event);
@@ -45,6 +46,10 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_MOUSEMOVE: {
+            if (!m_MouseLocked) {
+                return false;
+            }
+            
             pp::MouseInputEvent mouseEvent(event);
             pp::Point posDelta = mouseEvent.GetMovement();
             
@@ -53,6 +58,10 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_MOUSEUP: {
+            if (!m_MouseLocked) {
+                return false;
+            }
+            
             pp::MouseInputEvent mouseEvent(event);
             
             LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, ConvertPPButtonToLiButton(mouseEvent.GetButton()));
@@ -60,6 +69,10 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_WHEEL: {
+            if (!m_MouseLocked) {
+                return false;
+            }
+            
             pp::WheelInputEvent wheelEvent(event);
             
             // FIXME: Handle fractional scroll ticks
