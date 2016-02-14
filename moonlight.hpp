@@ -54,7 +54,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void handleShowGames(std::string showGamesMessage);
         void handleStartStream(std::string startStreamMessage);
         void handleStopStream(std::string stopStreamMessage);
-
         
         void UpdateModifiers(PP_InputEvent_Type eventType, short keyCode);
         bool HandleInputEvent(const pp::InputEvent& event);

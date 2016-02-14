@@ -31,6 +31,7 @@ void MoonlightInstance::DidLockMouse(int32_t result) {
 
 void MoonlightInstance::MouseLockLost() {
     m_MouseLocked = false;
+    m_KeyModifiers = 0;
 }
 
 void MoonlightInstance::UpdateModifiers(PP_InputEvent_Type eventType, short keyCode) {
@@ -126,6 +127,12 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             
             // Update modifier state before sending the key event
             UpdateModifiers(event.GetType(), keyboardEvent.GetKeyCode());
+            
+            if (m_KeyModifiers == (MODIFIER_ALT | MODIFIER_CTRL | MODIFIER_SHIFT)) {
+                g_Instance->UnlockMouse();
+                m_MouseLocked = false;
+                return true;
+            }
             
             LiSendKeyboardEvent(KEY_PREFIX << 8 | keyboardEvent.GetKeyCode(),
                                 KEY_ACTION_DOWN, m_KeyModifiers);

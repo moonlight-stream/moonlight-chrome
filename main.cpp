@@ -101,7 +101,7 @@ void MoonlightInstance::handleShowGames(std::string showGamesMessage) {
 }
 
 void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
-        // Populate the stream configuration
+    // Populate the stream configuration
     LiInitializeStreamConfiguration(&s_StreamConfig);
     s_StreamConfig.width = 1280;
     s_StreamConfig.height = 720;
@@ -112,7 +112,7 @@ void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
     s_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
 
     // Store the host, which is between two colons
-    std::string host = startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE), startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE)).find(":") + 1);
+    std::string host = startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE), startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE)).find(":"));
     strcpy(s_Host, host.c_str());
     
     // store the gameID to start, which is after the last colon
