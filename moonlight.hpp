@@ -4,6 +4,7 @@
 #include "ppapi/cpp/mouse_lock.h"
 #include "ppapi/cpp/graphics_3d.h"
 #include "ppapi/cpp/video_decoder.h"
+#include "ppapi/cpp/audio.h"
 
 #include "ppapi/c/ppb_gamepad.h"
 #include "ppapi/c/pp_input_event.h"
@@ -22,6 +23,8 @@
 
 #include <Limelight.h>
 
+#include <opus_multistream.h>
+
 struct Shader {
   Shader() : program(0), texcoord_scale_location(0) {}
   ~Shader() {}
@@ -36,6 +39,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             pp::Instance(instance),
             pp::MouseLock(this),
             m_IsPainting(false),
+            m_OpusDecoder(NULL),
             m_CallbackFactory(this),
             m_MouseLocked(false),
             m_KeyModifiers(0) {            
@@ -89,10 +93,15 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void VidDecSetup(int width, int height, int redrawRate, void* context, int drFlags);
         static void VidDecCleanup(void);
         static int VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit);
-
+        
+        static void AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig);
+        static void AudDecCleanup(void);
+        static void AudDecDecodeAndPlaySample(char* sampleData, int sampleLength);
+        
     private:
         static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
         static DECODER_RENDERER_CALLBACKS s_DrCallbacks;
+        static AUDIO_RENDERER_CALLBACKS s_ArCallbacks;
     
         pp::Graphics3D m_Graphics3D;
         pp::VideoDecoder* m_VideoDecoder;
@@ -102,6 +111,9 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         Shader m_ExternalOesShader;
         std::queue<PP_VideoPicture> m_PendingPictureQueue;
         bool m_IsPainting;
+        
+        OpusMSDecoder* m_OpusDecoder;
+        pp::Audio m_AudioPlayer;
         
         double m_LastPadTimestamps[4];
         const PPB_Gamepad* m_GamepadApi;

@@ -53,7 +53,7 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
                             &s_StreamConfig,
                             &MoonlightInstance::s_ClCallbacks,
                             &MoonlightInstance::s_DrCallbacks,
-                            NULL,
+                            &MoonlightInstance::s_ArCallbacks,
                             NULL, 0, 4);
     if (err != 0) {
         pp::Var response("Starting connection failed");
