@@ -2,10 +2,11 @@ VALID_TOOLCHAINS := pnacl
 
 TARGET = moonlight-chrome
 
-# Include Moonlight-Common-C makefile
+# Include library makefiles
 include common-c.mk
+include opus.mk
 
-EXTRA_INC_PATHS := $(EXTRA_INC_PATHS) $(COMMON_C_INCLUDE)
+EXTRA_INC_PATHS := $(EXTRA_INC_PATHS) $(COMMON_C_INCLUDE) $(OPUS_INCLUDE)
 
 include $(NACL_SDK_ROOT)/tools/common.mk
 
@@ -16,8 +17,10 @@ CHROME_ARGS += --allow-nacl-socket-api=localhost
 
 LIBS = ppapi_gles2 ppapi ppapi_cpp pthread nacl_io
 
-CFLAGS = -Wall -Wno-missing-braces
+CFLAGS = -Wall $(COMMON_C_C_FLAGS) $(OPUS_C_FLAGS)
+
 SOURCES = \
+    $(OPUS_SOURCE)           \
     $(COMMON_C_SOURCE)       \
     libchelper.c             \
     main.cpp                 \

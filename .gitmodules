@@ -1,3 +1,6 @@
 [submodule "moonlight-common-c"]
 	path = moonlight-common-c
 	url = https://github.com/moonlight-stream/moonlight-common-c.git
+[submodule "opus"]
+	path = opus
+	url = https://github.com/xiph/opus.git

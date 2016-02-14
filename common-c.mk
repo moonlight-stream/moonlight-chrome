@@ -27,3 +27,5 @@ COMMON_C_SOURCE := \
 	$(OPENAES_SOURCE)                     \
 
 COMMON_C_INCLUDE := $(COMMON_C_DIR) $(OPENAES_INCLUDE)
+
+COMMON_C_C_FLAGS := -Wno-missing-braces
