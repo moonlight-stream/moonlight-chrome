@@ -87,16 +87,21 @@ void MoonlightInstance::HandleMessage(const pp::Var& var_message) {
     } else if (strncmp(message.c_str(), STOP_DIRECTIVE, strlen(STOP_DIRECTIVE)) == 0) {
         handleStopStream(message);
     } else {
-        //      :(
+        pp::Var response("Unhandled message received: " + message);
+        PostMessage(response);
     }
 
 }
 
 void MoonlightInstance::handlePair(std::string pairMessage) {
+    pp::Var response("Pair button pushed. Pairing is unimplemented.");
+    PostMessage(response);
     std::string intendedHost = pairMessage.substr(pairMessage.find(PAIR_DIRECTIVE) + strlen(PAIR_DIRECTIVE));
 }
 
 void MoonlightInstance::handleShowGames(std::string showGamesMessage) {
+    pp::Var response("Show Games button pushed.  Show Games is unimplemented");
+    PostMessage(response);
     std::string host = showGamesMessage.substr(showGamesMessage.find(SHOW_GAMES_DIRECTIVE) + strlen(SHOW_GAMES_DIRECTIVE));
 }
 
@@ -119,7 +124,7 @@ void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
     std::string gameID = startStreamMessage.substr(startStreamMessage.find(host) + host.length() + 1); // +1 for the colon delimiter
 
     // Post a status update before we begin
-    pp::Var response("Starting connection...");
+    pp::Var response("Starting connection to " + host + " to play game ID " + gameID);
     PostMessage(response);
     
     // Start the worker thread to establish the connection
@@ -128,7 +133,8 @@ void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
 }
 
 void MoonlightInstance::handleStopStream(std::string stopStreamMessage) {
-
+    pp::Var response("Stop button pushed. Ignoring.");
+    PostMessage(response);
 }
 
 bool MoonlightInstance::Init(uint32_t argc,

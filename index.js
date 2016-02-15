@@ -6,6 +6,22 @@ function attachListeners() {
     document.getElementById('showAppsButton').addEventListener('click', showAppsPushed);
 }
 
+function moduleDidLoad() {
+    common.naclModule = document.getElementById('nacl_module');
+    var logEl = document.getElementById('logField');
+    logEl.innerHTML = "module loaded";
+}
+
+// we want the user to progress through the streaming process
+// but to save from the PITA of inter-chrome-app-page JS message passing,
+// I'm opting to 
+function hideAllWorkflowDivs() {
+    document.getElementById('streamSettings').style.display = 'inline-block';
+    document.getElementById('hostSettings').style.display = 'inline-block';
+    document.getElementById('gameSelection').style.display = 'none';
+    document.getElementById('listener').style.display = 'none';
+}
+
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
 function pairPushed() {
     common.naclModule.postMessage('pair:' + document.getElementById('GFEHostIPField').value);
@@ -21,7 +37,11 @@ function showAppsPushed() {
         target = e.options[e.selectedIndex].value;
     }
     common.naclModule.postMessage('showAppsPushed:' + target);
-    document.getElementById("gameSelectionDiv").style.display = "visible";
+    // we just finished the hostSettings section. expose the next one
+    document.getElementById('streamSettings').style.display = 'none';
+    document.getElementById('hostSettings').style.display = 'none'
+    document.getElementById('gameSelection').style.display = 'inline-block'
+    document.getElementById('listener').style.display = 'none'
 }
 
 // user wants to start a stream.  We need the host, game ID, and video settings(?)
@@ -35,6 +55,14 @@ function startPushed() {
     var gameIDDropdown = document.getElementById("selectGame");
     var gameID = gameIDDropdown[gameIDDropdown.selectedIndex].value;
     common.naclModule.postMessage('setGFEHostIPField:' + target + ":" + gameID);
+    
+    // we just finished the gameSelection section. only expose the NaCl section
+    document.getElementById('streamSettings').style.display = 'none';
+    document.getElementById('hostSettings').style.display = 'none';
+    document.getElementById('gameSelection').style.display = 'none'
+    document.getElementById('testingDiv').style.display = 'none'
+    document.getElementById('listener').style.display = 'inline-block'
+    document.getElementById('title').style.display = 'none'
 }
 
 // user pushed the stop button. we should stop.
@@ -47,3 +75,5 @@ function handleMessage(msg) {
     var logEl = document.getElementById('logField');
     logEl.innerHTML = msg.data;
 }
+
+// window.onload = hideAllWorkflowDivs;
