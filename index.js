@@ -24,12 +24,13 @@ function hideAllWorkflowDivs() {
 
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
 function pairPushed() {
-    common.naclModule.postMessage('pair:' + document.getElementById('GFEHostIPField').value);
+    // common.naclModule.postMessage('pair:' + document.getElementById('GFEHostIPField').value);
 }
 
 // someone pushed the "show apps" button. 
 // if they entered something in the GFEHostIPField, use that.
 // otherwise, we assume they selected from the host history dropdown.
+// TODO: pass the host info to the appChoose screen
 function showAppsPushed() {
     var target = document.getElementById('GFEHostIPField').value;
     if (target == null || target == "127.0.0.1") {
@@ -75,5 +76,3 @@ function handleMessage(msg) {
     var logEl = document.getElementById('logField');
     logEl.innerHTML = msg.data;
 }
-
-// window.onload = hideAllWorkflowDivs;
