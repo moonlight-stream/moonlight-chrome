@@ -7,7 +7,6 @@ function attachListeners() {
 }
 
 function moduleDidLoad() {
-    common.naclModule = document.getElementById('nacl_module');
     var logEl = document.getElementById('logField');
     logEl.innerHTML = "module loaded";
 }
@@ -19,7 +18,7 @@ function hideAllWorkflowDivs() {
     document.getElementById('streamSettings').style.display = 'inline-block';
     document.getElementById('hostSettings').style.display = 'inline-block';
     document.getElementById('gameSelection').style.display = 'none';
-    document.getElementById('listener').style.display = 'none';
+    common.hideModule(); // do NOT hide the nacl module. you can't interact with it then
 }
 
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
@@ -46,7 +45,7 @@ function showAppsMode() {
     document.getElementById('streamSettings').style.display = 'none';
     document.getElementById('hostSettings').style.display = 'none'
     document.getElementById('gameSelection').style.display = 'inline-block'
-    document.getElementById('listener').style.display = 'none'
+    common.hideModule(); // do NOT hide the nacl module. you can't interact with it then
 }
 
 // user wants to start a stream.  We need the host, game ID, and video settings(?)
@@ -59,6 +58,7 @@ function startPushed() {
     }
     var gameIDDropdown = document.getElementById("selectGame");
     var gameID = gameIDDropdown[gameIDDropdown.selectedIndex].value;
+    console.log(common.naclModule);
     common.naclModule.postMessage('setGFEHostIPField:' + target + ":" + gameID);
     // we just finished the gameSelection section. only expose the NaCl section
     playGameMode();
@@ -66,7 +66,7 @@ function startPushed() {
 
 function playGameMode() {
     $("body").children().not("#listener").hide();
-    $("body").addClass("fullscreen");
+    $("body").addClass("fullscreen")
 }
 
 // user pushed the stop button. we should stop.
