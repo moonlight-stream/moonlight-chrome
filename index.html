@@ -4,48 +4,70 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="-1">
     <title>Moonlight</title>
-    <script type="text/javascript" src="common.js"></script>
-    <script type="text/javascript" src="index.js"></script>
+    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"> -->
+    <link rel="stylesheet" href="static/css/material.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body data-name="moonlight-chrome" data-width="1280" data-height="720" data-tools="pnacl" data-configs="Debug Release" data-path="{tc}/{config}">
-    <div id="title">
-        <h1>Moonlight Streaming</h1>
-        <h2>Chrome App Status: <code id="statusField">NO-STATUS</code></h2>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <header class="mdl-layout__header">
+            <div class="mdl-layout__header-row">
+                <!-- Title -->
+                <span class="mdl-layout-title">Moonlight</span>
+                <!-- Add spacer, to align navigation to the right -->
+                <div class="mdl-layout-spacer"></div>
+                <!-- Navigation. We hide it in small screens. -->
+                <ul class='mdl-list'>
+                    <li>Chrome App Status: <code id="statusField">NO-STATUS</code></li>
+                </ul>   
+            </div>
+        </header>
+        <main class="mdl-layout__content">
+            <div class="log-holder">
+                <code id="logField">log</code></div>
+            <div id="streamSettings" style="display:none"></div>
+
+            <div id="hostSettings">
+                <p>Enter the IP/hostname of the GFE streaming computer, or select one from the history:</p>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="GFEHostIPField">
+                    <label class="mdl-textfield__label" for="GFEHostIPField">IP Address</label>
+                </div>
+                <div class="mdl-select">
+                    <select id="selectHost">
+                        <option value="">No history available</option>
+                    </select>
+                </div>
+                <div class="button-holder">
+                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="pairButton">Pair</button>
+                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="showAppsButton">Retrieve App List</button>
+                </div>
+            </div>
+
+            <div id="testingDiv">
+                <button id="startButton" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Start Testing Stuff</button>
+                <button id="stopButton" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">Stop Testing Stuff</button>
+            </div>
+
+            <div id="gameSelection" style="display:none">
+                <p>Select a game to run</p>
+                <select id="selectGame">
+                    <option value="game_id_1">Game Name 1</option>
+                    <option value="game_id_2">Game Name 2</option>
+                    <option value="game_id_3">Game Name 3</option>
+                </select>
+                <button id="startGameButton">Run Game</button>
+                <button id="quitGameButton">Quit Current Game</button>
+            </div>
+
+            <!-- The NaCl plugin will be embedded inside the element with id "listener".
+                 See common.js. -->
+            <div id="listener"></div>
+        </main>
     </div>
-    <code id="logField">log</code>
-
-    <div id="streamSettings" style="display:none"></div>
-
-    <div id="hostSettings">
-        <p>Enter the IP/hostname of the GFE streaming computer, or select one from the history:</p>
-        <input type="text" size="15" id="GFEHostIPField" value="127.0.0.1">
-        <select id="selectHost">
-            <option value="">No history available</option>
-        </select>
-        <p></p>
-        <button id="pairButton">Pair</button>
-        <button id="showAppsButton">Retrieve App List</button>
-    </div>
-
-    <div id="testingDiv" style="border:3px solid red">
-        <button id="startButton">Start Testing Stuff</button>
-        <button id="stopButton">Stop Testing Stuff</button>
-    </div>
-
-    <div id="gameSelection" style="display:none">
-        <p>Select a game to run</p>
-        <select id="selectGame">
-            <option value="game_id_1">Game Name 1</option>
-            <option value="game_id_2">Game Name 2</option>
-            <option value="game_id_3">Game Name 3</option>
-        </select>
-        <button id="startGameButton">Run Game</button>
-        <button id="quitGameButton">Quit Current Game</button>
-    </div>
-
-
-    <!-- The NaCl plugin will be embedded inside the element with id "listener".
-         See common.js. -->
-    <div id="listener"></div>
+    <script defer src="static/js/jquery-2.2.0.min.js"></script>
+    <script defer src="static/js/material.min.js"></script>
+    <script type="text/javascript" src="static/js/common.js"></script>
+    <script type="text/javascript" src="static/js/index.js"></script>
 </body>
 </html>

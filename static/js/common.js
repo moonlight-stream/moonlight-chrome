@@ -327,11 +327,10 @@ var common = (function() {
 
     if (typeof window.handleMessage !== 'undefined') {
       window.handleMessage(message_event);
-      return;
+    } else {
+      logMessage('Unhandled message: ' + message_event.data);
     }
-
-    logMessage('Unhandled message: ' + message_event.data);
-  }
+  } // TODO: page reloads here???
 
   /**
    * Called when the DOM content has loaded; i.e. the page's document is fully

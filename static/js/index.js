@@ -14,7 +14,7 @@ function moduleDidLoad() {
 
 // we want the user to progress through the streaming process
 // but to save from the PITA of inter-chrome-app-page JS message passing,
-// I'm opting to 
+// I'm opting to do it in a single page, and keep the data around.
 function hideAllWorkflowDivs() {
     document.getElementById('streamSettings').style.display = 'inline-block';
     document.getElementById('hostSettings').style.display = 'inline-block';
@@ -24,7 +24,7 @@ function hideAllWorkflowDivs() {
 
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
 function pairPushed() {
-    // common.naclModule.postMessage('pair:' + document.getElementById('GFEHostIPField').value);
+    common.naclModule.postMessage('pair:' + document.getElementById('GFEHostIPField').value);
 }
 
 // someone pushed the "show apps" button. 
@@ -39,6 +39,10 @@ function showAppsPushed() {
     }
     common.naclModule.postMessage('showAppsPushed:' + target);
     // we just finished the hostSettings section. expose the next one
+    showAppsMode();
+}
+
+function showAppsMode() {
     document.getElementById('streamSettings').style.display = 'none';
     document.getElementById('hostSettings').style.display = 'none'
     document.getElementById('gameSelection').style.display = 'inline-block'
@@ -56,14 +60,13 @@ function startPushed() {
     var gameIDDropdown = document.getElementById("selectGame");
     var gameID = gameIDDropdown[gameIDDropdown.selectedIndex].value;
     common.naclModule.postMessage('setGFEHostIPField:' + target + ":" + gameID);
-    
     // we just finished the gameSelection section. only expose the NaCl section
-    document.getElementById('streamSettings').style.display = 'none';
-    document.getElementById('hostSettings').style.display = 'none';
-    document.getElementById('gameSelection').style.display = 'none'
-    document.getElementById('testingDiv').style.display = 'none'
-    document.getElementById('listener').style.display = 'inline-block'
-    document.getElementById('title').style.display = 'none'
+    playGameMode();
+}
+
+function playGameMode() {
+    $("body").children().not("#listener").hide();
+    $("body").addClass("fullscreen");
 }
 
 // user pushed the stop button. we should stop.
@@ -73,6 +76,11 @@ function stopPushed() {
 
 // hook from main.cpp into the javascript
 function handleMessage(msg) {
+    var quitStreamString = "quitStream";
     var logEl = document.getElementById('logField');
     logEl.innerHTML = msg.data;
+    if (msg.data.lastIndexOf(quitStreamString, 0) === 0) {
+        showAppsMode();
+    }
 }
+
