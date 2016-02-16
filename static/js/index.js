@@ -4,6 +4,7 @@ function attachListeners() {
     document.getElementById('stopButton').addEventListener('click', stopPushed);
     document.getElementById('pairButton').addEventListener('click', pairPushed);
     document.getElementById('showAppsButton').addEventListener('click', showAppsPushed);
+    window.addEventListener("resize", fullscreenNaclModule);
 }
 
 function moduleDidLoad() {
