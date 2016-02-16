@@ -119,7 +119,7 @@ void MoonlightInstance::VidDecSetup(int width, int height, int redrawRate, void*
     
     g_Instance->m_VideoDecoder->Initialize(g_Instance->m_Graphics3D,
                                            PP_VIDEOPROFILE_H264HIGH,
-                                           PP_HARDWAREACCELERATION_ONLY,
+                                           PP_HARDWAREACCELERATION_WITHFALLBACK,
                                            0,
                                            pp::BlockUntilComplete());
     
