@@ -68,8 +68,13 @@ function playGameMode() {
     $("#main-content").children().not("#listener").hide();
     $("#main-content").addClass("fullscreen");
     $("#listener").addClass("fullscreen");
-    console.log("abdallah is fucking awesome");
+    fullscreenNaclModule();
+}
 
+function fullscreenNaclModule() {
+    var body = document.getElementById("nacl_module");
+    body.width=window.innerWidth; 
+    body.height=window.innerHeight;
 }
 
 // user pushed the stop button. we should stop.
