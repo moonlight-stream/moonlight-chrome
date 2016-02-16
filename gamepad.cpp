@@ -4,16 +4,17 @@
 
 #include <Limelight.h>
 
-static const unsigned short k_XInputButtonMapping[] = {
+static const unsigned short k_StandardGamepadButtonMapping[] = {
     A_FLAG, B_FLAG, X_FLAG, Y_FLAG,
     LB_FLAG, RB_FLAG,
     0, 0, // Triggers
     BACK_FLAG, PLAY_FLAG,
     LS_CLK_FLAG, RS_CLK_FLAG,
-    UP_FLAG, DOWN_FLAG, LEFT_FLAG, RIGHT_FLAG
+    UP_FLAG, DOWN_FLAG, LEFT_FLAG, RIGHT_FLAG,
+    SPECIAL_FLAG
 };
 
-static const unsigned int k_XInputTriggerButtonIndexes[] = {
+static const unsigned int k_StandardGamepadTriggerButtonIndexes[] = {
     6, 7
 };
 
@@ -44,21 +45,21 @@ void MoonlightInstance::PollGamepads() {
         
         // Handle buttons and triggers
         for (unsigned int i = 0; i < padData.buttons_length; i++) {
-            if (i >= sizeof(k_XInputButtonMapping) / sizeof(k_XInputButtonMapping[0])) {
+            if (i >= sizeof(k_StandardGamepadButtonMapping) / sizeof(k_StandardGamepadButtonMapping[0])) {
                 // Ignore unmapped buttons
                 break;
             }
             
             // Handle triggers first
-            if (i == k_XInputTriggerButtonIndexes[0]) {
+            if (i == k_StandardGamepadTriggerButtonIndexes[0]) {
                 leftTrigger = padData.buttons[i] * 0xFF;
             }
-            else if (i == k_XInputTriggerButtonIndexes[1]) {
+            else if (i == k_StandardGamepadTriggerButtonIndexes[1]) {
                 rightTrigger = padData.buttons[i] * 0xFF;
             }
             // Now normal buttons
             else if (padData.buttons[i] > 0.5f) {
-                buttonFlags |= k_XInputButtonMapping[i];
+                buttonFlags |= k_StandardGamepadButtonMapping[i];
             }
         }
         
