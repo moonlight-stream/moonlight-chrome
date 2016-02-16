@@ -73,9 +73,19 @@ function playGameMode() {
 }
 
 function fullscreenNaclModule() {
+    var streamWidth = 1280; // TODO: once stream size is selectable, use those variables
+    var streamHeight = 720;
+    var screenWidth = window.innerWidth;
+    var screenHeight = window.innerHeight;
+
+    var xRatio = screenWidth / streamWidth;
+    var yRatio = screenHeight / streamHeight;
+
+    var zoom = Math.min(xRatio, yRatio);
+
     var body = document.getElementById("nacl_module");
-    body.width=window.innerWidth; 
-    body.height=window.innerHeight;
+    body.width=zoom * streamWidth;
+    body.height=zoom * streamHeight;
 }
 
 // user pushed the stop button. we should stop.
