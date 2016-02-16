@@ -28,4 +28,4 @@ COMMON_C_SOURCE := \
 
 COMMON_C_INCLUDE := $(COMMON_C_DIR) $(OPENAES_INCLUDE)
 
-COMMON_C_C_FLAGS := -Wno-missing-braces
+COMMON_C_C_FLAGS := -DLC_CHROME -Wno-missing-braces
