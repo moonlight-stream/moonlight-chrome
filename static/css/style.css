@@ -1,0 +1,52 @@
+.mdl-layout__header-row {
+	color: #fff;
+}
+.mdl-button {
+	color: #fff !important;
+}
+main {
+	padding: 50px 100px;
+}
+.log-holder {
+	margin-bottom: 10px;
+}
+#hostSettings {
+	padding: 5px 10px;
+	border: 1px dashed;
+	margin: 10px 0;
+}
+#hostSettings p {
+	margin: 0;
+}
+#hostSettings div {
+	display: inline-block;
+}
+#hostSettings .mdl-textfield {
+	width: 200px;
+	margin-right: 20px;
+}
+#hostSettings #selectHost {
+	line-height: 20px;
+	height: 20px;
+	background: none;
+}
+#hostSettings .button-holder {
+	float: right;
+}
+#testingDiv {
+	border: 1px dashed;
+	padding: 10px;
+}
+#listener {
+	overflow: hidden;
+	margin-top: 20px;
+	border: 1px solid;
+}
+.fullscreen {
+	height: 100vh !important;
+	overflow: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	width 100%;
+	border: none !important;
+}
