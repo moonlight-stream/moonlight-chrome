@@ -38,3 +38,4 @@ dir.stamp
 *.nexe
 *.pexe
 *.nmf
+*.bc
