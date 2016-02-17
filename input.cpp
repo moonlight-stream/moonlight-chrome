@@ -129,9 +129,15 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             UpdateModifiers(event.GetType(), keyboardEvent.GetKeyCode());
             
             if (m_KeyModifiers == (MODIFIER_ALT | MODIFIER_CTRL | MODIFIER_SHIFT)) {
-                g_Instance->UnlockMouse();
-                m_MouseLocked = false;
-                return true;
+                if (keyboardEvent.GetKeyCode() == 0x51) { // Q key
+                    // Call our connection listener to do the cleanup for us
+                    MoonlightInstance::ClConnectionTerminated(0);
+                    return true;
+                }
+                else {
+                    // Wait until these keys come up to unlock the mouse
+                    m_WaitingForAllModifiersUp = true;
+                }
             }
             
             LiSendKeyboardEvent(KEY_PREFIX << 8 | keyboardEvent.GetKeyCode(),
@@ -148,6 +154,13 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             
             // Update modifier state before sending the key event
             UpdateModifiers(event.GetType(), keyboardEvent.GetKeyCode());
+             
+            // Check if all modifiers are up now
+            if (m_WaitingForAllModifiersUp && m_KeyModifiers == 0) {
+                g_Instance->UnlockMouse();
+                m_MouseLocked = false;
+                m_WaitingForAllModifiersUp = false;
+            }
             
             LiSendKeyboardEvent(KEY_PREFIX << 8 | keyboardEvent.GetKeyCode(),
                                 KEY_ACTION_UP, m_KeyModifiers);

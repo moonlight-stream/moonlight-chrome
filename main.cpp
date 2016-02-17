@@ -43,6 +43,9 @@ void MoonlightInstance::OnConnectionStopped(uint32_t error) {
     
     // Unlock the mouse
     g_Instance->UnlockMouse();
+    
+    pp::Var response("Connection terminated");
+    g_Instance->PostMessage(response);
 }
 
 void* MoonlightInstance::ConnectionThreadFunc(void* context) {

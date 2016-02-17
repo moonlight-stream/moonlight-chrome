@@ -21,11 +21,11 @@ void MoonlightInstance::ClConnectionStarted(void) {
 }
 
 void MoonlightInstance::ClConnectionTerminated(long errorCode) {
+    // Teardown the connection
+    LiStopConnection();
+    
     pp::Module::Get()->core()->CallOnMainThread(0,
         g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::OnConnectionStopped), (uint32_t)errorCode);
-    
-    pp::Var response("Connection terminated");
-    g_Instance->PostMessage(response);
 }
 
 void MoonlightInstance::ClDisplayMessage(char* message) {
