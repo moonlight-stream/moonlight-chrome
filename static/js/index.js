@@ -43,10 +43,12 @@ function showAppsPushed() {
 }
 
 function showAppsMode() {
+    console.log("entering show apps mode.")
     document.getElementById('streamSettings').style.display = 'none';
     document.getElementById('hostSettings').style.display = 'none';
     document.getElementById('gameSelection').style.display = 'inline-block';
-    document.body.style.backgroundColor = "black";
+    $("#main-content").children().not("#listener").display = "inline-block";
+    document.body.style.backgroundColor = "white";
     // common.hideModule(); // do NOT hide the nacl module. you can't interact with it then
 }
 
@@ -101,7 +103,9 @@ function handleMessage(msg) {
     var quitStreamString = "quitStream";
     var logEl = document.getElementById('logField');
     logEl.innerHTML = msg.data;
+    console.log("message received: " + msg.data);
     if (msg.data.lastIndexOf(quitStreamString, 0) === 0) {
+        console.log("quit stream received. returning to 'show apps' screen.")
         showAppsMode();
     }
 }
