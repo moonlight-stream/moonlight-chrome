@@ -9,6 +9,8 @@
 
 static unsigned char* s_DecodeBuffer;
 static unsigned int s_DecodeBufferLength;
+static int s_LastTextureType;
+static int s_LastTextureId;
 
 #define assertNoGLError() assert(!g_Instance->m_GlesApi->GetError(g_Instance->m_Graphics3D->pp_resource()))
 
@@ -71,11 +73,17 @@ void MoonlightInstance::DidChangeView(const pp::Rect& position,
     }
     
     int32_t contextAttributes[] = {
-      PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
-      PP_GRAPHICS3DATTRIB_DEPTH_SIZE, 24,
-      PP_GRAPHICS3DATTRIB_WIDTH, position.size().width(),
-      PP_GRAPHICS3DATTRIB_HEIGHT, position.size().height(),
-      PP_GRAPHICS3DATTRIB_NONE
+        PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
+        PP_GRAPHICS3DATTRIB_BLUE_SIZE, 8,
+        PP_GRAPHICS3DATTRIB_GREEN_SIZE, 8,
+        PP_GRAPHICS3DATTRIB_RED_SIZE, 8,
+        PP_GRAPHICS3DATTRIB_DEPTH_SIZE, 0,
+        PP_GRAPHICS3DATTRIB_STENCIL_SIZE, 0,
+        PP_GRAPHICS3DATTRIB_SAMPLES, 0,
+        PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
+        PP_GRAPHICS3DATTRIB_WIDTH, position.size().width(),
+        PP_GRAPHICS3DATTRIB_HEIGHT, position.size().height(),
+        PP_GRAPHICS3DATTRIB_NONE
     };
     g_Instance->m_Graphics3D = pp::Graphics3D(this, contextAttributes);
     
@@ -88,7 +96,11 @@ void MoonlightInstance::DidChangeView(const pp::Rect& position,
     
     glSetCurrentContextPPAPI(m_Graphics3D.pp_resource());
     
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glDisable(GL_DITHER);
+    
+    glViewport(0, 0, m_ViewSize.width(), m_ViewSize.height());
+    
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     
     assertNoGLError();
@@ -116,6 +128,8 @@ void MoonlightInstance::VidDecSetup(int width, int height, int redrawRate, void*
     
     s_DecodeBufferLength = INITIAL_DECODE_BUFFER_LEN;
     s_DecodeBuffer = (unsigned char *)malloc(s_DecodeBufferLength);
+    s_LastTextureType = 0;
+    s_LastTextureId = 0;
     
     g_Instance->m_VideoDecoder->Initialize(g_Instance->m_Graphics3D,
                                            PP_VIDEOPROFILE_H264HIGH,
@@ -223,37 +237,60 @@ void MoonlightInstance::PaintPicture(void) {
     }
     
     picture = m_PendingPictureQueue.front();
-    if (picture.texture_target == GL_TEXTURE_2D) {
-        if (!g_Instance->m_Texture2DShader.program) {
-            g_Instance->m_Texture2DShader = CreateProgram(k_VertexShader, k_FragmentShader2D);
-        }
-        glUseProgram(g_Instance->m_Texture2DShader.program);
-        glUniform2f(g_Instance->m_Texture2DShader.texcoord_scale_location, 1.0, 1.0);
-    }
-    else if (picture.texture_target == GL_TEXTURE_RECTANGLE_ARB) {
-        if (!g_Instance->m_RectangleArbShader.program) {
-            g_Instance->m_RectangleArbShader = CreateProgram(k_VertexShader, k_FragmentShaderRectangle);
-        }
-        glUseProgram(g_Instance->m_RectangleArbShader.program);
-        glUniform2f(g_Instance->m_RectangleArbShader.texcoord_scale_location,
-                    picture.texture_size.width, picture.texture_size.height);
-    }
-    else if (picture.texture_target == GL_TEXTURE_EXTERNAL_OES){
-        if (!g_Instance->m_ExternalOesShader.program) {
-            g_Instance->m_ExternalOesShader = CreateProgram(k_VertexShader, k_FragmentShaderExternal);
-        }
-        glUseProgram(g_Instance->m_ExternalOesShader.program);
-        glUniform2f(g_Instance->m_ExternalOesShader.texcoord_scale_location, 1.0, 1.0);
+    
+    // Recycle bogus pictures immediately
+    if (picture.texture_target == 0) {
+        g_Instance->m_VideoDecoder->RecyclePicture(picture);
+        m_PendingPictureQueue.pop();
+        return;
     }
     
-    if (picture.texture_target != 0) {
-        glViewport(0, 0, g_Instance->m_ViewSize.width(), g_Instance->m_ViewSize.height());
+    // Calling glClear() once per frame is recommended for modern
+    // GPUs which use it for state tracking hints.
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    int originalTextureTarget = s_LastTextureType;
+    
+    // Only make these state changes if we've changed from the last texture type
+    if (picture.texture_target != s_LastTextureType) {
+        if (picture.texture_target == GL_TEXTURE_2D) {
+            if (!g_Instance->m_Texture2DShader.program) {
+                g_Instance->m_Texture2DShader = CreateProgram(k_VertexShader, k_FragmentShader2D);
+            }
+            glUseProgram(g_Instance->m_Texture2DShader.program);
+            glUniform2f(g_Instance->m_Texture2DShader.texcoord_scale_location, 1.0, 1.0);
+        }
+        else if (picture.texture_target == GL_TEXTURE_RECTANGLE_ARB) {
+            if (!g_Instance->m_RectangleArbShader.program) {
+                g_Instance->m_RectangleArbShader = CreateProgram(k_VertexShader, k_FragmentShaderRectangle);
+            }
+            glUseProgram(g_Instance->m_RectangleArbShader.program);
+            glUniform2f(g_Instance->m_RectangleArbShader.texcoord_scale_location,
+                        picture.texture_size.width, picture.texture_size.height);
+        }
+        else if (picture.texture_target == GL_TEXTURE_EXTERNAL_OES) {
+            if (!g_Instance->m_ExternalOesShader.program) {
+                g_Instance->m_ExternalOesShader = CreateProgram(k_VertexShader, k_FragmentShaderExternal);
+            }
+            glUseProgram(g_Instance->m_ExternalOesShader.program);
+            glUniform2f(g_Instance->m_ExternalOesShader.texcoord_scale_location, 1.0, 1.0);
+        }
+
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(picture.texture_target, picture.texture_id);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glUseProgram(0);
+
+        s_LastTextureType = picture.texture_target;
     }
     
+    // Only rebind our texture if we've changed since last time
+    if (picture.texture_id != s_LastTextureId || picture.texture_target != originalTextureTarget) {
+        glBindTexture(picture.texture_target, picture.texture_id);
+        s_LastTextureId = picture.texture_id;
+    }
+    
+    // Draw the image
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    
+    // Swap buffers
     g_Instance->m_Graphics3D.SwapBuffers(
         g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::PaintFinished));
 }
