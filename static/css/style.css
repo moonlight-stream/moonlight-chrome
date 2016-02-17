@@ -45,7 +45,7 @@ main {
 .fullscreen {
 	height: 100vh !important;
 	overflow: none !important;
-	margin: 0 !important;
+	margin: auto !important;
 	padding: 0 !important;
 	width 100%;
 	border: none !important;

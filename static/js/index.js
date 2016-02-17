@@ -44,8 +44,9 @@ function showAppsPushed() {
 
 function showAppsMode() {
     document.getElementById('streamSettings').style.display = 'none';
-    document.getElementById('hostSettings').style.display = 'none'
-    document.getElementById('gameSelection').style.display = 'inline-block'
+    document.getElementById('hostSettings').style.display = 'none';
+    document.getElementById('gameSelection').style.display = 'inline-block';
+    document.body.style.backgroundColor = "black";
     // common.hideModule(); // do NOT hide the nacl module. you can't interact with it then
 }
 
@@ -70,6 +71,7 @@ function playGameMode() {
     $("#main-content").addClass("fullscreen");
     $("#listener").addClass("fullscreen");
     fullscreenNaclModule();
+    document.body.style.backgroundColor = "black";
 }
 
 function fullscreenNaclModule() {
@@ -83,9 +85,10 @@ function fullscreenNaclModule() {
 
     var zoom = Math.min(xRatio, yRatio);
 
-    var body = document.getElementById("nacl_module");
-    body.width=zoom * streamWidth;
-    body.height=zoom * streamHeight;
+    var module = document.getElementById("nacl_module");
+    module.width=zoom * streamWidth;
+    module.height=zoom * streamHeight;
+    module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
 }
 
 // user pushed the stop button. we should stop.
