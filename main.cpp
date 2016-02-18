@@ -100,7 +100,8 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
                             NULL, 0,
                             me->m_ServerMajorVersion);
     if (err != 0) {
-        pp::Var response("Starting connection failed");
+        // Notify the JS code that the stream has ended
+        pp::Var response(MSG_STREAM_TERMINATED);
         me->PostMessage(response);
         return NULL;
     }
