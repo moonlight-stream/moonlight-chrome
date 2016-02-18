@@ -29,6 +29,9 @@ class MoonlightModule : public pp::Module {
 };
 
 void MoonlightInstance::OnConnectionStarted(uint32_t unused) {
+    // Tell the front end
+    pp::Var response("Connection Established");
+    g_Instance->PostMessage(response);
     // Start receiving input events
     g_Instance->RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE);
     g_Instance->RequestFilteringInputEvents(PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
