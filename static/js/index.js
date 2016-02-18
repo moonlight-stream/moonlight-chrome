@@ -106,3 +106,11 @@ function handleMessage(msg) {
     }
 }
 
+
+function onWindowLoad(){
+    document.getElementById('streamSettings').style.display = 'none';
+    document.getElementById('gameSelection').style.display = 'none';
+}
+
+window.onload = onWindowLoad;
+
