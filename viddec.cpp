@@ -149,6 +149,9 @@ void MoonlightInstance::DispatchGetPicture(uint32_t unused) {
 
 void MoonlightInstance::VidDecCleanup(void) {
     free(s_DecodeBuffer);
+    
+    // Flush and delete the decoder
+    g_Instance->m_VideoDecoder->Flush(pp::BlockUntilComplete());
     delete g_Instance->m_VideoDecoder;
     
     if (g_Instance->m_Texture2DShader.program) {
