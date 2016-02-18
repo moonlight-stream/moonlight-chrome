@@ -47,6 +47,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
             
+            LiInitializeStreamConfiguration(&m_StreamConfig);
+            
             m_GamepadApi = static_cast<const PPB_Gamepad*>(pp::Module::Get()->GetBrowserInterface(PPB_GAMEPAD_INTERFACE));
         }
         
@@ -70,11 +72,14 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         
         void OnConnectionStopped(uint32_t unused);
         void OnConnectionStarted(uint32_t error);
+        void StopConnection();
         
         void DidChangeView(const pp::Rect& position,
                            const pp::Rect& clip_ignored);
         
         static void* ConnectionThreadFunc(void* context);
+        static void* GamepadThreadFunc(void* context);
+        static void* StopThreadFunc(void* context);
         
         static void ClStageStarting(int stage);
         static void ClStageFailed(int stage, long errorCode);
@@ -103,6 +108,14 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
         static DECODER_RENDERER_CALLBACKS s_DrCallbacks;
         static AUDIO_RENDERER_CALLBACKS s_ArCallbacks;
+        
+        std::string m_Host;
+        STREAM_CONFIGURATION m_StreamConfig;
+        int m_ServerMajorVersion;
+        bool m_Running;
+        
+        pthread_t m_ConnectionThread;
+        pthread_t m_GamepadThread;
     
         pp::Graphics3D m_Graphics3D;
         pp::VideoDecoder* m_VideoDecoder;

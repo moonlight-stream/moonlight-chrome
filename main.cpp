@@ -6,8 +6,6 @@
 
 #include "ppapi/cpp/input_event.h"
 
-static char s_Host[256];
-static STREAM_CONFIGURATION s_StreamConfig;
 // you pair to a target
 #define PAIR_DIRECTIVE "pair:"
 // you need to show the apps of a target
@@ -38,38 +36,81 @@ void MoonlightInstance::OnConnectionStarted(uint32_t unused) {
 }
 
 void MoonlightInstance::OnConnectionStopped(uint32_t error) {
+    // Not running anymore
+    g_Instance->m_Running = false;
+    
     // Stop receiving input events
     g_Instance->ClearInputEventRequest(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
     
     // Unlock the mouse
     g_Instance->UnlockMouse();
     
+    // Join threads
+    pthread_join(g_Instance->m_ConnectionThread, NULL);
+    pthread_join(g_Instance->m_GamepadThread, NULL);
+    
     pp::Var response("Connection terminated");
     g_Instance->PostMessage(response);
+    
+    printf("Connection teardown complete\n");
+}
+
+void MoonlightInstance::StopConnection() {
+    pthread_t t;
+    
+    // Stopping needs to happen in a separate thread to avoid a potential deadlock
+    // caused by us getting a callback to the main thread while inside LiStopConnection.
+    pthread_create(&t, NULL, MoonlightInstance::StopThreadFunc, NULL);
+    
+    // We'll need to call the listener ourselves since our connection terminated callback
+    // won't be invoked for a manually requested termination.
+    OnConnectionStopped(0);
+}
+
+void* MoonlightInstance::StopThreadFunc(void* context) {
+    // Stop the connection
+    LiStopConnection();
+    return NULL;
+}
+
+void* MoonlightInstance::GamepadThreadFunc(void* context) {
+    MoonlightInstance* me = (MoonlightInstance*)context;
+
+    while (me->m_Running) {
+        me->PollGamepads();
+        
+        // Poll every 10 ms
+        usleep(10 * 1000);
+    }
+    
+    return NULL;
 }
 
 void* MoonlightInstance::ConnectionThreadFunc(void* context) {
     MoonlightInstance* me = (MoonlightInstance*)context;
     int err;
     
-    err = LiStartConnection(s_Host,
-                            &s_StreamConfig,
+    // Post a status update before we begin
+    pp::Var response("Starting connection to " + me->m_Host);
+    me->PostMessage(response);
+    
+    err = LiStartConnection(me->m_Host.c_str(),
+                            &me->m_StreamConfig,
                             &MoonlightInstance::s_ClCallbacks,
                             &MoonlightInstance::s_DrCallbacks,
                             &MoonlightInstance::s_ArCallbacks,
-                            NULL, 0, 4);
+                            NULL, 0,
+                            me->m_ServerMajorVersion);
     if (err != 0) {
         pp::Var response("Starting connection failed");
-        g_Instance->PostMessage(response);
+        me->PostMessage(response);
         return NULL;
     }
     
-    for (;;) {
-        me->PollGamepads();
-        
-        // Poll every 10 ms
-        usleep(10 * 1000);
-    }
+    // Set running state before starting connection-specific threads
+    me->m_Running = true;
+    
+    pthread_create(&me->m_GamepadThread, NULL, MoonlightInstance::GamepadThreadFunc, me);
     
     return NULL;
 }
@@ -110,29 +151,21 @@ void MoonlightInstance::handleShowGames(std::string showGamesMessage) {
 
 void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
     // Populate the stream configuration
-    LiInitializeStreamConfiguration(&s_StreamConfig);
-    s_StreamConfig.width = 1280;
-    s_StreamConfig.height = 720;
-    s_StreamConfig.fps = 60;
-    s_StreamConfig.bitrate = 15000; // kilobits per second
-    s_StreamConfig.packetSize = 1024;
-    s_StreamConfig.streamingRemotely = 0;
-    s_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
+    m_StreamConfig.width = 1280;
+    m_StreamConfig.height = 720;
+    m_StreamConfig.fps = 60;
+    m_StreamConfig.bitrate = 15000; // kilobits per second
+    m_StreamConfig.packetSize = 1024;
+    m_StreamConfig.streamingRemotely = 0;
+    m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
+    
+    m_ServerMajorVersion = 4;
 
     // Store the host, which is between two colons
-    std::string host = startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE), startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE)).find(":"));
-    strcpy(s_Host, host.c_str());
-    
-    // store the gameID to start, which is after the last colon
-    std::string gameID = startStreamMessage.substr(startStreamMessage.find(host) + host.length() + 1); // +1 for the colon delimiter
-
-    // Post a status update before we begin
-    pp::Var response("Starting connection to " + host + " to play game ID " + gameID);
-    PostMessage(response);
+    m_Host = startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE), startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE)).find(":"));
     
     // Start the worker thread to establish the connection
-    pthread_t t;
-    pthread_create(&t, NULL, MoonlightInstance::ConnectionThreadFunc, this);
+    pthread_create(&m_ConnectionThread, NULL, MoonlightInstance::ConnectionThreadFunc, this);
 }
 
 void MoonlightInstance::handleStopStream(std::string stopStreamMessage) {

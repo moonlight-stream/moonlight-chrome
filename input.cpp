@@ -130,8 +130,8 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             
             if (m_KeyModifiers == (MODIFIER_ALT | MODIFIER_CTRL | MODIFIER_SHIFT)) {
                 if (keyboardEvent.GetKeyCode() == 0x51) { // Q key
-                    // Call our connection listener to do the cleanup for us
-                    MoonlightInstance::ClConnectionTerminated(0);
+                    // Terminate the connection
+                    StopConnection();
                     return true;
                 }
                 else {
