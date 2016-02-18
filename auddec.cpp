@@ -139,5 +139,6 @@ void MoonlightInstance::AudDecDecodeAndPlaySample(char* sampleData, int sampleLe
 AUDIO_RENDERER_CALLBACKS MoonlightInstance::s_ArCallbacks = {
     MoonlightInstance::AudDecInit,
     MoonlightInstance::AudDecCleanup,
-    MoonlightInstance::AudDecDecodeAndPlaySample
+    MoonlightInstance::AudDecDecodeAndPlaySample,
+    CAPABILITY_DIRECT_SUBMIT
 };
