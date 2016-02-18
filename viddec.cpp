@@ -326,5 +326,6 @@ void MoonlightInstance::PictureReady(int32_t result, PP_VideoPicture picture) {
 DECODER_RENDERER_CALLBACKS MoonlightInstance::s_DrCallbacks = {
     MoonlightInstance::VidDecSetup,
     MoonlightInstance::VidDecCleanup,
-    MoonlightInstance::VidDecSubmitDecodeUnit
+    MoonlightInstance::VidDecSubmitDecodeUnit,
+    CAPABILITY_SLICES_PER_FRAME(4)
 };
