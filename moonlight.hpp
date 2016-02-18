@@ -39,6 +39,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             pp::Instance(instance),
             pp::MouseLock(this),
             m_IsPainting(false),
+            m_RequestIdrFrame(false),
             m_OpusDecoder(NULL),
             m_CallbackFactory(this),
             m_MouseLocked(false),
@@ -69,6 +70,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         
         void DidLockMouse(int32_t result);
         void MouseLockLost();
+        void DidChangeFocus(bool got_focus);
         
         void OnConnectionStopped(uint32_t unused);
         void OnConnectionStarted(uint32_t error);
@@ -125,6 +127,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         Shader m_ExternalOesShader;
         std::queue<PP_VideoPicture> m_PendingPictureQueue;
         bool m_IsPainting;
+        bool m_RequestIdrFrame;
         
         OpusMSDecoder* m_OpusDecoder;
         pp::Audio m_AudioPlayer;

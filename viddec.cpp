@@ -54,6 +54,14 @@ static const char k_FragmentShaderExternal[] =
       "    gl_FragColor = texture2D(s_texture, v_texCoord); \n"
       "}";
     
+void MoonlightInstance::DidChangeFocus(bool got_focus) {
+    // Request an IDR frame to dump the frame queue that may have
+    // built up from the GL pipeline being stalled.
+    if (got_focus) {
+        g_Instance->m_RequestIdrFrame = true;
+    }
+}
+
 void MoonlightInstance::DidChangeView(const pp::Rect& position,
                                       const pp::Rect& clip) {
                                           
@@ -168,6 +176,12 @@ void MoonlightInstance::VidDecCleanup(void) {
 int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     PLENTRY entry;
     unsigned int offset;
+    
+    // Request an IDR frame if needed
+    if (g_Instance->m_RequestIdrFrame) {
+        g_Instance->m_RequestIdrFrame = false;
+        return DR_NEED_IDR;
+    }
     
     // Resize the decode buffer if needed
     if (decodeUnit->fullLength > s_DecodeBufferLength) {
