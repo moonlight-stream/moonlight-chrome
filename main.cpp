@@ -6,14 +6,13 @@
 
 #include "ppapi/cpp/input_event.h"
 
-// you pair to a target
-#define PAIR_DIRECTIVE "pair:"
-// you need to show the apps of a target
-#define SHOW_GAMES_DIRECTIVE "showAppsPushed:"
-// you need to use a certain target to start a certain gameID
-#define START_STREAM_DIRECTIVE "setGFEHostIPField:"
-// No parameters. just request a stop.
-#define STOP_DIRECTIVE "stopPushed"
+
+// Requests the NaCl module to connection to the server specified after the :
+#define MSG_START_REQUEST "startRequest:"
+// Requests the NaCl module stop streaming
+#define MSG_STOP_REQUEST "stopRequest"
+// Sent by the NaCl module when the stream has stopped whether user-requested or not
+#define MSG_STREAM_TERMINATED "streamTerminated"
 
 MoonlightInstance* g_Instance;
 
@@ -49,10 +48,9 @@ void MoonlightInstance::OnConnectionStopped(uint32_t error) {
     pthread_join(g_Instance->m_ConnectionThread, NULL);
     pthread_join(g_Instance->m_GamepadThread, NULL);
     
-    pp::Var response("Connection terminated");
+    // Notify the JS code that the stream has ended
+    pp::Var response(MSG_STREAM_TERMINATED);
     g_Instance->PostMessage(response);
-    
-    printf("Connection teardown complete\n");
 }
 
 void MoonlightInstance::StopConnection() {
@@ -117,36 +115,20 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
 
 // hook from javascript into the CPP code.
 void MoonlightInstance::HandleMessage(const pp::Var& var_message) {
+     // Ignore the message if it is not a string.
     if (!var_message.is_string())
-        return;    // Ignore the message if it is not a string.
+        return;
+    
     std::string message = var_message.AsString();
 
-
-    if(strncmp(message.c_str(), PAIR_DIRECTIVE, strlen(PAIR_DIRECTIVE)) == 0) {
-        handlePair(message);
-    } else if (strncmp(message.c_str(), SHOW_GAMES_DIRECTIVE, strlen(SHOW_GAMES_DIRECTIVE)) == 0) {
-        handleShowGames(message);
-    } else if (strncmp(message.c_str(), START_STREAM_DIRECTIVE, strlen(START_STREAM_DIRECTIVE)) == 0) {
+    if (message.substr(0, strlen(MSG_START_REQUEST)) == MSG_START_REQUEST) {
         handleStartStream(message);
-    } else if (strncmp(message.c_str(), STOP_DIRECTIVE, strlen(STOP_DIRECTIVE)) == 0) {
+    } else if (message.substr(0, strlen(MSG_STOP_REQUEST)) == MSG_STOP_REQUEST) {
         handleStopStream(message);
     } else {
         pp::Var response("Unhandled message received: " + message);
         PostMessage(response);
     }
-
-}
-
-void MoonlightInstance::handlePair(std::string pairMessage) {
-    pp::Var response("Pair button pushed. Pairing is unimplemented.");
-    PostMessage(response);
-    std::string intendedHost = pairMessage.substr(pairMessage.find(PAIR_DIRECTIVE) + strlen(PAIR_DIRECTIVE));
-}
-
-void MoonlightInstance::handleShowGames(std::string showGamesMessage) {
-    pp::Var response("Show Games button pushed.  Show Games is unimplemented");
-    PostMessage(response);
-    std::string host = showGamesMessage.substr(showGamesMessage.find(SHOW_GAMES_DIRECTIVE) + strlen(SHOW_GAMES_DIRECTIVE));
 }
 
 void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
@@ -161,16 +143,16 @@ void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
     
     m_ServerMajorVersion = 4;
 
-    // Store the host, which is between two colons
-    m_Host = startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE), startStreamMessage.substr(strlen(START_STREAM_DIRECTIVE)).find(":"));
+    // Store the host from the start message
+    m_Host = startStreamMessage.substr(strlen(MSG_START_REQUEST));
     
     // Start the worker thread to establish the connection
     pthread_create(&m_ConnectionThread, NULL, MoonlightInstance::ConnectionThreadFunc, this);
 }
 
 void MoonlightInstance::handleStopStream(std::string stopStreamMessage) {
-    pp::Var response("Stop button pushed. Ignoring.");
-    PostMessage(response);
+    // Begin connection teardown
+    StopConnection();
 }
 
 bool MoonlightInstance::Init(uint32_t argc,

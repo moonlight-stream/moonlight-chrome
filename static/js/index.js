@@ -24,7 +24,6 @@ function hideAllWorkflowDivs() {
 
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
 function pairPushed() {
-    common.naclModule.postMessage('pair:' + document.getElementById('GFEHostIPField').value);
 }
 
 // someone pushed the "show apps" button. 
@@ -37,7 +36,6 @@ function showAppsPushed() {
         var e = document.getElementById("selectHost");
         target = e.options[e.selectedIndex].value;
     }
-    common.naclModule.postMessage('showAppsPushed:' + target);
     // we just finished the hostSettings section. expose the next one
     showAppsMode();
 }
@@ -60,9 +58,7 @@ function startPushed() {
         var e = document.getElementById("selectHost");
         target = e.options[e.selectedIndex].value;
     }
-    var gameIDDropdown = document.getElementById("selectGame");
-    var gameID = gameIDDropdown[gameIDDropdown.selectedIndex].value;
-    common.naclModule.postMessage('setGFEHostIPField:' + target + ":" + gameID);
+    common.naclModule.postMessage('startRequest:' + target);
     // we just finished the gameSelection section. only expose the NaCl section
     playGameMode();
 }
@@ -95,17 +91,17 @@ function fullscreenNaclModule() {
 
 // user pushed the stop button. we should stop.
 function stopPushed() {
-    common.naclModule.postMessage('stopPushed');
+    common.naclModule.postMessage('stopRequested');
 }
 
 // hook from main.cpp into the javascript
 function handleMessage(msg) {
-    var quitStreamString = "quitStream";
+    var quitStreamString = "streamTerminated";
     var logEl = document.getElementById('logField');
     logEl.innerHTML = msg.data;
     console.log("message received: " + msg.data);
     if (msg.data.lastIndexOf(quitStreamString, 0) === 0) {
-        console.log("quit stream received. returning to 'show apps' screen.")
+        console.log("Stream termination message received. returning to 'show apps' screen.")
         showAppsMode();
     }
 }
