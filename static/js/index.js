@@ -136,6 +136,7 @@ function readData(key, callbackFunction) {
 }
 
 function loadResolution(previousValue) {
+    document.getElementById('selectResolution').remove(0);
     document.getElementById('selectResolution').value = previousValue.resolution != null ? previousValue.resolution : '1280:720';
 }
 
@@ -144,6 +145,7 @@ function saveResolution() {
 }
 
 function loadFramerate(previousValue) {
+    document.getElementById('selectFramerate').remove(0);
     document.getElementById('selectFramerate').value = previousValue.frameRate != null ? previousValue.frameRate : '30';
 }
 
