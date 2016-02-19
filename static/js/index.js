@@ -63,7 +63,10 @@ function startPushed() {
         var e = document.getElementById("selectHost");
         target = e.options[e.selectedIndex].value;
     }
-    common.naclModule.postMessage('startRequest:' + target);
+    var frameRate = document.getElementById('selectFramerate').value;
+    var resolution = document.getElementById('selectResolution').value;
+    console.log('startRequest:' + target + ":" + resolution + ":" + frameRate);
+    common.naclModule.postMessage('startRequest:' + target + ":" + resolution + ":" + frameRate + ":");
     // we just finished the gameSelection section. only expose the NaCl section
     playGameMode();
 }
@@ -133,7 +136,7 @@ function readData(key, callbackFunction) {
 }
 
 function loadResolution(previousValue) {
-    document.getElementById('selectResolution').value = previousValue.resolution != null ? previousValue.resolution : '720';
+    document.getElementById('selectResolution').value = previousValue.resolution != null ? previousValue.resolution : '1280:720';
 }
 
 function saveResolution() {

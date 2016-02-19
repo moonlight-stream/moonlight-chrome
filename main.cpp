@@ -135,11 +135,37 @@ void MoonlightInstance::HandleMessage(const pp::Var& var_message) {
     }
 }
 
+void split(const std::string& s, char c, std::vector<std::string>& v) {
+   std::string::size_type i = 0;
+   std::string::size_type j = s.find(c);
+
+   while (j != std::string::npos) {
+      v.push_back(s.substr(i, j-i));
+      i = ++j;
+      j = s.find(c, j);
+
+      if (j == std::string::npos) v.push_back(s.substr(i, s.length()));
+   }
+
+}
+
 void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
+    // request:host:width:height:fps:bitrate
+    std::vector<std::string> splitString;
+    split(startStreamMessage, ':', splitString);
+
+    pp::Var response("Setting stream width to: " + splitString.at(2));
+    PostMessage(response);
+    response = ("Setting stream height to: " + splitString.at(3));
+    PostMessage(response);
+    response = ("Setting stream fps to: " + splitString.at(4));
+    PostMessage(response);
+    response = ("Setting stream host to: " + splitString.at(1));
+    PostMessage(response);
     // Populate the stream configuration
-    m_StreamConfig.width = 1280;
-    m_StreamConfig.height = 720;
-    m_StreamConfig.fps = 60;
+    m_StreamConfig.width = stoi(splitString.at(2));
+    m_StreamConfig.height = stoi(splitString.at(3));
+    m_StreamConfig.fps = stoi(splitString.at(4));
     m_StreamConfig.bitrate = 15000; // kilobits per second
     m_StreamConfig.packetSize = 1024;
     m_StreamConfig.streamingRemotely = 0;
@@ -148,7 +174,7 @@ void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
     m_ServerMajorVersion = 4;
 
     // Store the host from the start message
-    m_Host = startStreamMessage.substr(strlen(MSG_START_REQUEST));
+    m_Host = splitString.at(1);
     
     // Start the worker thread to establish the connection
     pthread_create(&m_ConnectionThread, NULL, MoonlightInstance::ConnectionThreadFunc, this);
