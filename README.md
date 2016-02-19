@@ -41,6 +41,11 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 4. Run Moonlight from the extensions page
 5. If making changes, make sure to click the Reload button on the Extensions page
 
+##Streaming
+Moonlight Chrome is not yet able to start a stream by itself. It requires another client specially configured to bootstrap it. A modified version of Moonlight PC will do the job for now. Simply pair it to your PC, start whatever app you want with it, then quit it with Ctrl+Alt+Shift+Q 5 or 10 seconds after you see the "Starting <app>..." message on screen. You should then be able to connect Moonlight Chrome to your PC. Also worth noting is that without code modifications, Moonlight Chrome can only stream from GeForce Experience 2.10.2 (latest production version) at this time.
+
+[Bootstrap Clients for PC](https://dl.dropboxusercontent.com/u/19391088/bootstrap-only-clients.zip)
+
 ##Contribute
 
 This project is being actively developed at [XDA Developers](http://forum.xda-developers.com/showthread.php?t=2505510)
