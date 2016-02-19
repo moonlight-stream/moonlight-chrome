@@ -9,7 +9,22 @@ function attachListeners() {
     document.getElementById('showAppsButton').addEventListener('click', showAppsPushed);
     document.getElementById('selectResolution').addEventListener('change', saveResolution);
     document.getElementById('selectFramerate').addEventListener('change', saveFramerate);
+    document.getElementById('bitrateSlider').addEventListener('input', updateBitrateField); // input occurs every notch you slive
+    document.getElementById('bitrateSlider').addEventListener('change', saveBitrate); // change occurs once the mouse lets go.
     window.addEventListener("resize", fullscreenNaclModule);
+}
+
+function updateBitrateField() {
+    document.getElementById('bitrateField').innerHTML = document.getElementById('bitrateSlider').value + " Mbps"
+}
+
+function saveBitrate() {
+    storeData('bitrate', document.getElementById('bitrateSlider').value, null);
+}
+
+function loadBitrate(previousValue) {
+    document.getElementById('bitrateSlider').MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '15');
+    updateBitrateField();
 }
 
 function moduleDidLoad() {
@@ -65,8 +80,10 @@ function startPushed() {
     }
     var frameRate = document.getElementById('selectFramerate').value;
     var resolution = document.getElementById('selectResolution').value;
+    // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
+    var bitrate = parseInt(document.getElementById('bitrateSlider').value) * 1024;
     console.log('startRequest:' + target + ":" + resolution + ":" + frameRate);
-    common.naclModule.postMessage('startRequest:' + target + ":" + resolution + ":" + frameRate + ":");
+    common.naclModule.postMessage('startRequest:' + target + ":" + resolution + ":" + frameRate + ":" + bitrate + ":");
     // we just finished the gameSelection section. only expose the NaCl section
     playGameMode();
 }
@@ -171,11 +188,12 @@ function loadHosts(previousValue) {
 }
 
 function onWindowLoad(){
-    // document.getElementById('streamSettings').style.display = 'none';
     document.getElementById('gameSelection').style.display = 'none';
+    $("#bitrateField").addClass("bitrateField");
     readData('resolution', loadResolution);
     readData('frameRate', loadFramerate);
     readData('hosts', loadHosts);
+    readData('bitrate', loadBitrate);
 }
 
 window.onload = onWindowLoad;

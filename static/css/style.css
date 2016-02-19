@@ -7,6 +7,11 @@
 main {
 	padding: 50px 100px;
 }
+#bitrateField {
+  text-align: center;
+  display: block;
+  padding-top: 15px;
+}
 #hostSettings {
 	padding: 5px 10px;
 	border: 1px dashed;

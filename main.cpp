@@ -162,11 +162,13 @@ void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
     PostMessage(response);
     response = ("Setting stream host to: " + splitString.at(1));
     PostMessage(response);
+    response = ("Setting stream bitrate to: " + splitString.at(5));
+    PostMessage(response);
     // Populate the stream configuration
     m_StreamConfig.width = stoi(splitString.at(2));
     m_StreamConfig.height = stoi(splitString.at(3));
     m_StreamConfig.fps = stoi(splitString.at(4));
-    m_StreamConfig.bitrate = 15000; // kilobits per second
+    m_StreamConfig.bitrate = stoi(splitString.at(5)); // kilobits per second
     m_StreamConfig.packetSize = 1024;
     m_StreamConfig.streamingRemotely = 0;
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
