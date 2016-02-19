@@ -19,13 +19,27 @@
                 <!-- Navigation. We hide it in small screens. -->
                 <ul class='mdl-list'>
                     <li>Chrome App Status: <code id="statusField">NO-STATUS</code></li>
-                </ul>   
+                </ul>
             </div>
         </header>
         <main id="main-content" class="mdl-layout__content">
-            <div class="log-holder">
-                <code id="logField">log</code></div>
-            <div id="streamSettings" style="display:none"></div>
+
+            <div id="streamSettings">
+                <div class="mdl-select">
+                    <select id="selectResolution">
+                        <option selected="NONE">Stream Resolution</option>
+                        <option value="1280:720">1280x720</option>
+                        <option value="1920:1080">1920x1080</option>
+                    </select>
+                </div>
+                <div class="mdl-select"> 
+                    <select id="selectFramerate">
+                        <option value="NONE">Framerate</option>
+                        <option value="30">30fps</option>
+                        <option value="60">60fps</option>
+                    </select>
+                </div>
+            </div>
 
             <div id="hostSettings">
                 <p>Enter the IP/hostname of the GFE streaming computer, or select one from the history:</p>
@@ -49,7 +63,7 @@
                 <button id="stopButton" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">Stop Testing Stuff</button>
             </div>
 
-            <div id="gameSelection" style="display:none" class="mdl-select">
+            <div id="gameSelection" class="mdl-select">
                 <p>Select a game to run</p>
                 <select id="selectGame">
                     <option value="game_id_1">Game Name 1</option>
