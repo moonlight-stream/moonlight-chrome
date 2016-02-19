@@ -171,7 +171,7 @@ void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
     m_StreamConfig.streamingRemotely = 0;
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
     
-    m_ServerMajorVersion = 4;
+    m_ServerMajorVersion = 5;
 
     // Store the host from the start message
     m_Host = splitString.at(1);
