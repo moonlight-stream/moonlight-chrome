@@ -153,16 +153,20 @@ function saveBitrate() {
 }
 
 function onWindowLoad(){
+    // don't show the game selection div
     document.getElementById('gameSelection').style.display = 'none';
     $("#bitrateField").addClass("bitrateField");
+    // load stored resolution prefs
     chrome.storage.sync.get('resolution', function(previousValue) {
         $('#selectResolution')[0].remove(0);
         $('#selectResolution')[0].value = previousValue.resolution != null ? previousValue.resolution : '1280:720';
     });
+    // load stored framerate prefs
     chrome.storage.sync.get('frameRate', function(previousValue) {
         $('#selectFramerate')[0].remove(0);
         $('#selectFramerate')[0].value = previousValue.frameRate != null ? previousValue.frameRate : '30';
     });
+    // load previously connected hosts
     chrome.storage.sync.get('hosts', function(previousValue) {
         hosts = previousValue.hosts != null ? previousValue.hosts : [];
         if ($('#selectHost')[0].length > 0) {
@@ -175,8 +179,8 @@ function onWindowLoad(){
             $('#selectHost')[0].appendChild(opt);
         }
     });
-
-    chrome.storage.sync.get('hosts', function(previousValue) {
+    // load stored bitrate prefs
+    chrome.storage.sync.get('bitrate', function(previousValue) {
         $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '15');
         updateBitrateField();
     });
