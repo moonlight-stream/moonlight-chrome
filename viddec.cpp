@@ -11,6 +11,10 @@ static unsigned char* s_DecodeBuffer;
 static unsigned int s_DecodeBufferLength;
 static int s_LastTextureType;
 static int s_LastTextureId;
+static unsigned char s_LastSps[256];
+static unsigned char s_LastPps[256];
+static unsigned int s_LastSpsLength;
+static unsigned int s_LastPpsLength;
 
 #define assertNoGLError() assert(!g_Instance->m_GlesApi->GetError(g_Instance->m_Graphics3D->pp_resource()))
 
@@ -138,6 +142,8 @@ void MoonlightInstance::VidDecSetup(int width, int height, int redrawRate, void*
     s_DecodeBuffer = (unsigned char *)malloc(s_DecodeBufferLength);
     s_LastTextureType = 0;
     s_LastTextureId = 0;
+    s_LastSpsLength = 0;
+    s_LastPpsLength = 0;
     
     g_Instance->m_VideoDecoder->Initialize(g_Instance->m_Graphics3D,
                                            PP_VIDEOPROFILE_H264HIGH,
@@ -176,6 +182,10 @@ void MoonlightInstance::VidDecCleanup(void) {
 int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     PLENTRY entry;
     unsigned int offset;
+    unsigned int totalLength;
+    bool isSps = false;
+    bool isPps = false;
+    bool isIframe = false;
     
     // Request an IDR frame if needed
     if (g_Instance->m_RequestIdrFrame) {
@@ -183,15 +193,65 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         return DR_NEED_IDR;
     }
     
+    // Look at the NALU type
+    if (decodeUnit->bufferList->length > 5) {
+        switch (decodeUnit->bufferList->data[4]) {
+            case 0x67:
+                isSps = true;
+                
+                // Store the SPS for later submission with the I-frame
+                assert(decodeUnit->bufferList->length == decodeUnit->fullLength);
+                assert(decodeUnit->fullLength < sizeof(s_LastSps));
+                s_LastSpsLength = decodeUnit->bufferList->length;
+                memcpy(s_LastSps, decodeUnit->bufferList->data, s_LastSpsLength);
+                
+                // Don't submit anything to the decoder yet
+                return DR_OK;
+                
+            case 0x68:
+                isPps = true;
+                
+                // Store the PPS for later submission with the I-frame
+                assert(decodeUnit->bufferList->length == decodeUnit->fullLength);
+                assert(decodeUnit->fullLength < sizeof(s_LastPps));
+                s_LastPpsLength = decodeUnit->bufferList->length;
+                memcpy(s_LastPps, decodeUnit->bufferList->data, s_LastPpsLength);
+
+                // Don't submit anything to the decoder yet
+                return DR_OK;
+                
+            case 0x65:
+                isIframe = true;
+                break;
+        }
+    }
+    
+    // Chrome on OS X requires the SPS and PPS submitted together with
+    // the first I-frame for hardware acceleration to work.
+    totalLength = decodeUnit->fullLength;
+    if (isIframe) {
+        totalLength += s_LastSpsLength + s_LastPpsLength;
+    }
+    
     // Resize the decode buffer if needed
-    if (decodeUnit->fullLength > s_DecodeBufferLength) {
+    if (totalLength > s_DecodeBufferLength) {
         free(s_DecodeBuffer);
-        s_DecodeBufferLength = decodeUnit->fullLength;
+        s_DecodeBufferLength = totalLength;
         s_DecodeBuffer = (unsigned char *)malloc(s_DecodeBufferLength);
     }
     
+    if (isIframe) {
+        // Copy the SPS and PPS in front of the frame data if this is an I-frame
+        memcpy(&s_DecodeBuffer[0], s_LastSps, s_LastSpsLength);
+        memcpy(&s_DecodeBuffer[s_LastSpsLength], s_LastPps, s_LastPpsLength);
+        offset = s_LastSpsLength + s_LastPpsLength;
+    }
+    else {
+        // Copy the frame data at the beginning of the buffer
+        offset = 0;
+    }
+    
     entry = decodeUnit->bufferList;
-    offset = 0;
     while (entry != NULL) {
         memcpy(&s_DecodeBuffer[offset], entry->data, entry->length);
         offset += entry->length;
