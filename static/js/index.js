@@ -121,7 +121,7 @@ function handleMessage(msg) {
             if (hostSelect.options[i].value == target) return;
         }
 
-        var opt = $('#option')[0];
+        var opt = document.createElement('option');
         opt.appendChild(document.createTextNode(target));
         opt.value = target;
         $('#selectHost')[0].appendChild(opt);
