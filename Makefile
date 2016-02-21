@@ -5,8 +5,9 @@ TARGET = moonlight-chrome
 # Include library makefiles
 include common-c.mk
 include opus.mk
+include h264bitstream.mk
 
-EXTRA_INC_PATHS := $(EXTRA_INC_PATHS) $(COMMON_C_INCLUDE) $(OPUS_INCLUDE)
+EXTRA_INC_PATHS := $(EXTRA_INC_PATHS) $(COMMON_C_INCLUDE) $(OPUS_INCLUDE) $(H264BS_INCLUDE)
 
 include $(NACL_SDK_ROOT)/tools/common.mk
 
@@ -21,6 +22,7 @@ CFLAGS = -Wall $(COMMON_C_C_FLAGS) $(OPUS_C_FLAGS)
 
 SOURCES = \
     $(OPUS_SOURCE)           \
+    $(H264BS_SOURCE)         \
     $(COMMON_C_SOURCE)       \
     libchelper.c             \
     main.cpp                 \

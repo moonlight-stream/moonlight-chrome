@@ -5,6 +5,8 @@
 
 #include "ppapi/lib/gl/gles2/gl2ext_ppapi.h"
 
+#include <h264_stream.h>
+
 #define INITIAL_DECODE_BUFFER_LEN 128 * 1024
 
 static unsigned char* s_DecodeBuffer;
@@ -179,6 +181,28 @@ void MoonlightInstance::VidDecCleanup(void) {
     }
 }
 
+static void ProcessSpsNalu(unsigned char* data, int length) {
+    const char naluHeader[] = {0x00, 0x00, 0x00, 0x01};
+    h264_stream_t* stream = h264_new();
+    
+    // Read the old NALU
+    read_nal_unit(stream, &data[sizeof(naluHeader)], length-sizeof(naluHeader));
+    
+    // Fixup the SPS to what OS X needs to use hardware acceleration
+    stream->sps->num_ref_frames = 1;
+    stream->sps->vui.max_dec_frame_buffering = 1;
+    
+    // Copy the NALU prefix over from the original SPS
+    memcpy(s_LastSps, naluHeader, sizeof(naluHeader));
+    
+    // Copy the modified NALU data
+    s_LastSpsLength = sizeof(naluHeader) + write_nal_unit(stream,
+                                                          &s_LastSps[sizeof(naluHeader)],
+                                                          sizeof(s_LastSps)-sizeof(naluHeader));
+    
+    h264_free(stream);
+}
+
 int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     PLENTRY entry;
     unsigned int offset;
@@ -202,8 +226,8 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
                 // Store the SPS for later submission with the I-frame
                 assert(decodeUnit->bufferList->length == decodeUnit->fullLength);
                 assert(decodeUnit->fullLength < sizeof(s_LastSps));
-                s_LastSpsLength = decodeUnit->bufferList->length;
-                memcpy(s_LastSps, decodeUnit->bufferList->data, s_LastSpsLength);
+                ProcessSpsNalu((unsigned char*)decodeUnit->bufferList->data,
+                               decodeUnit->bufferList->length);
                 
                 // Don't submit anything to the decoder yet
                 return DR_OK;
@@ -319,6 +343,7 @@ void MoonlightInstance::PaintPicture(void) {
     if (picture.texture_target == 0) {
         g_Instance->m_VideoDecoder->RecyclePicture(picture);
         m_PendingPictureQueue.pop();
+        m_IsPainting = false;
         return;
     }
     
