@@ -137,10 +137,12 @@ function storeData(key, data, callbackFunction) {
 }
 
 function saveResolution() {
+    updateDefaultBitrate();
     storeData('resolution', $('#selectResolution')[0].value, null);
 }
 
 function saveFramerate() {
+    updateDefaultBitrate();
     storeData('frameRate', $('#selectFramerate')[0].value, null);
 }
 
@@ -150,6 +152,27 @@ function saveHosts() {
 
 function saveBitrate() {
     storeData('bitrate', $('#bitrateSlider')[0].value, null);
+}
+
+function updateDefaultBitrate() {
+    var res = $('#selectResolution')[0].value;
+    var frameRate = $('#selectFramerate')[0].value;
+
+    if (res.lastIndexOf("1920:1080", 0) === 0) {
+        if (frameRate.lastIndexOf("30", 0) === 0) { // 1080p, 30fps
+            $('#bitrateSlider')[0].MaterialSlider.change('10');
+        } else { // 1080p, 60fps
+            $('#bitrateSlider')[0].MaterialSlider.change('15');
+        }
+    } else if (res.lastIndexOf("1280:720") === 0) {
+        if (frameRate.lastIndexOf("30", 0) === 0) { // 720, 30fps
+            $('#bitrateSlider')[0].MaterialSlider.change('5');
+        } else { // 720, 60fps
+            $('#bitrateSlider')[0].MaterialSlider.change('10');
+        }
+    }
+    updateBitrateField();
+    saveBitrate();
 }
 
 function onWindowLoad(){
