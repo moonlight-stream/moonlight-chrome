@@ -26,18 +26,32 @@ main {
 #hostSettings .mdl-textfield {
 	width: 200px;
 	margin-right: 20px;
+	padding-bottom: 0px;
+	margin-bottom: 10px;
 }
 #hostSettings #selectHost {
+	padding: 0px;
 	line-height: 20px;
 	height: 20px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-right: 20px;
 	background: none;
 }
 #hostSettings .button-holder {
-	float: right;
+	padding: 0px;
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 #testingDiv {
 	border: 1px dashed;
 	padding: 10px;
+}
+#startButton {
+	margin: 1px;
+}
+#stopButton {
+	margin: 1px;
 }
 #listener {
 	overflow: hidden;
