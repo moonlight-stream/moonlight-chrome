@@ -26,8 +26,10 @@ main {
 #hostSettings .mdl-textfield {
 	width: 200px;
 	margin-right: 20px;
+	margin-bottom: 0px;
+}
+#hostSettings #GFEHostIPField {
 	padding-bottom: 0px;
-	margin-bottom: 10px;
 }
 #hostSettings #selectHost {
 	padding: 0px;
@@ -47,11 +49,17 @@ main {
 	border: 1px dashed;
 	padding: 10px;
 }
+#pairButton {
+	margin: 3px;
+}
+#showAppsButton {
+	margin: 3px;
+}
 #startButton {
-	margin: 1px;
+	margin: 3px;
 }
 #stopButton {
-	margin: 1px;
+	margin: 3px;
 }
 #listener {
 	overflow: hidden;
