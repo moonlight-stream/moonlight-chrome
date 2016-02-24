@@ -13,6 +13,8 @@ static unsigned char* s_DecodeBuffer;
 static unsigned int s_DecodeBufferLength;
 static int s_LastTextureType;
 static int s_LastTextureId;
+static int s_NextDecodeFrameNumber;
+static int s_LastDisplayFrameNumber;
 static unsigned char s_LastSps[256];
 static unsigned char s_LastPps[256];
 static unsigned int s_LastSpsLength;
@@ -146,6 +148,8 @@ void MoonlightInstance::VidDecSetup(int width, int height, int redrawRate, void*
     s_LastTextureId = 0;
     s_LastSpsLength = 0;
     s_LastPpsLength = 0;
+    s_NextDecodeFrameNumber = 0;
+    s_LastDisplayFrameNumber = 0;
     
     g_Instance->m_VideoDecoder->Initialize(g_Instance->m_Graphics3D,
                                            PP_VIDEOPROFILE_H264HIGH,
@@ -284,7 +288,7 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     }
     
     // Start the decoding
-    g_Instance->m_VideoDecoder->Decode(0, offset, s_DecodeBuffer, pp::BlockUntilComplete());
+    g_Instance->m_VideoDecoder->Decode(s_NextDecodeFrameNumber++, offset, s_DecodeBuffer, pp::BlockUntilComplete());
     
     return DR_OK;
 }
@@ -415,12 +419,21 @@ void MoonlightInstance::PictureReady(int32_t result, PP_VideoPicture picture) {
         return;
     }
     
-    m_PendingPictureQueue.push(picture);
+    // Ensure we only push newer frames onto the display queue
+    if (picture.decode_id > s_LastDisplayFrameNumber) {
+        m_PendingPictureQueue.push(picture);
+        s_LastDisplayFrameNumber = picture.decode_id;
+    }
+    else {
+        // This picture is older than the last one we displayed. Discard
+        // it without displaying.
+        g_Instance->m_VideoDecoder->RecyclePicture(picture);
+    }
     
     g_Instance->m_VideoDecoder->GetPicture(
         g_Instance->m_CallbackFactory.NewCallbackWithOutput(&MoonlightInstance::PictureReady));
     
-    if (!m_IsPainting) {
+    if (!m_IsPainting && !m_PendingPictureQueue.empty()) {
         PaintPicture();
     }
 }
