@@ -3,16 +3,18 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "ppapi/cpp/input_event.h"
 
-
 // Requests the NaCl module to connection to the server specified after the :
-#define MSG_START_REQUEST "startRequest:"
+#define MSG_START_REQUEST "startRequest"
 // Requests the NaCl module stop streaming
 #define MSG_STOP_REQUEST "stopRequest"
 // Sent by the NaCl module when the stream has stopped whether user-requested or not
 #define MSG_STREAM_TERMINATED "streamTerminated"
+
+#define MSG_OPENURL "openUrl"
 
 MoonlightInstance* g_Instance;
 
@@ -120,55 +122,53 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
 // hook from javascript into the CPP code.
 void MoonlightInstance::HandleMessage(const pp::Var& var_message) {
      // Ignore the message if it is not a string.
-    if (!var_message.is_string())
+    if (!var_message.is_dictionary())
         return;
     
-    std::string message = var_message.AsString();
-
-    if (message.substr(0, strlen(MSG_START_REQUEST)) == MSG_START_REQUEST) {
-        handleStartStream(message);
-    } else if (message.substr(0, strlen(MSG_STOP_REQUEST)) == MSG_STOP_REQUEST) {
-        handleStopStream(message);
+    pp::VarDictionary msg(var_message);
+    int32_t callbackId = msg.Get("callbackId").AsInt();
+    std::string method = msg.Get("method").AsString();
+    pp::VarArray params(msg.Get("params"));
+    
+    if (strcmp(method.c_str(), MSG_START_REQUEST) == 0) {
+        handleStartStream(callbackId, params);
+    } else if (strcmp(method.c_str(), MSG_STOP_REQUEST) == 0) {
+        handleStopStream(callbackId, params);
+    } else if (strcmp(method.c_str(), MSG_OPENURL) == 0) {
+        handleOpenURL(callbackId, params);
+    } else if (strcmp(method.c_str(), "httpInit") == 0) {
+        NvHTTPInit(callbackId, params);
+    } else if (strcmp(method.c_str(), "makeCert") == 0) {
+        MakeCert(callbackId, params);
     } else {
-        pp::Var response("Unhandled message received: " + message);
+        pp::Var response("Unhandled message received: " + method);
         PostMessage(response);
     }
 }
 
-void split(const std::string& s, char c, std::vector<std::string>& v) {
-   std::string::size_type i = 0;
-   std::string::size_type j = s.find(c);
-
-   while (j != std::string::npos) {
-      v.push_back(s.substr(i, j-i));
-      i = ++j;
-      j = s.find(c, j);
-
-      if (j == std::string::npos) v.push_back(s.substr(i, s.length()));
-   }
-
-}
-
-void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
-    // request:host:width:height:fps:bitrate
-    std::vector<std::string> splitString;
-    split(startStreamMessage, ':', splitString);
-
-    pp::Var response("Setting stream width to: " + splitString.at(2));
+void MoonlightInstance::handleStartStream(int32_t callbackId, pp::VarArray args) {
+    std::string host = args.Get(0).AsString();
+    std::string width = args.Get(1).AsString();
+    std::string height = args.Get(2).AsString();
+    std::string fps = args.Get(3).AsString();
+    std::string bitrate = args.Get(4).AsString();
+    
+    pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
-    response = ("Setting stream height to: " + splitString.at(3));
+    response = ("Setting stream height to: " + height);
     PostMessage(response);
-    response = ("Setting stream fps to: " + splitString.at(4));
+    response = ("Setting stream fps to: " + fps);
     PostMessage(response);
-    response = ("Setting stream host to: " + splitString.at(1));
+    response = ("Setting stream host to: " + host);
     PostMessage(response);
-    response = ("Setting stream bitrate to: " + splitString.at(5));
+    response = ("Setting stream bitrate to: " + bitrate);
     PostMessage(response);
+    
     // Populate the stream configuration
-    m_StreamConfig.width = stoi(splitString.at(2));
-    m_StreamConfig.height = stoi(splitString.at(3));
-    m_StreamConfig.fps = stoi(splitString.at(4));
-    m_StreamConfig.bitrate = stoi(splitString.at(5)); // kilobits per second
+    m_StreamConfig.width = stoi(width);
+    m_StreamConfig.height = stoi(height);
+    m_StreamConfig.fps = stoi(fps);
+    m_StreamConfig.bitrate = stoi(bitrate); // kilobits per second
     m_StreamConfig.packetSize = 1024;
     m_StreamConfig.streamingRemotely = 0;
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
@@ -176,15 +176,35 @@ void MoonlightInstance::handleStartStream(std::string startStreamMessage) {
     m_ServerMajorVersion = 5;
 
     // Store the host from the start message
-    m_Host = splitString.at(1);
+    m_Host = host;
     
     // Start the worker thread to establish the connection
     pthread_create(&m_ConnectionThread, NULL, MoonlightInstance::ConnectionThreadFunc, this);
+    
+    pp::VarDictionary ret;
+    ret.Set("callbackId", pp::Var(callbackId));
+    ret.Set("type", pp::Var("resolve"));
+    ret.Set("ret", pp::VarDictionary());
+    PostMessage(ret);
 }
 
-void MoonlightInstance::handleStopStream(std::string stopStreamMessage) {
+void MoonlightInstance::handleStopStream(int32_t callbackId, pp::VarArray args) {
     // Begin connection teardown
     StopConnection();
+    
+    pp::VarDictionary ret;
+    ret.Set("callbackId", pp::Var(callbackId));
+    ret.Set("type", pp::Var("resolve"));
+    ret.Set("ret", pp::VarDictionary());
+    PostMessage(ret);
+}
+
+void MoonlightInstance::handleOpenURL(int32_t callbackId, pp::VarArray args) {
+    std::string url = args.Get(0).AsString();
+    
+    openHttpThread.message_loop().PostWork(m_CallbackFactory.NewCallback(&MoonlightInstance::NvHTTPRequest, callbackId, url));
+    
+    PostMessage(pp::Var (url.c_str()));
 }
 
 bool MoonlightInstance::Init(uint32_t argc,

@@ -1,6 +1,7 @@
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/var.h"
+#include "ppapi/cpp/var_dictionary.h"
 #include "ppapi/cpp/mouse_lock.h"
 #include "ppapi/cpp/graphics_3d.h"
 #include "ppapi/cpp/video_decoder.h"
@@ -13,6 +14,7 @@
 #include "ppapi/cpp/graphics_3d_client.h"
 
 #include "ppapi/utility/completion_callback_factory.h"
+#include "ppapi/utility/threading/simple_thread.h"
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
@@ -44,13 +46,16 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             m_CallbackFactory(this),
             m_MouseLocked(false),
             m_KeyModifiers(0),
-            m_WaitingForAllModifiersUp(false) {
+            m_WaitingForAllModifiersUp(false),
+            openHttpThread(this) {
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
             
             LiInitializeStreamConfiguration(&m_StreamConfig);
             
             m_GamepadApi = static_cast<const PPB_Gamepad*>(pp::Module::Get()->GetBrowserInterface(PPB_GAMEPAD_INTERFACE));
+            
+            openHttpThread.Start();
         }
         
         virtual ~MoonlightInstance();
@@ -58,26 +63,26 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool Init(uint32_t argc, const char* argn[], const char* argv[]);
         
         void HandleMessage(const pp::Var& var_message);
-        void handlePair(std::string pairMessage);
-        void handleShowGames(std::string showGamesMessage);
-        void handleStartStream(std::string startStreamMessage);
-        void handleStopStream(std::string stopStreamMessage);
+        void handlePair(int32_t callbackId, pp::VarArray args);
+        void handleShowGames(int32_t callbackId, pp::VarArray args);
+        void handleStartStream(int32_t callbackId, pp::VarArray args);
+        void handleStopStream(int32_t callbackId, pp::VarArray args);
+        void handleOpenURL(int32_t callbackId, pp::VarArray args);
         
         void UpdateModifiers(PP_InputEvent_Type eventType, short keyCode);
         bool HandleInputEvent(const pp::InputEvent& event);
         
         void PollGamepads();
         
-        void DidLockMouse(int32_t result);
         void MouseLockLost();
+        void DidLockMouse(int32_t result);
         void DidChangeFocus(bool got_focus);
+        void DidChangeView(const pp::Rect& position,
+                           const pp::Rect& clip_ignored);
         
         void OnConnectionStopped(uint32_t unused);
         void OnConnectionStarted(uint32_t error);
         void StopConnection();
-        
-        void DidChangeView(const pp::Rect& position,
-                           const pp::Rect& clip_ignored);
         
         static void* ConnectionThreadFunc(void* context);
         static void* GamepadThreadFunc(void* context);
@@ -105,6 +110,12 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig);
         static void AudDecCleanup(void);
         static void AudDecDecodeAndPlaySample(char* sampleData, int sampleLength);
+        
+        void MakeCert(int32_t callbackId, pp::VarArray args);
+        void LoadCert(const char* certStr, const char* keyStr);
+        
+        void NvHTTPInit(int32_t callbackId, pp::VarArray args);
+        void NvHTTPRequest(int32_t, int32_t callbackId, std::string url);
         
     private:
         static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
@@ -138,6 +149,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool m_MouseLocked;
         char m_KeyModifiers;
         bool m_WaitingForAllModifiersUp;
+        
+        pp::SimpleThread openHttpThread;
 };
 
 extern MoonlightInstance* g_Instance;

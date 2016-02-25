@@ -3,19 +3,19 @@ var hosts = [];
 
 // Called by the common.js module.
 function attachListeners() {
-    $('#startButton')[0].addEventListener('click', startPushed);
-    $('#stopButton')[0].addEventListener('click', stopPushed);
-    $('#pairButton')[0].addEventListener('click', pairPushed);
-    $('#showAppsButton')[0].addEventListener('click', showAppsPushed);
-    $('#selectResolution')[0].addEventListener('change', saveResolution);
-    $('#selectFramerate')[0].addEventListener('change', saveFramerate);
-    $('#bitrateSlider')[0].addEventListener('input', updateBitrateField); // input occurs every notch you slide
-    $('#bitrateSlider')[0].addEventListener('change', saveBitrate); // change occurs once the mouse lets go.
-    window.addEventListener("resize", fullscreenNaclModule);
+    $('#startButton').on('click', startPushed);
+    $('#stopButton').on('click', stopPushed);
+    $('#pairButton').on('click', pairPushed);
+    $('#showAppsButton').on('click', showAppsPushed);
+    $('#selectResolution').on('change', saveResolution);
+    $('#selectFramerate').on('change', saveFramerate);
+    $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
+    $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
+    $(window).resize(fullscreenNaclModule);
 }
 
 function updateBitrateField() {
-    $('#bitrateField')[0].innerHTML = $('#bitrateSlider')[0].value + " Mbps"
+    $('#bitrateField').html($('#bitrateSlider')[0].value + " Mbps");
 }
 
 function moduleDidLoad() {
@@ -26,9 +26,9 @@ function moduleDidLoad() {
 // but to save from the PITA of inter-chrome-app-page JS message passing,
 // I'm opting to do it in a single page, and keep the data around.
 function hideAllWorkflowDivs() {
-    $('#streamSettings')[0].style.display = 'inline-block';
-    $('#hostSettings')[0].style.display = 'inline-block';
-    $('#gameSelection')[0].style.display = 'none';
+    $('#streamSettings').css('display', 'inline-block');
+    $('#hostSettings').css('display', 'inline-block');
+    $('#gameSelection').css('display', 'none');
     // common.hideModule(); // do NOT hide the nacl module. you can't interact with it then
 }
 
@@ -52,11 +52,11 @@ function showAppsPushed() {
 
 function showAppsMode() {
     console.log("entering show apps mode.")
-    $('#streamSettings')[0].style.display = 'none';
-    $('#hostSettings')[0].style.display = 'none';
-    $('#gameSelection')[0].style.display = 'inline-block';
-    $("#main-content").children().not("#listener").display = "inline-block";
-    document.body.style.backgroundColor = "white";
+    $('#streamSettings').css('display', 'none');
+    $('#hostSettings').css('display', 'none');
+    $('#gameSelection').css('display', 'inline-block');
+    $("#main-content").children().not("#listener").css('display', 'inline-block');
+    $("body").css('backgroundColor', 'white');
 }
 
 // user wants to start a stream.  We need the host, game ID, and video settings(?)
@@ -66,12 +66,17 @@ function startPushed() {
         var e = document.getElementById("selectHost");
         target = e.options[e.selectedIndex].value;
     }
-    var frameRate = $("#selectFramerate")[0].value;
-    var resolution = $("#selectResolution")[0].value;
+    
+    var frameRate = $("#selectFramerate").val();
+    var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
+    var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
     // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
-    var bitrate = parseInt($("#bitrateSlider")[0].value) * 1024;
+    var bitrate = parseInt($("#bitrateSlider").val()) * 1024;
+    
     console.log('startRequest:' + target + ":" + resolution + ":" + frameRate);
-    common.naclModule.postMessage('startRequest:' + target + ":" + resolution + ":" + frameRate + ":" + bitrate + ":");
+    
+    sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate]);
+    
     // we just finished the gameSelection section. only expose the NaCl section
     playGameMode();
 }
@@ -86,8 +91,8 @@ function playGameMode() {
 }
 
 function fullscreenNaclModule() {
-    var streamWidth = $('#selectResolution')[0].options[$('#selectResolution')[0].selectedIndex].value.split(':')[0];
-    var streamHeight = $('#selectResolution')[0].options[$('#selectResolution')[0].selectedIndex].value.split(':')[1];
+    var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
+    var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
     var screenWidth = window.innerWidth;
     var screenHeight = window.innerHeight;
 
@@ -104,46 +109,25 @@ function fullscreenNaclModule() {
 
 // user pushed the stop button. we should stop.
 function stopPushed() {
-    common.naclModule.postMessage('stopRequested');
-}
-
-// hook from main.cpp into the javascript
-function handleMessage(msg) {
-    var quitStreamString = "streamTerminated";
-    var connectionEstablishedString = "Connection Established";
-    console.log("message received: " + msg.data);
-    if (msg.data.lastIndexOf(quitStreamString, 0) === 0) {
-        console.log("Stream termination message received. returning to 'show apps' screen.")
-        showAppsMode();
-    } else if (msg.data.lastIndexOf(connectionEstablishedString, 0) === 0) {
-        var hostSelect = $('#selectHost')[0];
-        for(var i = 0; i < hostSelect.length; i++) {
-            if (hostSelect.options[i].value == target) return;
-        }
-
-        var opt = document.createElement('option');
-        opt.appendChild(document.createTextNode(target));
-        opt.value = target;
-        $('#selectHost')[0].appendChild(opt);
-        hosts.push(target);
-        saveHosts();
-    }
+    //common.naclModule.postMessage('stopRequested');
+    sendMessage('stopRequested');
 }
 
 function storeData(key, data, callbackFunction) {
     var obj = {};
     obj[key] = data;
-    chrome.storage.sync.set(obj, callbackFunction);
+    if(chrome.storage)
+        chrome.storage.sync.set(obj, callbackFunction);
 }
 
 function saveResolution() {
     updateDefaultBitrate();
-    storeData('resolution', $('#selectResolution')[0].value, null);
+    storeData('resolution', $('#selectResolution').val(), null);
 }
 
 function saveFramerate() {
     updateDefaultBitrate();
-    storeData('frameRate', $('#selectFramerate')[0].value, null);
+    storeData('frameRate', $('#selectFramerate').val(), null);
 }
 
 function saveHosts() {
@@ -151,12 +135,12 @@ function saveHosts() {
 }
 
 function saveBitrate() {
-    storeData('bitrate', $('#bitrateSlider')[0].value, null);
+    storeData('bitrate', $('#bitrateSlider').val(), null);
 }
 
 function updateDefaultBitrate() {
-    var res = $('#selectResolution')[0].value;
-    var frameRate = $('#selectFramerate')[0].value;
+    var res = $('#selectResolution').val();
+    var frameRate = $('#selectFramerate').val();
 
     if (res.lastIndexOf("1920:1080", 0) === 0) {
         if (frameRate.lastIndexOf("30", 0) === 0) { // 1080p, 30fps
@@ -177,36 +161,39 @@ function updateDefaultBitrate() {
 
 function onWindowLoad(){
     // don't show the game selection div
-    document.getElementById('gameSelection').style.display = 'none';
+    $('#gameSelection').css('display', 'none');
     $("#bitrateField").addClass("bitrateField");
-    // load stored resolution prefs
-    chrome.storage.sync.get('resolution', function(previousValue) {
-        $('#selectResolution')[0].remove(0);
-        $('#selectResolution')[0].value = previousValue.resolution != null ? previousValue.resolution : '1280:720';
-    });
-    // load stored framerate prefs
-    chrome.storage.sync.get('frameRate', function(previousValue) {
-        $('#selectFramerate')[0].remove(0);
-        $('#selectFramerate')[0].value = previousValue.frameRate != null ? previousValue.frameRate : '30';
-    });
-    // load previously connected hosts
-    chrome.storage.sync.get('hosts', function(previousValue) {
-        hosts = previousValue.hosts != null ? previousValue.hosts : [];
-        if ($('#selectHost')[0].length > 0) {
-            $('#selectHost')[0].remove($('#selectHost')[0].selectedIndex);
-        }
-        for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
-            var opt = document.createElement('option');
-            opt.appendChild(document.createTextNode(hosts[i]));
-            opt.value = hosts[i];
-            $('#selectHost')[0].appendChild(opt);
-        }
-    });
-    // load stored bitrate prefs
-    chrome.storage.sync.get('bitrate', function(previousValue) {
-        $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '15');
-        updateBitrateField();
-    });
+    
+    if(chrome.storage) {
+        // load stored resolution prefs
+        chrome.storage.sync.get('resolution', function(previousValue) {
+            $('#selectResolution')[0].remove(0);
+            $('#selectResolution')[0].value = previousValue.resolution != null ? previousValue.resolution : '1280:720';
+        });
+        // load stored framerate prefs
+        chrome.storage.sync.get('frameRate', function(previousValue) {
+            $('#selectFramerate')[0].remove(0);
+            $('#selectFramerate')[0].value = previousValue.frameRate != null ? previousValue.frameRate : '30';
+        });
+        // load previously connected hosts
+        chrome.storage.sync.get('hosts', function(previousValue) {
+            hosts = previousValue.hosts != null ? previousValue.hosts : [];
+            if ($('#selectHost')[0].length > 0) {
+                $('#selectHost')[0].remove($('#selectHost')[0].selectedIndex);
+            }
+            for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
+                var opt = document.createElement('option');
+                opt.appendChild(document.createTextNode(hosts[i]));
+                opt.value = hosts[i];
+                $('#selectHost')[0].appendChild(opt);
+            }
+        });
+        // load stored bitrate prefs
+        chrome.storage.sync.get('bitrate', function(previousValue) {
+            $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '15');
+            updateBitrateField();
+        });
+    }
 }
 
 
