@@ -76,9 +76,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void OnConnectionStarted(uint32_t error);
         void StopConnection();
         
-        void DidChangeView(const pp::Rect& position,
-                           const pp::Rect& clip_ignored);
-        
         static void* ConnectionThreadFunc(void* context);
         static void* GamepadThreadFunc(void* context);
         static void* StopThreadFunc(void* context);
@@ -97,6 +94,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void DispatchGetPicture(uint32_t unused);
         void PictureReady(int32_t result, PP_VideoPicture picture);
         void PaintPicture(void);
+        void InitializeRenderingSurface(int width, int height);
         
         static void VidDecSetup(int width, int height, int redrawRate, void* context, int drFlags);
         static void VidDecCleanup(void);
@@ -121,7 +119,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
     
         pp::Graphics3D m_Graphics3D;
         pp::VideoDecoder* m_VideoDecoder;
-        pp::Size m_ViewSize;
         Shader m_Texture2DShader;
         Shader m_RectangleArbShader;
         Shader m_ExternalOesShader;

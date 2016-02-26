@@ -70,20 +70,7 @@ void MoonlightInstance::DidChangeFocus(bool got_focus) {
     }
 }
 
-void MoonlightInstance::DidChangeView(const pp::Rect& position,
-                                      const pp::Rect& clip) {
-                                          
-    if (position.width() == 0 || position.height() == 0) {
-        return;
-    }
-    if (m_ViewSize.width()) {
-        assert(position.size() == m_ViewSize);
-        return;
-    }
-                                          
-    m_ViewSize = position.size();
-    printf("View size: %dx%d\n", m_ViewSize.width(), m_ViewSize.height());
-    
+void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     if (!glInitializePPAPI(pp::Module::Get()->get_browser_interface())) {
         return;
     }
@@ -97,8 +84,8 @@ void MoonlightInstance::DidChangeView(const pp::Rect& position,
         PP_GRAPHICS3DATTRIB_STENCIL_SIZE, 0,
         PP_GRAPHICS3DATTRIB_SAMPLES, 0,
         PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
-        PP_GRAPHICS3DATTRIB_WIDTH, position.size().width(),
-        PP_GRAPHICS3DATTRIB_HEIGHT, position.size().height(),
+        PP_GRAPHICS3DATTRIB_WIDTH, width,
+        PP_GRAPHICS3DATTRIB_HEIGHT, height,
         PP_GRAPHICS3DATTRIB_NONE
     };
     g_Instance->m_Graphics3D = pp::Graphics3D(this, contextAttributes);
@@ -114,7 +101,7 @@ void MoonlightInstance::DidChangeView(const pp::Rect& position,
     
     glDisable(GL_DITHER);
     
-    glViewport(0, 0, m_ViewSize.width(), m_ViewSize.height());
+    glViewport(0, 0, width, height);
     
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
