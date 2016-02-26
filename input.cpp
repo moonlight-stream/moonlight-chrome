@@ -112,14 +112,25 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_WHEEL: {
+            signed char fullTicks;
+            
             if (!m_MouseLocked) {
                 return false;
             }
             
             pp::WheelInputEvent wheelEvent(event);
             
-            // FIXME: Handle fractional scroll ticks
-            LiSendScrollEvent((signed char) wheelEvent.GetTicks().y());
+            // Accumulate the current tick value
+            m_AccumulatedTicks += wheelEvent.GetTicks().y();
+            
+            // Compute the number of full ticks
+            fullTicks = (signed char) m_AccumulatedTicks;
+            
+            // Send a scroll event if we've completed a full tick
+            if (fullTicks != 0) {
+                LiSendScrollEvent(fullTicks);
+                m_AccumulatedTicks -= fullTicks;
+            }
             return true;
         }
         

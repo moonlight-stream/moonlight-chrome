@@ -44,7 +44,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             m_CallbackFactory(this),
             m_MouseLocked(false),
             m_KeyModifiers(0),
-            m_WaitingForAllModifiersUp(false) {
+            m_WaitingForAllModifiersUp(false),
+            m_AccumulatedTicks(0) {
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
             
@@ -135,6 +136,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool m_MouseLocked;
         char m_KeyModifiers;
         bool m_WaitingForAllModifiersUp;
+        float m_AccumulatedTicks;
 };
 
 extern MoonlightInstance* g_Instance;
