@@ -5,6 +5,7 @@
 #include "ppapi/cpp/graphics_3d.h"
 #include "ppapi/cpp/video_decoder.h"
 #include "ppapi/cpp/audio.h"
+#include "ppapi/cpp/text_input_controller.h"
 
 #include "ppapi/c/ppb_gamepad.h"
 #include "ppapi/c/pp_input_event.h"
@@ -50,6 +51,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
             
             LiInitializeStreamConfiguration(&m_StreamConfig);
+                
+            pp::TextInputController(this).SetTextInputType(PP_TEXTINPUT_TYPE_NONE);
             
             m_GamepadApi = static_cast<const PPB_Gamepad*>(pp::Module::Get()->GetBrowserInterface(PPB_GAMEPAD_INTERFACE));
         }
