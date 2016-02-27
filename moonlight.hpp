@@ -6,6 +6,7 @@
 #include "ppapi/cpp/graphics_3d.h"
 #include "ppapi/cpp/video_decoder.h"
 #include "ppapi/cpp/audio.h"
+#include "ppapi/cpp/text_input_controller.h"
 
 #include "ppapi/c/ppb_gamepad.h"
 #include "ppapi/c/pp_input_event.h"
@@ -47,11 +48,14 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             m_MouseLocked(false),
             m_KeyModifiers(0),
             m_WaitingForAllModifiersUp(false),
+            m_AccumulatedTicks(0),
             openHttpThread(this) {
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
             
             LiInitializeStreamConfiguration(&m_StreamConfig);
+                
+            pp::TextInputController(this).SetTextInputType(PP_TEXTINPUT_TYPE_NONE);
             
             m_GamepadApi = static_cast<const PPB_Gamepad*>(pp::Module::Get()->GetBrowserInterface(PPB_GAMEPAD_INTERFACE));
             
@@ -102,6 +106,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void DispatchGetPicture(uint32_t unused);
         void PictureReady(int32_t result, PP_VideoPicture picture);
         void PaintPicture(void);
+        void InitializeRenderingSurface(int width, int height);
         
         static void VidDecSetup(int width, int height, int redrawRate, void* context, int drFlags);
         static void VidDecCleanup(void);
@@ -132,7 +137,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
     
         pp::Graphics3D m_Graphics3D;
         pp::VideoDecoder* m_VideoDecoder;
-        pp::Size m_ViewSize;
         Shader m_Texture2DShader;
         Shader m_RectangleArbShader;
         Shader m_ExternalOesShader;
@@ -149,7 +153,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool m_MouseLocked;
         char m_KeyModifiers;
         bool m_WaitingForAllModifiersUp;
-        
+        float m_AccumulatedTicks;
+    
         pp::SimpleThread openHttpThread;
 };
 

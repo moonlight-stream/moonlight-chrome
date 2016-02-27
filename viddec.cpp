@@ -13,6 +13,8 @@ static unsigned char* s_DecodeBuffer;
 static unsigned int s_DecodeBufferLength;
 static int s_LastTextureType;
 static int s_LastTextureId;
+static int s_NextDecodeFrameNumber;
+static int s_LastDisplayFrameNumber;
 static unsigned char s_LastSps[256];
 static unsigned char s_LastPps[256];
 static unsigned int s_LastSpsLength;
@@ -68,38 +70,26 @@ void MoonlightInstance::DidChangeFocus(bool got_focus) {
     }
 }
 
-void MoonlightInstance::DidChangeView(const pp::Rect& position,
-                                      const pp::Rect& clip) {
-                                          
-    if (position.width() == 0 || position.height() == 0) {
-        return;
-    }
-    if (m_ViewSize.width()) {
-        assert(position.size() == m_ViewSize);
-        return;
-    }
-                                          
-    m_ViewSize = position.size();
-    printf("View size: %dx%d\n", m_ViewSize.width(), m_ViewSize.height());
-    
+void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     if (!glInitializePPAPI(pp::Module::Get()->get_browser_interface())) {
         return;
     }
     
     int32_t contextAttributes[] = {
-        PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
         PP_GRAPHICS3DATTRIB_BLUE_SIZE, 8,
         PP_GRAPHICS3DATTRIB_GREEN_SIZE, 8,
         PP_GRAPHICS3DATTRIB_RED_SIZE, 8,
-        PP_GRAPHICS3DATTRIB_DEPTH_SIZE, 0,
-        PP_GRAPHICS3DATTRIB_STENCIL_SIZE, 0,
-        PP_GRAPHICS3DATTRIB_SAMPLES, 0,
-        PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
-        PP_GRAPHICS3DATTRIB_WIDTH, position.size().width(),
-        PP_GRAPHICS3DATTRIB_HEIGHT, position.size().height(),
+        PP_GRAPHICS3DATTRIB_WIDTH, width,
+        PP_GRAPHICS3DATTRIB_HEIGHT, height,
         PP_GRAPHICS3DATTRIB_NONE
     };
     g_Instance->m_Graphics3D = pp::Graphics3D(this, contextAttributes);
+    
+    int32_t swapBehaviorAttribute[] = {
+        PP_GRAPHICS3DATTRIB_SWAP_BEHAVIOR, PP_GRAPHICS3DATTRIB_BUFFER_DESTROYED,
+        PP_GRAPHICS3DATTRIB_NONE
+    };
+    g_Instance->m_Graphics3D.SetAttribs(swapBehaviorAttribute);
     
     if (!BindGraphics(m_Graphics3D)) {
       fprintf(stderr, "Unable to bind 3d context!\n");
@@ -112,7 +102,7 @@ void MoonlightInstance::DidChangeView(const pp::Rect& position,
     
     glDisable(GL_DITHER);
     
-    glViewport(0, 0, m_ViewSize.width(), m_ViewSize.height());
+    glViewport(0, 0, width, height);
     
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -146,6 +136,8 @@ void MoonlightInstance::VidDecSetup(int width, int height, int redrawRate, void*
     s_LastTextureId = 0;
     s_LastSpsLength = 0;
     s_LastPpsLength = 0;
+    s_NextDecodeFrameNumber = 0;
+    s_LastDisplayFrameNumber = 0;
     
     g_Instance->m_VideoDecoder->Initialize(g_Instance->m_Graphics3D,
                                            PP_VIDEOPROFILE_H264HIGH,
@@ -284,7 +276,7 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     }
     
     // Start the decoding
-    g_Instance->m_VideoDecoder->Decode(0, offset, s_DecodeBuffer, pp::BlockUntilComplete());
+    g_Instance->m_VideoDecoder->Decode(s_NextDecodeFrameNumber++, offset, s_DecodeBuffer, pp::BlockUntilComplete());
     
     return DR_OK;
 }
@@ -415,12 +407,21 @@ void MoonlightInstance::PictureReady(int32_t result, PP_VideoPicture picture) {
         return;
     }
     
-    m_PendingPictureQueue.push(picture);
+    // Ensure we only push newer frames onto the display queue
+    if (picture.decode_id > s_LastDisplayFrameNumber) {
+        m_PendingPictureQueue.push(picture);
+        s_LastDisplayFrameNumber = picture.decode_id;
+    }
+    else {
+        // This picture is older than the last one we displayed. Discard
+        // it without displaying.
+        g_Instance->m_VideoDecoder->RecyclePicture(picture);
+    }
     
     g_Instance->m_VideoDecoder->GetPicture(
         g_Instance->m_CallbackFactory.NewCallbackWithOutput(&MoonlightInstance::PictureReady));
     
-    if (!m_IsPainting) {
+    if (!m_IsPainting && !m_PendingPictureQueue.empty()) {
         PaintPicture();
     }
 }

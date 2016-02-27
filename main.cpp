@@ -174,6 +174,9 @@ void MoonlightInstance::handleStartStream(int32_t callbackId, pp::VarArray args)
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
     
     m_ServerMajorVersion = 5;
+    
+    // Initialize the rendering surface before starting the connection
+    InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height);
 
     // Store the host from the start message
     m_Host = host;
