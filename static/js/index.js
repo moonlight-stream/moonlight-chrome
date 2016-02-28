@@ -20,6 +20,26 @@ function updateBitrateField() {
 
 function moduleDidLoad() {
     console.log("NaCl module loaded.");
+    console.log("Loading certs");
+    if (chrome.storage) { // load the cert if we have the ability to load things.
+        chrome.storage.sync.get('cert', function(savedCert) {
+            if (savedCert.cert != null) { // we have a saved cert
+                var cert = savedCert.cert.cert;
+                var pk = savedCert.cert.privateKey;
+                sendMessage('httpInit', [cert, pk]).then(function (ret) {
+                    return api.pair(cert, "1234");
+                });
+            } else { // we don't have a saved cert. make one.
+                // TODO: NaCl call to make a new cert
+                sendMessage('makeCert', []).then(function (cert) {
+                    storeData('cert', cert, null); // we just made a cert. save it.
+                    return sendMessage('httpInit', [cert.cert, cert.privateKey]).then(function (ret) {
+                        return api.pair(cert, "1234");
+                    });
+                });
+            }
+        }
+    }
 }
 
 // we want the user to progress through the streaming process
