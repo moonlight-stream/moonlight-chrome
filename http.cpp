@@ -3,17 +3,17 @@
 #include "ppapi/cpp/var_array_buffer.h"
 
 #include <http.h>
-#include "libgamestream/errors.h" //fix-me
-
+#include <errors.h>
 #include <string.h>
 
 #include <mkcert.h>
 #include <openssl/bio.h>
 #include <openssl/pem.h>
 
-extern const char* gs_error;
-X509 *g_cert;
-EVP_PKEY *g_privateKey;
+X509 *g_Cert;
+EVP_PKEY *g_PrivateKey;
+char *g_UniqueId;
+char *g_CertHex;
 
 void MoonlightInstance::MakeCert(int32_t callbackId, pp::VarArray args)
 {
@@ -23,7 +23,7 @@ void MoonlightInstance::MakeCert(int32_t callbackId, pp::VarArray args)
     
     pp::VarDictionary retData;
     
-	CERT_KEY_PAIR certKeyPair = mkcert_generate();
+    CERT_KEY_PAIR certKeyPair = mkcert_generate();
     
     BIO* bio = BIO_new(BIO_s_mem());
     
@@ -55,18 +55,23 @@ void MoonlightInstance::LoadCert(const char* certStr, const char* keyStr)
     char* _certStr = strdup(certStr);
     char* _keyStr = strdup(keyStr);
     
-	BIO *bio = BIO_new_mem_buf(_certStr, -1);
-    if(!(g_cert = PEM_read_bio_X509(bio, NULL, NULL, NULL))) {
+    BIO *bio = BIO_new_mem_buf(_certStr, -1);
+    if(!(g_Cert = PEM_read_bio_X509(bio, NULL, NULL, NULL))) {
         PostMessage(pp::Var("Error loading cert into memory"));
     }
-    BIO_reset(bio);
     BIO_free_all(bio);
     
     bio = BIO_new_mem_buf(_keyStr, -1);
-    if(PEM_read_bio_PrivateKey(bio, &g_privateKey, NULL, NULL) == NULL) {
+    if(PEM_read_bio_PrivateKey(bio, &g_PrivateKey, NULL, NULL) == NULL) {
         PostMessage(pp::Var("Error loading private key into memory"));
     }
     BIO_free_all(bio);
+    
+    // Convert the PEM cert to hex
+    g_CertHex = (char*)malloc((strlen(certStr) * 2) + 1);
+    for (int i = 0; i < strlen(certStr); i++) {
+        sprintf(&g_CertHex[i * 2], "%02x", certStr[i]);
+    }
     
     free(_certStr);
     free(_keyStr);
@@ -76,8 +81,10 @@ void MoonlightInstance::NvHTTPInit(int32_t callbackId, pp::VarArray args)
 {
     std::string _cert = args.Get(0).AsString();
     std::string _key = args.Get(1).AsString();
+    std::string _uniqueId = args.Get(2).AsString();
     
     LoadCert(_cert.c_str(), _key.c_str());
+    g_UniqueId = strdup(_uniqueId.c_str());
     
     http_init();
     
@@ -91,25 +98,27 @@ void MoonlightInstance::NvHTTPInit(int32_t callbackId, pp::VarArray args)
 void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, std::string url)
 {
     char* _url = strdup(url.c_str());
-	PHTTP_DATA data = http_create_data();
+    PHTTP_DATA data = http_create_data();
+    int err;
     
-	if (data == NULL) {
-		pp::VarDictionary ret;
+    if (data == NULL) {
+        pp::VarDictionary ret;
         ret.Set("callbackId", pp::Var(callbackId));
         ret.Set("type", pp::Var("reject"));
         ret.Set("ret", pp::Var("Error when creating data buffer."));
         PostMessage(ret);
         goto clean_data;
-	}
-
-	if(http_request(_url , data) != GS_OK) {
-		pp::VarDictionary ret;
+    }
+    
+    err = http_request(_url , data);
+    if (err) {
+        pp::VarDictionary ret;
         ret.Set("callbackId", pp::Var(callbackId));
         ret.Set("type", pp::Var("reject"));
-        ret.Set("ret", pp::Var(gs_error));
+        ret.Set("ret", pp::Var(err));
         PostMessage(ret);
         goto clean_data;
-	}
+    }
     
     {
         pp::VarDictionary ret;
@@ -120,6 +129,6 @@ void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, st
     }
     
 clean_data:
-	http_free_data(data);
-	free(_url);
+    http_free_data(data);
+    free(_url);
 }

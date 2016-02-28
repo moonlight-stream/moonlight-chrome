@@ -28,10 +28,9 @@
 #include <openssl/pem.h>
 
 static CURL *curl;
-const char* gs_error;
 
-extern X509 *g_cert;
-extern EVP_PKEY *g_privateKey;
+extern X509 *g_Cert;
+extern EVP_PKEY *g_PrivateKey;
 
 static size_t _write_curl(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -52,14 +51,11 @@ static size_t _write_curl(void *contents, size_t size, size_t nmemb, void *userp
 static CURLcode sslctx_function(CURL * curl, void * sslctx, void * parm)
 {
     SSL_CTX* ctx = (SSL_CTX*)sslctx;
-    //X509_STORE* store = SSL_CTX_get_cert_store(ctx);
     
-    //X509_STORE_add_cert(store, cert);
-    
-    if(!SSL_CTX_use_certificate(ctx, g_cert))
+    if(!SSL_CTX_use_certificate(ctx, g_Cert))
         printf("SSL_CTX_use_certificate problem\n");
     
-    if(!SSL_CTX_use_PrivateKey(ctx, g_privateKey))
+    if(!SSL_CTX_use_PrivateKey(ctx, g_PrivateKey))
         printf("Use Key failed\n");
     
     return CURLE_OK;
@@ -96,11 +92,9 @@ int http_request(char* url, PHTTP_DATA data) {
     data->size = 0;
   }
 
-  //return GS_FAILED;
   CURLcode res = curl_easy_perform(curl);
   
   if(res != CURLE_OK) {
-    gs_error = curl_easy_strerror(res);
     return GS_FAILED;
   } else if (data->memory == NULL) {
     return GS_OUT_OF_MEMORY;

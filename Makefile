@@ -7,6 +7,7 @@ include common-c.mk
 include opus.mk
 include h264bitstream.mk
 include libgamestream.mk
+include ports.mk
 
 EXTRA_INC_PATHS := $(EXTRA_INC_PATHS) $(COMMON_C_INCLUDE) $(OPUS_INCLUDE) $(H264BS_INCLUDE) $(LIBGS_C_INCLUDE)
 

@@ -25,17 +25,6 @@ function NvAPI(address, clientUid) {
     _self = this;
 };
 
-//FOR TEST ONLY
-var api;
-function init() {
-    api = new NvAPI('localhost', guuid());
-    return sendMessage('makeCert', []).then(function (cert) {
-        return sendMessage('httpInit', [cert.cert, cert.privateKey]).then(function (ret) {
-            return api.pair(cert, "1234");
-        });
-    });
-}
-
 NvAPI.prototype = {
     init: function () {
         return sendMessage('openUrl', [_self._baseUrlHttps+'/serverinfo?'+_self._buildUidStr()]).then(function(ret) {
@@ -86,7 +75,7 @@ NvAPI.prototype = {
         });
     },
     
-    getArtBox: function (appId) {
+    getBoxArt: function (appId) {
         return sendMessage('openUrl', [
             _self._baseUrlHttps+
             '/appasset?'+_self._buildUidStr()+
@@ -97,89 +86,35 @@ NvAPI.prototype = {
         });
     },
     
-    launchApp: function (context, appId) {
+    launchApp: function (context, appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
         return sendMessage('openUrl', [
             _self.baseUrlHttps +
             '/launch?' + _self._buildUidStr() +
             '&appid=' + appId +
-            '&mode=' +
-            '&additionalStates=1&sops=' + 
-            '&rikey' +
-            '&rikeyid' + 
-            '&localAudioPlayMode' + 
-            '&surroundAudioInfo'
+            '&mode=' + mode +
+            '&additionalStates=1&sops=' + sops +
+            '&rikey=' + rikey +
+            '&rikeyid=' + rikeyid +
+            '&localAudioPlayMode=' + localAudio +
+            '&surroundAudioInfo=' + suroundAudioInfo
         ]).then(function (ret) {
             return true;
         });
     },
     
-    resumeApp: function (context) {
+    resumeApp: function (context, rikey, rikeyid) {
         return sendMessage('openUrl', [
             _self._baseUrlHttps +
             '/resume?' + _self._buildUidStr() +
-            '&rikey=' +
-            '&rikeyid='
+            '&rikey=' + rikey +
+            '&rikeyid=' + rikeyid
         ]).then(function (ret) {
             return true;
         });
     },
     
     quitApp: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps+'/unpair?'+_self._buildUidStr()]);
-    },
-    
-    pair: function (cert, pin) {
-        if (_self.paired)
-            return $.when(false);
-        
-        if (_self.currentGame)
-            return $.when(false);
-        
-        var salt_data = CryptoJS.lib.WordArray.random(16);
-        var cert_hex = cert.cert.toHex(); 
-        
-        return sendMessage('openUrl',[
-            _self._baseUrlHttp+
-            '/pair?'+_self._buildUidStr()+
-            '&devicename=roth&updateState=1&phrase=getservercert&salt='+salt_data.toString()+
-            '&clientcert='+cert_hex
-        ]).then(function (ret) {
-            var salt_pin_hex = salt_data.toString();
-            var aes_key_hash = CryptoJS.SHA1(CryptoJS.enc.Hex.parse(salt_pin_hex + salt_pin_hex.substr(0, 8)));
-            
-            console.log(aes_key_hash);
-            
-            var challenge_data = CryptoJS.lib.WordArray.random(16);
-            var challenge_enc = CryptoJS.AES.encrypt(challenge_data, aes_key_hash, {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.NoPadding});
-            var challange_enc_hex = challenge_enc.ciphertext.toString()
-            
-            return sendMessage('openUrl', [
-                _self._baseUrlHttp+
-                '/pair?'+_self._buildUidStr()+
-                '&devicename=roth&updateState=1&clientchallenge=' + challange_enc_hex
-            ]).then(function (ret) {
-                console.log(ret);
-                
-                $xml = _self._parseXML(ret);
-                var challengeresponse = $xml.find('challengeresponse').text();
-                
-                for (var i = 0; i < 96; i += 32) {
-                    var data = CryptoJS.enc.Hex.parse(challengeresponse.substr(i, 32));
-                    var challenge_dec = CryptoJS.AES.decrypt(data, aes_key_hash, {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.NoPadding});
-                    console.log(challenge_dec);
-                }
-                
-                return sendMessage('openUrl', [
-                    _self._baseUrlHttp+
-                    '/pair?'+
-                    '&devicename=roth&updateState=1&serverchallengeresp='
-                ]).then(function (ret) {
-                    console.log(ret);
-                    
-                    return true;
-                });
-            });
-        });
+        return sendMessage('openUrl', [_self._baseUrlHttps+'/cancel?'+_self._buildUidStr()]);
     },
     
     unpair: function () {

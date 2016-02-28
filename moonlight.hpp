@@ -67,12 +67,13 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool Init(uint32_t argc, const char* argn[], const char* argv[]);
         
         void HandleMessage(const pp::Var& var_message);
-        void handlePair(int32_t callbackId, pp::VarArray args);
-        void handleShowGames(int32_t callbackId, pp::VarArray args);
-        void handleStartStream(int32_t callbackId, pp::VarArray args);
-        void handleStopStream(int32_t callbackId, pp::VarArray args);
-        void handleOpenURL(int32_t callbackId, pp::VarArray args);
-        
+        void HandlePair(int32_t callbackId, pp::VarArray args);
+        void HandleShowGames(int32_t callbackId, pp::VarArray args);
+        void HandleStartStream(int32_t callbackId, pp::VarArray args);
+        void HandleStopStream(int32_t callbackId, pp::VarArray args);
+        void HandleOpenURL(int32_t callbackId, pp::VarArray args);
+        void PairCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args);
+    
         void UpdateModifiers(PP_InputEvent_Type eventType, short keyCode);
         bool HandleInputEvent(const pp::InputEvent& event);
         
@@ -81,8 +82,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void MouseLockLost();
         void DidLockMouse(int32_t result);
         void DidChangeFocus(bool got_focus);
-        void DidChangeView(const pp::Rect& position,
-                           const pp::Rect& clip_ignored);
         
         void OnConnectionStopped(uint32_t unused);
         void OnConnectionStarted(uint32_t error);

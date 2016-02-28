@@ -5,6 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <pairing.h>
+
 #include "ppapi/cpp/input_event.h"
 
 // Requests the NaCl module to connection to the server specified after the :
@@ -131,22 +133,24 @@ void MoonlightInstance::HandleMessage(const pp::Var& var_message) {
     pp::VarArray params(msg.Get("params"));
     
     if (strcmp(method.c_str(), MSG_START_REQUEST) == 0) {
-        handleStartStream(callbackId, params);
+        HandleStartStream(callbackId, params);
     } else if (strcmp(method.c_str(), MSG_STOP_REQUEST) == 0) {
-        handleStopStream(callbackId, params);
+        HandleStopStream(callbackId, params);
     } else if (strcmp(method.c_str(), MSG_OPENURL) == 0) {
-        handleOpenURL(callbackId, params);
+        HandleOpenURL(callbackId, params);
     } else if (strcmp(method.c_str(), "httpInit") == 0) {
         NvHTTPInit(callbackId, params);
     } else if (strcmp(method.c_str(), "makeCert") == 0) {
         MakeCert(callbackId, params);
+    } else if (strcmp(method.c_str(), "pair") == 0) {
+        HandlePair(callbackId, params);
     } else {
         pp::Var response("Unhandled message received: " + method);
         PostMessage(response);
     }
 }
 
-void MoonlightInstance::handleStartStream(int32_t callbackId, pp::VarArray args) {
+void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args) {
     std::string host = args.Get(0).AsString();
     std::string width = args.Get(1).AsString();
     std::string height = args.Get(2).AsString();
@@ -191,7 +195,7 @@ void MoonlightInstance::handleStartStream(int32_t callbackId, pp::VarArray args)
     PostMessage(ret);
 }
 
-void MoonlightInstance::handleStopStream(int32_t callbackId, pp::VarArray args) {
+void MoonlightInstance::HandleStopStream(int32_t callbackId, pp::VarArray args) {
     // Begin connection teardown
     StopConnection();
     
@@ -202,12 +206,26 @@ void MoonlightInstance::handleStopStream(int32_t callbackId, pp::VarArray args) 
     PostMessage(ret);
 }
 
-void MoonlightInstance::handleOpenURL(int32_t callbackId, pp::VarArray args) {
+void MoonlightInstance::HandleOpenURL(int32_t callbackId, pp::VarArray args) {
     std::string url = args.Get(0).AsString();
     
     openHttpThread.message_loop().PostWork(m_CallbackFactory.NewCallback(&MoonlightInstance::NvHTTPRequest, callbackId, url));
     
     PostMessage(pp::Var (url.c_str()));
+}
+
+void MoonlightInstance::HandlePair(int32_t callbackId, pp::VarArray args) {
+     openHttpThread.message_loop().PostWork(m_CallbackFactory.NewCallback(&MoonlightInstance::PairCallback, callbackId, args));
+}
+
+void MoonlightInstance::PairCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args) {
+    int err = gs_pair(args.Get(0).AsString().c_str(), args.Get(1).AsString().c_str());
+    
+    pp::VarDictionary ret;
+    ret.Set("callbackId", pp::Var(callbackId));
+    ret.Set("type", err ? pp::Var("reject") : pp::Var("resolve"));
+    ret.Set("ret", pp::Var(err));
+    PostMessage(ret);
 }
 
 bool MoonlightInstance::Init(uint32_t argc,
