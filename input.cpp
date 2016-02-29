@@ -30,7 +30,7 @@ void MoonlightInstance::DidLockMouse(int32_t result) {
     if (m_MouseLocked) {
         // Request an IDR frame to dump the frame queue that may have
         // built up from the GL pipeline being stalled.
-        g_Instance->m_RequestIdrFrame = true;
+        m_RequestIdrFrame = true;
     }
 }
 
@@ -75,7 +75,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         case PP_INPUTEVENT_TYPE_MOUSEDOWN: {
             // Lock the mouse cursor when the user clicks on the stream
             if (!m_MouseLocked) {
-                g_Instance->LockMouse(g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
+                LockMouse(m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
                 
                 // Assume it worked until we get a callback telling us otherwise
                 m_MouseLocked = true;
@@ -173,7 +173,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
              
             // Check if all modifiers are up now
             if (m_WaitingForAllModifiersUp && m_KeyModifiers == 0) {
-                g_Instance->UnlockMouse();
+                UnlockMouse();
                 m_MouseLocked = false;
                 m_WaitingForAllModifiersUp = false;
             }
