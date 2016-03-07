@@ -13,7 +13,7 @@ String.prototype.toHex = function() {
 	return hex;
 }
 
-function NvAPI(address, clientUid) {
+function NvHTTP(address, clientUid) {
     this.address = address;
     this.paired = false;
     this.supports4K = false;
@@ -25,7 +25,7 @@ function NvAPI(address, clientUid) {
     _self = this;
 };
 
-NvAPI.prototype = {
+NvHTTP.prototype = {
     init: function () {
         return sendMessage('openUrl', [_self._baseUrlHttps+'/serverinfo?'+_self._buildUidStr()]).then(function(ret) {
             $xml = _self._parseXML(ret);

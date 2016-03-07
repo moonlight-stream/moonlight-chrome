@@ -1,5 +1,6 @@
 var target = "";
 var hosts = [];
+var pairingCert;
 
 // Called by the common.js module.
 function attachListeners() {
@@ -20,25 +21,14 @@ function updateBitrateField() {
 
 function moduleDidLoad() {
     console.log("NaCl module loaded.");
-    console.log("Loading certs");
-    if (chrome.storage) { // load the cert if we have the ability to load things.
-        chrome.storage.sync.get('cert', function(savedCert) {
-            if (savedCert.cert != null) { // we have a saved cert
-                var cert = savedCert.cert.cert;
-                var pk = savedCert.cert.privateKey;
-                sendMessage('httpInit', [cert, pk]).then(function (ret) {
-                    return api.pair(cert, "1234");
-                });
-            } else { // we don't have a saved cert. make one.
-                // TODO: NaCl call to make a new cert
-                sendMessage('makeCert', []).then(function (cert) {
-                    storeData('cert', cert, null); // we just made a cert. save it.
-                    return sendMessage('httpInit', [cert.cert, cert.privateKey]).then(function (ret) {
-                        return api.pair(cert, "1234");
-                    });
-                });
-            }
-        }
+
+    if(!pairingCert) { // we couldn't load a cert. Make one.
+        console.log("Failed to load local cert. Generating new one");   
+        sendMessage('makeCert', []).then(function (cert) {
+            storeData('cert', cert, null); //TODO: this may go 1 level too deep. i.e. reading it will be cert.cert.cert
+            pairingCert = cert;
+            console.log("Generated new cert.")
+        });
     }
 }
 
@@ -54,7 +44,22 @@ function hideAllWorkflowDivs() {
 
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
 function pairPushed() {
-    console.log("Error. pairing unimplemented.");
+    if(!pairingCert) {
+        console.log("User wants to pair, and we still have no cert. Problem = very yes.")
+    }
+    target = $('#GFEHostIPField')[0].value;
+    if (target == null || target == "127.0.0.1") {
+        var e = $("#selectHost")[0];
+        target = e.options[e.selectedIndex].value;
+    }
+    api = new NvHTTP(target, guuid());
+    console.log("Attempting to pair to: " + target);
+    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey]).then(function (ret) {
+        sendMessage('pair', [pairingCert.cert, "1233"]).then(function (ret2) {
+            console.log("pair attempt to to " + target + " has returned.");
+            console.log("pairing attempt returned " + ret2)
+        })
+    });
 }
 
 // someone pushed the "show apps" button. 
@@ -93,7 +98,7 @@ function startPushed() {
     // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
     var bitrate = parseInt($("#bitrateSlider").val()) * 1024;
     
-    console.log('startRequest:' + target + ":" + resolution + ":" + frameRate);
+    console.log('startRequest:' + target + ":" + streamWidth + "x" + streamHeight + ":" + frameRate);
     
     sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate]);
     
@@ -212,6 +217,12 @@ function onWindowLoad(){
         chrome.storage.sync.get('bitrate', function(previousValue) {
             $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '15');
             updateBitrateField();
+        });
+        // load the HTTP cert if we have one.
+        chrome.storage.sync.get('cert', function(savedCert) {
+            if (savedCert.cert != null) { // we have a saved cert
+                pairingCert = savedCert.cert;
+            }
         });
     }
 }
