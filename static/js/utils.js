@@ -39,8 +39,8 @@ NvHTTP.prototype = {
             $root = $xml.find('root')
             
             if($root.attr("status_code") == 200) {
-                _self.pair = getXMLString(xml, "PairStatus").trim() == 1;
-                _self.currentGame = getXMLString(xml, "currentgame").trim();
+                _self.paired = $root.find("PairStatus").text().trim() == 1;
+                _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
             }
         });
     },
@@ -93,7 +93,7 @@ NvHTTP.prototype = {
         });
     },
     
-    launchApp: function (context, appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
+    launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
         return sendMessage('openUrl', [
             _self.baseUrlHttps +
             '/launch?' + _self._buildUidStr() +
@@ -109,7 +109,7 @@ NvHTTP.prototype = {
         });
     },
     
-    resumeApp: function (context, rikey, rikeyid) {
+    resumeApp: function (rikey, rikeyid) {
         return sendMessage('openUrl', [
             _self._baseUrlHttps +
             '/resume?' + _self._buildUidStr() +

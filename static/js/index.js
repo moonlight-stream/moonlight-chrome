@@ -107,8 +107,15 @@ function startPushed() {
     
     console.log('startRequest:' + target + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
-        sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString()]);
     sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+        api = new NvHTTP(target, myUniqueid);
+        api.init().then(function (ret) {
+            if (api.currentGame != 0) {
+                api.resumeApp('00000000000000000000000000000000', 0).then(function (ret) {
+                    sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString()]);
+                });
+            }
+        });
     });
     
     // we just finished the gameSelection section. only expose the NaCl section
