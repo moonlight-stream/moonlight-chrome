@@ -52,12 +52,11 @@ function pairPushed() {
         var e = $("#selectHost")[0];
         target = e.options[e.selectedIndex].value;
     }
-    api = new NvHTTP(target, guuid());
     console.log("Attempting to pair to: " + target);
-    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey]).then(function (ret) {
-        sendMessage('pair', [pairingCert.cert, "1233"]).then(function (ret2) {
+    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, guuid()]).then(function (ret) {
+        sendMessage('pair', [target, "1233"]).then(function (ret2) {
             console.log("pair attempt to to " + target + " has returned.");
-            console.log("pairing attempt returned " + ret2)
+            console.log("pairing attempt returned: " + ret2)
         })
     });
 }
