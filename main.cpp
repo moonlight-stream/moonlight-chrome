@@ -35,29 +35,30 @@ class MoonlightModule : public pp::Module {
 void MoonlightInstance::OnConnectionStarted(uint32_t unused) {
     // Tell the front end
     pp::Var response("Connection Established");
-    g_Instance->PostMessage(response);
+    PostMessage(response);
+    
     // Start receiving input events
-    g_Instance->RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE);
-    g_Instance->RequestFilteringInputEvents(PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
+    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE);
+    RequestFilteringInputEvents(PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
 }
 
 void MoonlightInstance::OnConnectionStopped(uint32_t error) {
     // Not running anymore
-    g_Instance->m_Running = false;
+    m_Running = false;
     
     // Stop receiving input events
-    g_Instance->ClearInputEventRequest(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
+    ClearInputEventRequest(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
     
     // Unlock the mouse
-    g_Instance->UnlockMouse();
+    UnlockMouse();
     
     // Join threads
-    pthread_join(g_Instance->m_ConnectionThread, NULL);
-    pthread_join(g_Instance->m_GamepadThread, NULL);
+    pthread_join(m_ConnectionThread, NULL);
+    pthread_join(m_GamepadThread, NULL);
     
     // Notify the JS code that the stream has ended
     pp::Var response(MSG_STREAM_TERMINATED);
-    g_Instance->PostMessage(response);
+    PostMessage(response);
 }
 
 void MoonlightInstance::StopConnection() {

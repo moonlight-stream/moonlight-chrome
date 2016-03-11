@@ -107,7 +107,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void PaintPicture(void);
         void InitializeRenderingSurface(int width, int height);
         
-        static void VidDecSetup(int width, int height, int redrawRate, void* context, int drFlags);
+        static void VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags);
         static void VidDecCleanup(void);
         static int VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit);
         

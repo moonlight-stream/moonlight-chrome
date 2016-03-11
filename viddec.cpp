@@ -127,7 +127,7 @@ void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     g_Instance->m_Graphics3D.SwapBuffers(pp::BlockUntilComplete());
 }
 
-void MoonlightInstance::VidDecSetup(int width, int height, int redrawRate, void* context, int drFlags) {
+void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
     g_Instance->m_VideoDecoder = new pp::VideoDecoder(g_Instance);
     
     s_DecodeBufferLength = INITIAL_DECODE_BUFFER_LEN;
