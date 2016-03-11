@@ -13,6 +13,7 @@ function attachListeners() {
     $('#selectFramerate').on('change', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
+
     $(window).resize(fullscreenNaclModule);
 }
 
@@ -54,6 +55,7 @@ function pairPushed() {
         console.log("User wants to pair, and we still have no cert. Problem = very yes.")
         return;
     }
+    $('#pairButton')[0].innerHTML = 'Pairing...';
     target = $('#GFEHostIPField')[0].value;
     if (target == null || target == "") {
         var e = $("#selectHost")[0];
@@ -62,8 +64,21 @@ function pairPushed() {
     console.log("Attempting to pair to: " + target);
     sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
         console.log('httpInit function completed. it returned: ' + ret);
+        var pairingDialog = document.querySelector('#pairingDialog');
+        document.getElementById('pairingDialogText').innerHTML = 
+            'Please enter the number 1233 on the GFE dialog on the computer.  This dialog will be dismissed once complete';
+        pairingDialog.showModal();
+        pairingDialog.querySelector('#CancelPairingDialog').addEventListener('click', function() {
+            pairingDialog.close();
+        });
         sendMessage('pair', [target, "1233"]).then(function (ret2) {
-            console.log("pair attempt to to " + target + " has returned.");
+            if (ret2 === 0) {
+                $('#pairButton')[0].innerHTML = 'Paired';
+                pairingDialog.close();
+            } else {
+                $('#pairButton')[0].innerHTML = 'Pairing Failed';
+                document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret2;
+            }
             console.log("pairing attempt returned: " + ret2);
         })
     });
