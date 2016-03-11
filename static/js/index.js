@@ -6,8 +6,6 @@ var api;
 
 // Called by the common.js module.
 function attachListeners() {
-    $('#startButton').on('click', startPushed);
-    $('#stopButton').on('click', stopPushed);
     $('#pairButton').on('click', pairPushed);
     $('#showAppsButton').on('click', showAppsPushed);
     $('#selectResolution').on('change', saveResolution);
@@ -157,46 +155,6 @@ function showAppsMode() {
     $("body").css('backgroundColor', 'white');
 }
 
-// user wants to start a stream.  We need the host, game ID, and video settings(?)
-function startPushed() {
-    updateTarget();
-    
-    var frameRate = $("#selectFramerate").val();
-    var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
-    var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
-    // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
-    var bitrate = parseInt($("#bitrateSlider").val()) * 1024;
-    
-    console.log('startRequest:' + target + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
-
-    var rikey = '00000000000000000000000000000000';
-    var rikeyid = 0;
-    
-    api = new NvHTTP(target, myUniqueid);
-    api.refreshServerInfo().then(function (ret) {
-        if (api.currentGame == 0) {
-            api.getAppByName("Steam").then(function (app) {
-                api.launchApp(app.id,
-                    streamWidth + "x" + streamHeight + "x" + frameRate,
-                    1, // Allow GFE to optimize game settings
-                    rikey, rikeyid,
-                    0, // Play audio locally too
-                    0x030002 // Surround channel mask << 16 | Surround channel count
-                    ).then(function (ret) {
-                        sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
-                    });
-            });
-        } else {
-            api.resumeApp(rikey, rikeyid).then(function (ret) {
-                sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
-            });
-        }
-    });
-    
-    // we just finished the gameSelection section. only expose the NaCl section
-    playGameMode();
-}
-
 function startSelectedGame() {
     // do NOT update the target.
     // we're just grabbing the currently selected option from #selectGame, and feeding it into NvHTTP
@@ -205,17 +163,17 @@ function startSelectedGame() {
     if(!api || !api.paired) {
         api = new NvHTTP(target, myUniqueid);
     }
+    var appID = $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].value;
     // refresh the server info, because the user might have quit the game.
     api.refreshServerInfo().then(function (ret) {
-        if(api.currentGame != 0) {
+        if(api.currentGame != 0 && api.currentGame != appID) {
             api.getAppById(api.currentGame).then(function (currentApp) {
                 snackbarLog('Error: ' + target + ' is already in app: ' + currentApp.title);
             });
             console.log('ERROR! host is already in an app.');
             return;
         }
-        var appID = $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].value;
-
+        
         var frameRate = $("#selectFramerate").val();
         var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
         var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
@@ -225,6 +183,12 @@ function startSelectedGame() {
 
         var rikey = '00000000000000000000000000000000';
         var rikeyid = 0;
+
+        if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
+            return api.resumeApp().then(function (ret) {
+                sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+            });
+
         api.launchApp(appID,
             streamWidth + "x" + streamHeight + "x" + frameRate,
             1, // Allow GFE to optimize game settings
@@ -264,13 +228,6 @@ function fullscreenNaclModule() {
     module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
 }
 
-// user pushed the stop button. we should stop.
-function stopPushed() {
-    sendMessage('stopRequested');
-    snackbarLog('stopRequested');
-    stopGame();
-}
-
 function stopGame() {
     if(!api || !api.paired) {
         api = new NvHTTP(target, myUniqueid);
@@ -278,6 +235,7 @@ function stopGame() {
     api.refreshServerInfo().then(function (ret) {
         return api.quitApp();
     });
+    showAppsMode();
 }
 
 function storeData(key, data, callbackFunction) {

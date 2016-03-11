@@ -63,20 +63,10 @@ main {
 	margin-top: 10px;
 	margin-bottom: 10px;
 }
-#testingDiv {
-	border: 1px dashed;
-	padding: 10px;
-}
 #pairButton {
 	margin: 3px;
 }
 #showAppsButton {
-	margin: 3px;
-}
-#startButton {
-	margin: 3px;
-}
-#stopButton {
 	margin: 3px;
 }
 #listener {
