@@ -2,6 +2,7 @@ var target = "";
 var hosts = [];
 var pairingCert;
 var myUniqueid;
+var api;
 
 // Called by the common.js module.
 function attachListeners() {
@@ -39,6 +40,15 @@ function moduleDidLoad() {
     }
 }
 
+// because the user can change the target host at any time, we continually have to check
+function updateTarget() {
+    target = $('#GFEHostIPField')[0].value;
+    if (target == null || target == "") {
+        var e = $("#selectHost")[0];
+        target = e.options[e.selectedIndex].value;
+    }
+}
+
 // we want the user to progress through the streaming process
 // but to save from the PITA of inter-chrome-app-page JS message passing,
 // I'm opting to do it in a single page, and keep the data around.
@@ -56,11 +66,7 @@ function pairPushed() {
         return;
     }
     $('#pairButton')[0].innerHTML = 'Pairing...';
-    target = $('#GFEHostIPField')[0].value;
-    if (target == null || target == "") {
-        var e = $("#selectHost")[0];
-        target = e.options[e.selectedIndex].value;
-    }
+    updateTarget();
     console.log("Attempting to pair to: " + target);
     sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
         console.log('httpInit function completed. it returned: ' + ret);
@@ -100,12 +106,34 @@ function pairPushed() {
 // if they entered something in the GFEHostIPField, use that.
 // otherwise, we assume they selected from the host history dropdown.
 function showAppsPushed() {
-    target = $('#GFEHostIPField')[0].value;
-    if (target == null || target == "") {
-        var e = $("#selectHost")[0];
-        target = e.options[e.selectedIndex].value;
-    }
+    updateTarget();
     // we just finished the hostSettings section. expose the next one
+    if(api && api.paired) {
+        api.getAppList().then(function (appList) {
+            for(var i = 0; i < appList.length; i++) { // programmatically add each app
+                var opt = document.createElement('option');
+                opt.appendChild(document.createTextNode(appList[i]));
+                opt.value = appList[i].id;
+                opt.innerHTML = appList[i].title;
+                $('#selectGame')[0].appendChild(opt);
+            }
+        });
+    } else {
+        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+            api = new NvHTTP(target, myUniqueid);
+            api.init().then(function (ret) {
+                api.getAppList().then(function (appList) {
+                    for(var i = 0; i < appList.length; i++) { // programmatically add each app
+                        var opt = document.createElement('option');
+                        opt.appendChild(document.createTextNode(appList[i]));
+                        opt.value = appList[i].id;
+                        opt.innerHTML = appList[i].title;
+                        $('#selectGame')[0].appendChild(opt);
+                    }
+                });
+            });
+        });
+    }
     showAppsMode();
 }
 
@@ -120,11 +148,7 @@ function showAppsMode() {
 
 // user wants to start a stream.  We need the host, game ID, and video settings(?)
 function startPushed() {
-    target = $('#GFEHostIPField')[0].value;
-    if (target == null || target == "") {
-        var e = document.getElementById("selectHost");
-        target = e.options[e.selectedIndex].value;
-    }
+    updateTarget();
     
     var frameRate = $("#selectFramerate").val();
     var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
