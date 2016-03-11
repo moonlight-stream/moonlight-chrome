@@ -108,7 +108,7 @@ function startPushed() {
     console.log('startRequest:' + target + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
     sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myGuuid]).then(function (ret) {
-        sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate]);
+        sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString()]);
     });
     
     // we just finished the gameSelection section. only expose the NaCl section
