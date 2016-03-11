@@ -32,8 +32,6 @@ function updateBitrateField() {
 }
 
 function moduleDidLoad() {
-    snackbarLog("NaCl module loaded.");
-
     if(!pairingCert) { // we couldn't load a cert. Make one.
         console.log("Failed to load local cert. Generating new one");   
         sendMessage('makeCert', []).then(function (cert) {
@@ -41,12 +39,16 @@ function moduleDidLoad() {
             pairingCert = cert;
             console.log("Generated new cert.")
         });
+        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]);
     }
     if(!myUniqueid) {
         console.log("Failed to get uniqueId.  Generating new one");
         myUniqueid = uniqueid();
         storeData('uniqueid', myUniqueid, null);
     }
+    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+        snackbarLog('Initialization complete.');
+    });
 }
 
 // because the user can change the target host at any time, we continually have to check
@@ -71,46 +73,43 @@ function hideAllWorkflowDivs() {
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
 function pairPushed() {
     if(!pairingCert) {
-        console.log("User wants to pair, and we still have no cert. Problem = very yes.")
+        snackbarLog('ERROR: cert has not been generated yet. Is NaCL initialized?');
+        console.log("User wants to pair, and we still have no cert. Problem = very yes.");
         return;
     }
     $('#pairButton')[0].innerHTML = 'Pairing...';
-    snackbarLog('Pairing...');
+    snackbarLog('Attempting pair to: ' + target);
     updateTarget();
-    console.log("Attempting to pair to: " + target);
-    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-        console.log('httpInit function completed. it returned: ' + ret);
-        var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
-        var pairingDialog = document.querySelector('#pairingDialog');
-        document.getElementById('pairingDialogText').innerHTML = 
-            'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
-        pairingDialog.showModal();
-        pairingDialog.querySelector('#CancelPairingDialog').addEventListener('click', function() {
+    var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
+    var pairingDialog = document.querySelector('#pairingDialog');
+    document.getElementById('pairingDialogText').innerHTML = 
+        'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
+    pairingDialog.showModal();
+    pairingDialog.querySelector('#CancelPairingDialog').addEventListener('click', function() {
+        pairingDialog.close();
+    });
+    sendMessage('pair', [target, randomNumber]).then(function (ret2) {
+        if (ret2 === 0) { // pairing was successful. save this host.
+            $('#pairButton')[0].innerHTML = 'Paired';
+            snackbarLog('Pairing successful');
             pairingDialog.close();
-        });
-        sendMessage('pair', [target, randomNumber]).then(function (ret2) {
-            if (ret2 === 0) { // pairing was successful. save this host.
-                $('#pairButton')[0].innerHTML = 'Paired';
-                snackbarLog('Pairing successful');
-                pairingDialog.close();
-                var hostSelect = $('#selectHost')[0];
-                for(var i = 0; i < hostSelect.length; i++) {
-                    if (hostSelect.options[i].value == target) return;
-                }
-
-                var opt = document.createElement('option');
-                opt.appendChild(document.createTextNode(target));
-                opt.value = target;
-                $('#selectHost')[0].appendChild(opt);
-                hosts.push(target);
-                saveHosts();
-            } else {
-                snackbarLog('Pairing failed');
-                $('#pairButton')[0].innerHTML = 'Pairing Failed';
-                document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret2;
+            var hostSelect = $('#selectHost')[0];
+            for(var i = 0; i < hostSelect.length; i++) {
+                if (hostSelect.options[i].value == target) return;
             }
-            console.log("pairing attempt returned: " + ret2);
-        })
+
+            var opt = document.createElement('option');
+            opt.appendChild(document.createTextNode(target));
+            opt.value = target;
+            $('#selectHost')[0].appendChild(opt);
+            hosts.push(target);
+            saveHosts();
+        } else {
+            snackbarLog('Pairing failed');
+            $('#pairButton')[0].innerHTML = 'Pairing Failed';
+            document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret2;
+        }
+        console.log("pairing attempt returned: " + ret2);
     });
 }
 
@@ -132,19 +131,17 @@ function showAppsPushed() {
             if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
         });
     } else {
-        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-            api = new NvHTTP(target, myUniqueid);
-            api.init().then(function (ret) {
-                api.getAppList().then(function (appList) {
-                    for(var i = 0; i < appList.length; i++) { // programmatically add each app
-                        var opt = document.createElement('option');
-                        opt.appendChild(document.createTextNode(appList[i]));
-                        opt.value = appList[i].id;
-                        opt.innerHTML = appList[i].title;
-                        $('#selectGame')[0].appendChild(opt);
-                    }
-                    if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
-                });
+        api = new NvHTTP(target, myUniqueid);
+        api.refreshServerInfo().then(function (ret) {
+            api.getAppList().then(function (appList) {
+                for(var i = 0; i < appList.length; i++) { // programmatically add each app
+                    var opt = document.createElement('option');
+                    opt.appendChild(document.createTextNode(appList[i]));
+                    opt.value = appList[i].id;
+                    opt.innerHTML = appList[i].title;
+                    $('#selectGame')[0].appendChild(opt);
+                }
+                if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
             });
         });
     }
@@ -175,28 +172,25 @@ function startPushed() {
     var rikey = '00000000000000000000000000000000';
     var rikeyid = 0;
     
-    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-        api = new NvHTTP(target, myUniqueid);
-        api.init().then(function (ret) {
-            if (api.currentGame == 0) {
-                api.getAppByName("Steam").then(function (app) {
-                    api.launchApp(app.id,
-                        streamWidth + "x" + streamHeight + "x" + frameRate,
-                        1, // Allow GFE to optimize game settings
-                        rikey, rikeyid,
-                        0, // Play audio locally too
-                        0x030002 // Surround channel mask << 16 | Surround channel count
-                        ).then(function (ret) {
-                            sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
-                        });
-                });
-            }
-            else {
-                api.resumeApp(rikey, rikeyid).then(function (ret) {
-                    sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
-                });
-            }
-        });
+    api = new NvHTTP(target, myUniqueid);
+    api.refreshServerInfo().then(function (ret) {
+        if (api.currentGame == 0) {
+            api.getAppByName("Steam").then(function (app) {
+                api.launchApp(app.id,
+                    streamWidth + "x" + streamHeight + "x" + frameRate,
+                    1, // Allow GFE to optimize game settings
+                    rikey, rikeyid,
+                    0, // Play audio locally too
+                    0x030002 // Surround channel mask << 16 | Surround channel count
+                    ).then(function (ret) {
+                        sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+                    });
+            });
+        } else {
+            api.resumeApp(rikey, rikeyid).then(function (ret) {
+                sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+            });
+        }
     });
     
     // we just finished the gameSelection section. only expose the NaCl section
@@ -208,7 +202,11 @@ function startSelectedGame() {
     // we're just grabbing the currently selected option from #selectGame, and feeding it into NvHTTP
     // if we need to reconnect to the target, and `target` has been updated, we can pass the appID we listed from the previous target
     // then everyone's sad. So we won't do that.  Because the only way to see the startGame button is to list the apps for the target anyways.
-    if (api && api.paired) {
+    if(!api || !api.paired) {
+        api = new NvHTTP(target, myUniqueid);
+    }
+    // refresh the server info, because the user might have quit the game.
+    api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0) {
             api.getAppById(api.currentGame).then(function (currentApp) {
                 snackbarLog('Error: ' + target + ' is already in app: ' + currentApp.title);
@@ -236,14 +234,7 @@ function startSelectedGame() {
             ).then(function (ret) {
                 sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
             });
-    } else { // time to reconnect.
-        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-            api = new NvHTTP(target, myUniqueid);
-            api.init().then(function (ret) {
-                return startSelectedGame();  // probably a horrible idea. Now that we're initialized, recurse so that we hit the `if` statement properly.
-            });
-        });
-    }
+    });
     playGameMode();
 }
 
@@ -277,19 +268,16 @@ function fullscreenNaclModule() {
 function stopPushed() {
     sendMessage('stopRequested');
     snackbarLog('stopRequested');
+    stopGame();
 }
 
 function stopGame() {
-    if (api && api.paired) {
-        return api.quitApp();
-    } else {
-        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-            api = new NvHTTP(target, myUniqueid);
-            api.init().then(function (ret) {
-                return api.quitApp();
-            });
-        });
+    if(!api || !api.paired) {
+        api = new NvHTTP(target, myUniqueid);
     }
+    api.refreshServerInfo().then(function (ret) {
+        return api.quitApp();
+    });
 }
 
 function storeData(key, data, callbackFunction) {

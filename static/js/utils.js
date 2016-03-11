@@ -33,7 +33,7 @@ function NvHTTP(address, clientUid) {
 };
 
 NvHTTP.prototype = {
-    init: function () {
+    refreshServerInfo: function () {
         return sendMessage('openUrl', [_self._baseUrlHttps+'/serverinfo?'+_self._buildUidStr()]).then(function(ret) {
             $xml = _self._parseXML(ret);
             $root = $xml.find('root')
