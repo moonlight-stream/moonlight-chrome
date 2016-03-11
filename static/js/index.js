@@ -64,14 +64,15 @@ function pairPushed() {
     console.log("Attempting to pair to: " + target);
     sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
         console.log('httpInit function completed. it returned: ' + ret);
+        var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
         var pairingDialog = document.querySelector('#pairingDialog');
         document.getElementById('pairingDialogText').innerHTML = 
-            'Please enter the number 1233 on the GFE dialog on the computer.  This dialog will be dismissed once complete';
+            'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
         pairingDialog.showModal();
         pairingDialog.querySelector('#CancelPairingDialog').addEventListener('click', function() {
             pairingDialog.close();
         });
-        sendMessage('pair', [target, "1233"]).then(function (ret2) {
+        sendMessage('pair', [target, randomNumber]).then(function (ret2) {
             if (ret2 === 0) {
                 $('#pairButton')[0].innerHTML = 'Paired';
                 pairingDialog.close();
