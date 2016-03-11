@@ -14,6 +14,7 @@ function attachListeners() {
     $('#selectFramerate').on('change', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
+    $('#startGameButton').on('click', startSelectedGame);
 
     $(window).resize(fullscreenNaclModule);
 }
@@ -186,6 +187,47 @@ function startPushed() {
     });
     
     // we just finished the gameSelection section. only expose the NaCl section
+    playGameMode();
+}
+
+function startSelectedGame() {
+    // do NOT update the target.
+    // we're just grabbing the currently selected option from #selectGame, and feeding it into NvHTTP
+    // if we need to reconnect to the target, and `target` has been updated, we can pass the appID we listed from the previous target
+    // then everyone's sad. So we won't do that.  Because the only way to see the startGame button is to list the apps for the target anyways.
+    if (api && api.paired) {
+        if(api.currentGame != 0) {
+            console.log('ERROR! host is already in a game.');
+            return;
+        }
+        var appID = $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].value;
+
+        var frameRate = $("#selectFramerate").val();
+        var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
+        var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
+        // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
+        var bitrate = parseInt($("#bitrateSlider").val()) * 1024;
+        console.log('startRequest:' + target + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
+
+        var rikey = '00000000000000000000000000000000';
+        var rikeyid = 0;
+        api.launchApp(appID,
+            streamWidth + "x" + streamHeight + "x" + frameRate,
+            1, // Allow GFE to optimize game settings
+            rikey, rikeyid,
+            0, // Play audio locally too
+            0x030002 // Surround channel mask << 16 | Surround channel count
+            ).then(function (ret) {
+                sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+            });
+    } else { // time to reconnect.
+        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+            api = new NvHTTP(target, myUniqueid);
+            api.init().then(function (ret) {
+                return startSelectedGame();  // probably a horrible idea. Now that we're initialized, recurse so that we hit the `if` statement properly.
+            });
+        });
+    }
     playGameMode();
 }
 
