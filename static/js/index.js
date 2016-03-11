@@ -73,9 +73,20 @@ function pairPushed() {
             pairingDialog.close();
         });
         sendMessage('pair', [target, randomNumber]).then(function (ret2) {
-            if (ret2 === 0) {
+            if (ret2 === 0) { // pairing was successful. save this host.
                 $('#pairButton')[0].innerHTML = 'Paired';
                 pairingDialog.close();
+                var hostSelect = $('#selectHost')[0];
+                for(var i = 0; i < hostSelect.length; i++) {
+                    if (hostSelect.options[i].value == target) return;
+                }
+
+                var opt = document.createElement('option');
+                opt.appendChild(document.createTextNode(target));
+                opt.value = target;
+                $('#selectHost')[0].appendChild(opt);
+                hosts.push(target);
+                saveHosts();
             } else {
                 $('#pairButton')[0].innerHTML = 'Pairing Failed';
                 document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret2;
