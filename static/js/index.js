@@ -1,7 +1,7 @@
 var target = "";
 var hosts = [];
 var pairingCert;
-var myGuuid;
+var myUniqueid;
 
 // Called by the common.js module.
 function attachListeners() {
@@ -31,10 +31,10 @@ function moduleDidLoad() {
             console.log("Generated new cert.")
         });
     }
-    if(!myGuuid) {
-        console.log("Failed to get guuid.  Generating new one");
-        myGuuid = guuid();
-        storeData('guuid', myGuuid, null);
+    if(!myUniqueid) {
+        console.log("Failed to get uniqueId.  Generating new one");
+        myUniqueid = uniqueid();
+        storeData('uniqueid', myUniqueid, null);
     }
 }
 
@@ -60,7 +60,7 @@ function pairPushed() {
         target = e.options[e.selectedIndex].value;
     }
     console.log("Attempting to pair to: " + target);
-    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myGuuid]).then(function (ret) {
+    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
         console.log('httpInit function completed. it returned: ' + ret);
         sendMessage('pair', [target, "1233"]).then(function (ret2) {
             console.log("pair attempt to to " + target + " has returned.");
@@ -107,8 +107,8 @@ function startPushed() {
     
     console.log('startRequest:' + target + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
-    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myGuuid]).then(function (ret) {
         sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString()]);
+    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
     });
     
     // we just finished the gameSelection section. only expose the NaCl section
@@ -233,9 +233,9 @@ function onWindowLoad(){
                 pairingCert = savedCert.cert;
             }
         });
-        chrome.storage.sync.get('guuid', function(savedGuuid) {
-            if (savedGuuid.guuid != null) { // we have a saved guuid
-                myGuuid = savedGuuid.guuid;
+        chrome.storage.sync.get('uniqueid', function(savedUniqueid) {
+            if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
+                myUniqueid = savedUniqueid.uniqueid;
             }
         })
     }

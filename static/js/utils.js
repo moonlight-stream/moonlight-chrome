@@ -5,6 +5,13 @@ function guuid() {
 	});
 }
 
+function uniqueid() {
+    return 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, function(c) {
+	    var r = Math.random()*16|0;
+	    return r.toString(16);
+	});
+}
+
 String.prototype.toHex = function() {
 	var hex = '';
 	for(var i = 0; i < this.length; i++) {
