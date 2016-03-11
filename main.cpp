@@ -156,6 +156,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     std::string height = args.Get(2).AsString();
     std::string fps = args.Get(3).AsString();
     std::string bitrate = args.Get(4).AsString();
+    std::string serverMajorVersion = args.Get(5).AsString();
     
     pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
@@ -167,6 +168,8 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     PostMessage(response);
     response = ("Setting stream bitrate to: " + bitrate);
     PostMessage(response);
+    response = ("Setting server major version to: " + serverMajorVersion);
+    PostMessage(response);
     
     // Populate the stream configuration
     m_StreamConfig.width = stoi(width);
@@ -177,7 +180,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_StreamConfig.streamingRemotely = 0;
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
     
-    m_ServerMajorVersion = 5;
+    m_ServerMajorVersion = stoi(serverMajorVersion);
     
     // Initialize the rendering surface before starting the connection
     InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height);

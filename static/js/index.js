@@ -112,7 +112,7 @@ function startPushed() {
         api.init().then(function (ret) {
             if (api.currentGame != 0) {
                 api.resumeApp('00000000000000000000000000000000', 0).then(function (ret) {
-                    sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString()]);
+                    sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
                 });
             }
         });

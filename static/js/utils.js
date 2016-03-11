@@ -41,6 +41,7 @@ NvHTTP.prototype = {
             if($root.attr("status_code") == 200) {
                 _self.paired = $root.find("PairStatus").text().trim() == 1;
                 _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
+                _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
             }
         });
     },
