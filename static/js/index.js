@@ -109,6 +109,8 @@ function pairPushed() {
         }
         console.log("pairing attempt returned: " + ret2);
     });
+    // move directly on to retrieving the apps list.
+    showAppsPushed();
 }
 
 // someone pushed the "show apps" button. 
@@ -116,8 +118,10 @@ function pairPushed() {
 // otherwise, we assume they selected from the host history dropdown.
 function showAppsPushed() {
     updateTarget();
-    // we just finished the hostSettings section. expose the next one
-    if(api && api.paired) {
+    if(!api || !api.paired) {
+        api = new NvHTTP(target, myUniqueid);
+    }
+    api.refreshServerInfo().then(function (ret) {
         api.getAppList().then(function (appList) {
             for(var i = 0; i < appList.length; i++) { // programmatically add each app
                 var opt = document.createElement('option');
@@ -128,21 +132,7 @@ function showAppsPushed() {
             }
             if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
         });
-    } else {
-        api = new NvHTTP(target, myUniqueid);
-        api.refreshServerInfo().then(function (ret) {
-            api.getAppList().then(function (appList) {
-                for(var i = 0; i < appList.length; i++) { // programmatically add each app
-                    var opt = document.createElement('option');
-                    opt.appendChild(document.createTextNode(appList[i]));
-                    opt.value = appList[i].id;
-                    opt.innerHTML = appList[i].title;
-                    $('#selectGame')[0].appendChild(opt);
-                }
-                if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
-            });
-        });
-    }
+    });
     showAppsMode();
 }
 
@@ -211,6 +201,7 @@ function playGameMode() {
     document.body.style.backgroundColor = "black";
 }
 
+// Maximize the size of the nacl module by scaling and resizing appropriately
 function fullscreenNaclModule() {
     var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
     var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
