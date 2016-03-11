@@ -1,5 +1,19 @@
 COMMON_C_DIR := moonlight-common-c/limelight-common
 OPENAES_DIR := $(COMMON_C_DIR)/OpenAES
+ENET_DIR := moonlight-common-c/enet
+
+ENET_SOURCE := \
+    $(ENET_DIR)/callbacks.c \
+    $(ENET_DIR)/compress.c  \
+    $(ENET_DIR)/host.c      \
+    $(ENET_DIR)/list.c      \
+    $(ENET_DIR)/packet.c    \
+    $(ENET_DIR)/peer.c      \
+    $(ENET_DIR)/protocol.c  \
+    $(ENET_DIR)/unix.c      \
+    $(ENET_DIR)/win32.c     \
+
+ENET_INCLUDE := $(ENET_DIR)/include
 
 OPENAES_SOURCE := \
 	$(OPENAES_DIR)/oaes_base64.c \
@@ -25,7 +39,8 @@ COMMON_C_SOURCE := \
 	$(COMMON_C_DIR)/VideoDepacketizer.c   \
 	$(COMMON_C_DIR)/VideoStream.c         \
 	$(OPENAES_SOURCE)                     \
+    $(ENET_SOURCE)                        \
 
-COMMON_C_INCLUDE := $(COMMON_C_DIR) $(OPENAES_INCLUDE)
+COMMON_C_INCLUDE := $(COMMON_C_DIR) $(OPENAES_INCLUDE) $(ENET_INCLUDE)
 
-COMMON_C_C_FLAGS := -DLC_CHROME -Wno-missing-braces
+COMMON_C_C_FLAGS := -DLC_CHROME -Wno-missing-braces -DHAS_SOCKLEN_T=1 -DHAS_FCNTL=1
