@@ -1,2 +1,2 @@
-EXTRA_INC_PATHS := $(EXTRA_INC_PATHS) ports/include
-EXTRA_LIB_PATHS := $(EXTRA_LIB_PATHS) ports/lib/pnacl/Release
+PORTS_INCLUDE := ports/include
+PORTS_LIB_ROOT := ports/lib
