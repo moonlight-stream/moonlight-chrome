@@ -55,7 +55,7 @@ function pairPushed() {
         return;
     }
     target = $('#GFEHostIPField')[0].value;
-    if (target == null || target == "127.0.0.1") {
+    if (target == null || target == "") {
         var e = $("#selectHost")[0];
         target = e.options[e.selectedIndex].value;
     }
@@ -74,7 +74,7 @@ function pairPushed() {
 // otherwise, we assume they selected from the host history dropdown.
 function showAppsPushed() {
     target = $('#GFEHostIPField')[0].value;
-    if (target == null || target == "127.0.0.1") {
+    if (target == null || target == "") {
         var e = $("#selectHost")[0];
         target = e.options[e.selectedIndex].value;
     }
@@ -94,7 +94,7 @@ function showAppsMode() {
 // user wants to start a stream.  We need the host, game ID, and video settings(?)
 function startPushed() {
     target = $('#GFEHostIPField')[0].value;
-    if (target == null || target == "127.0.0.1" || target == "") {
+    if (target == null || target == "") {
         var e = document.getElementById("selectHost");
         target = e.options[e.selectedIndex].value;
     }
