@@ -15,7 +15,7 @@ function attachListeners() {
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
     $('#startGameButton').on('click', startSelectedGame);
-
+    $('#quitGameButton').on('click', stopGame);
     $(window).resize(fullscreenNaclModule);
 }
 
@@ -118,6 +118,7 @@ function showAppsPushed() {
                 opt.innerHTML = appList[i].title;
                 $('#selectGame')[0].appendChild(opt);
             }
+            if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
         });
     } else {
         sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
@@ -131,6 +132,7 @@ function showAppsPushed() {
                         opt.innerHTML = appList[i].title;
                         $('#selectGame')[0].appendChild(opt);
                     }
+                    if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
                 });
             });
         });
@@ -259,8 +261,20 @@ function fullscreenNaclModule() {
 
 // user pushed the stop button. we should stop.
 function stopPushed() {
-    //common.naclModule.postMessage('stopRequested');
     sendMessage('stopRequested');
+}
+
+function stopGame() {
+    if (api && api.paired) {
+        return api.quitApp();
+    } else {
+        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+            api = new NvHTTP(target, myUniqueid);
+            api.init().then(function (ret) {
+                return api.quitApp();
+            });
+        });
+    }
 }
 
 function storeData(key, data, callbackFunction) {
