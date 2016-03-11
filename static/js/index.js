@@ -107,11 +107,25 @@ function startPushed() {
     
     console.log('startRequest:' + target + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
+    var rikey = '00000000000000000000000000000000';
+    var rikeyid = 0;
+    
     sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
         api = new NvHTTP(target, myUniqueid);
         api.init().then(function (ret) {
-            if (api.currentGame != 0) {
-                api.resumeApp('00000000000000000000000000000000', 0).then(function (ret) {
+            if (api.currentGame == 0) {
+                api.getAppByName("Steam").then(function (app) {
+                    api.launchApp(app.id,
+                        streamWidth + "x" + streamHeight + "x" + frameRate,
+                        1, // Allow GFE to optimize game settings
+                        rikey, rikeyid,
+                        0, // Play audio locally too
+                        0x030002 // Surround channel mask << 16 | Surround channel count
+                        );
+                });
+            }
+            else {
+                api.resumeApp(rikey, rikeyid).then(function (ret) {
                     sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
                 });
             }

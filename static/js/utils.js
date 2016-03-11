@@ -47,7 +47,7 @@ NvHTTP.prototype = {
     },
     
     getAppById: function (appId) {
-        return getAppList().then(function (list) {
+        return _self.getAppList().then(function (list) {
             var retApp = null;
             
             list.some(function (app) {
@@ -63,19 +63,36 @@ NvHTTP.prototype = {
         });
     },
     
+    getAppByName: function (appName) {
+        return _self.getAppList().then(function (list) {
+            var retApp = null;
+            
+            list.some(function (app) {
+                if (app.title == appName) {
+                    retApp = app;
+                    return true;
+                }
+                
+                return false;
+            });
+            
+            return retApp;
+        });
+    },
+    
     getAppList: function () {
         return sendMessage('openUrl', [_self._baseUrlHttps+'/applist?'+_self._buildUidStr()]).then(function (ret) {
             $xml = _self._parseXML(ret);
             
-            var rootElement = xml.getElementsByTagName("root")[0];
+            var rootElement = $xml.find("root")[0];
             var appElements = rootElement.getElementsByTagName("App");
-            var appList;
+            var appList = [];
             
             for(var i = 0, len = appElements.length; i < len; i++) {
                 appList.push({
-                    title: appElements[i].getElementsByTagName("AppTitle")[0].nodeValue.trim(),
-                    id: appElements[i].getElementsByTagName("ID")[0].nodeValue.trim(),
-                    running: appElements[i].getElementsByTagName("IsRunning")[0].nodeValue.trim()
+                    title: appElements[i].getElementsByTagName("AppTitle")[0].innerHTML.trim(),
+                    id: parseInt(appElements[i].getElementsByTagName("ID")[0].innerHTML.trim(), 10),
+                    running: (appElements[i].getElementsByTagName("IsRunning")[0].innerHTML.trim() == 1)
                 });
             }
             
@@ -96,7 +113,7 @@ NvHTTP.prototype = {
     
     launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
         return sendMessage('openUrl', [
-            _self.baseUrlHttps +
+            _self._baseUrlHttps +
             '/launch?' + _self._buildUidStr() +
             '&appid=' + appId +
             '&mode=' + mode +
@@ -104,7 +121,7 @@ NvHTTP.prototype = {
             '&rikey=' + rikey +
             '&rikeyid=' + rikeyid +
             '&localAudioPlayMode=' + localAudio +
-            '&surroundAudioInfo=' + suroundAudioInfo
+            '&surroundAudioInfo=' + surroundAudioInfo
         ]).then(function (ret) {
             return true;
         });
