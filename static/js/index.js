@@ -19,12 +19,20 @@ function attachListeners() {
     $(window).resize(fullscreenNaclModule);
 }
 
+function snackbarLog(givenMessage) {
+    var data = {
+      message: givenMessage,
+      timeout: 5000
+    };
+    document.querySelector('#snackbar').MaterialSnackbar.showSnackbar(data);
+}
+
 function updateBitrateField() {
     $('#bitrateField').html($('#bitrateSlider')[0].value + " Mbps");
 }
 
 function moduleDidLoad() {
-    console.log("NaCl module loaded.");
+    snackbarLog("NaCl module loaded.");
 
     if(!pairingCert) { // we couldn't load a cert. Make one.
         console.log("Failed to load local cert. Generating new one");   
@@ -67,6 +75,7 @@ function pairPushed() {
         return;
     }
     $('#pairButton')[0].innerHTML = 'Pairing...';
+    snackbarLog('Pairing...');
     updateTarget();
     console.log("Attempting to pair to: " + target);
     sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
@@ -82,6 +91,7 @@ function pairPushed() {
         sendMessage('pair', [target, randomNumber]).then(function (ret2) {
             if (ret2 === 0) { // pairing was successful. save this host.
                 $('#pairButton')[0].innerHTML = 'Paired';
+                snackbarLog('Pairing successful');
                 pairingDialog.close();
                 var hostSelect = $('#selectHost')[0];
                 for(var i = 0; i < hostSelect.length; i++) {
@@ -95,6 +105,7 @@ function pairPushed() {
                 hosts.push(target);
                 saveHosts();
             } else {
+                snackbarLog('Pairing failed');
                 $('#pairButton')[0].innerHTML = 'Pairing Failed';
                 document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret2;
             }
@@ -199,7 +210,10 @@ function startSelectedGame() {
     // then everyone's sad. So we won't do that.  Because the only way to see the startGame button is to list the apps for the target anyways.
     if (api && api.paired) {
         if(api.currentGame != 0) {
-            console.log('ERROR! host is already in a game.');
+            api.getAppById(api.currentGame).then(function (currentApp) {
+                snackbarLog('Error: ' + target + ' is already in app: ' + currentApp.title);
+            });
+            console.log('ERROR! host is already in an app.');
             return;
         }
         var appID = $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].value;
@@ -262,6 +276,7 @@ function fullscreenNaclModule() {
 // user pushed the stop button. we should stop.
 function stopPushed() {
     sendMessage('stopRequested');
+    snackbarLog('stopRequested');
 }
 
 function stopGame() {
