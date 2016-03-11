@@ -121,7 +121,9 @@ function startPushed() {
                         rikey, rikeyid,
                         0, // Play audio locally too
                         0x030002 // Surround channel mask << 16 | Surround channel count
-                        );
+                        ).then(function (ret) {
+                            sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+                        });
                 });
             }
             else {
