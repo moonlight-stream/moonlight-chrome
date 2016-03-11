@@ -1,6 +1,7 @@
 var target = "";
 var hosts = [];
 var pairingCert;
+var myGuuid;
 
 // Called by the common.js module.
 function attachListeners() {
@@ -25,10 +26,15 @@ function moduleDidLoad() {
     if(!pairingCert) { // we couldn't load a cert. Make one.
         console.log("Failed to load local cert. Generating new one");   
         sendMessage('makeCert', []).then(function (cert) {
-            storeData('cert', cert, null); //TODO: this may go 1 level too deep. i.e. reading it will be cert.cert.cert
+            storeData('cert', cert, null);
             pairingCert = cert;
             console.log("Generated new cert.")
         });
+    }
+    if(!myGuuid) {
+        console.log("Failed to get guuid.  Generating new one");
+        myGuuid = guuid();
+        storeData('guuid', myGuuid, null);
     }
 }
 
@@ -46,6 +52,7 @@ function hideAllWorkflowDivs() {
 function pairPushed() {
     if(!pairingCert) {
         console.log("User wants to pair, and we still have no cert. Problem = very yes.")
+        return;
     }
     target = $('#GFEHostIPField')[0].value;
     if (target == null || target == "127.0.0.1") {
@@ -53,10 +60,11 @@ function pairPushed() {
         target = e.options[e.selectedIndex].value;
     }
     console.log("Attempting to pair to: " + target);
-    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, guuid()]).then(function (ret) {
+    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myGuuid]).then(function (ret) {
+        console.log('httpInit function completed. it returned: ' + ret);
         sendMessage('pair', [target, "1233"]).then(function (ret2) {
             console.log("pair attempt to to " + target + " has returned.");
-            console.log("pairing attempt returned: " + ret2)
+            console.log("pairing attempt returned: " + ret2);
         })
     });
 }
@@ -75,7 +83,7 @@ function showAppsPushed() {
 }
 
 function showAppsMode() {
-    console.log("entering show apps mode.")
+    console.log("entering show apps mode.");
     $('#streamSettings').css('display', 'none');
     $('#hostSettings').css('display', 'none');
     $('#gameSelection').css('display', 'inline-block');
@@ -97,9 +105,11 @@ function startPushed() {
     // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
     var bitrate = parseInt($("#bitrateSlider").val()) * 1024;
     
-    console.log('startRequest:' + target + ":" + streamWidth + "x" + streamHeight + ":" + frameRate);
-    
-    sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate]);
+    console.log('startRequest:' + target + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
+
+    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myGuuid]).then(function (ret) {
+        sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate]);
+    });
     
     // we just finished the gameSelection section. only expose the NaCl section
     playGameMode();
@@ -223,6 +233,11 @@ function onWindowLoad(){
                 pairingCert = savedCert.cert;
             }
         });
+        chrome.storage.sync.get('guuid', function(savedGuuid) {
+            if (savedGuuid.guuid != null) { // we have a saved guuid
+                myGuuid = savedGuuid.guuid;
+            }
+        })
     }
 }
 
