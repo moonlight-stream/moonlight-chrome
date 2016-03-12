@@ -31,23 +31,23 @@ function updateBitrateField() {
 }
 
 function moduleDidLoad() {
+    if(!myUniqueid) {
+        console.log("Failed to get uniqueId.  Generating new one");
+        myUniqueid = uniqueid();
+        storeData('uniqueid', myUniqueid, null);
+    }
+
     if(!pairingCert) { // we couldn't load a cert. Make one.
         console.log("Failed to load local cert. Generating new one");   
         sendMessage('makeCert', []).then(function (cert) {
             storeData('cert', cert, null);
             pairingCert = cert;
             console.log("Generated new cert.");
-            if(!myUniqueid) {  // if we didn't have a cert, then we probably don't have a unique ID either. so let's do that too.
-                console.log("Failed to get uniqueId.  Generating new one");
-                myUniqueid = uniqueid();
-                console.log("genereated new uniqueId");
-                storeData('uniqueid', myUniqueid, null);
-                sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-                    snackbarLog('Initialization complete.');
-                });                
-            }
+        }).then(function (ret) {
+            sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]);
         });
-    } else {  // both branches execure the httpInit function, but we're skipping this one if we haven't generated things yet.
+    }
+    else {
         sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
             snackbarLog('Initialization complete.');
         });
