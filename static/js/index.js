@@ -18,6 +18,7 @@ function attachListeners() {
 }
 
 function snackbarLog(givenMessage) {
+    console.log(givenMessage);
     var data = {
       message: givenMessage,
       timeout: 5000
@@ -35,18 +36,22 @@ function moduleDidLoad() {
         sendMessage('makeCert', []).then(function (cert) {
             storeData('cert', cert, null);
             pairingCert = cert;
-            console.log("Generated new cert.")
+            console.log("Generated new cert.");
+            if(!myUniqueid) {  // if we didn't have a cert, then we probably don't have a unique ID either. so let's do that too.
+                console.log("Failed to get uniqueId.  Generating new one");
+                myUniqueid = uniqueid();
+                console.log("genereated new uniqueId");
+                storeData('uniqueid', myUniqueid, null);
+                sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+                    snackbarLog('Initialization complete.');
+                });                
+            }
         });
-        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]);
+    } else {  // both branches execure the httpInit function, but we're skipping this one if we haven't generated things yet.
+        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+            snackbarLog('Initialization complete.');
+        });
     }
-    if(!myUniqueid) {
-        console.log("Failed to get uniqueId.  Generating new one");
-        myUniqueid = uniqueid();
-        storeData('uniqueid', myUniqueid, null);
-    }
-    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-        snackbarLog('Initialization complete.');
-    });
 }
 
 // because the user can change the target host at any time, we continually have to check
@@ -70,14 +75,15 @@ function hideAllWorkflowDivs() {
 
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
 function pairPushed() {
+    updateTarget();
     if(!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCL initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
         return;
     }
+
     $('#pairButton')[0].innerHTML = 'Pairing...';
     snackbarLog('Attempting pair to: ' + target);
-    updateTarget();
     var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
     document.getElementById('pairingDialogText').innerHTML = 
@@ -86,13 +92,16 @@ function pairPushed() {
     pairingDialog.querySelector('#CancelPairingDialog').addEventListener('click', function() {
         pairingDialog.close();
     });
-    sendMessage('pair', [target, randomNumber]).then(function (ret2) {
-        if (ret2 === 0) { // pairing was successful. save this host.
+    console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
+    sendMessage('pair', [target, randomNumber]).then(function (ret3) {
+        console.log('"pair" call returned.');
+        console.log(ret3);
+        if (ret3 === 0) { // pairing was successful. save this host.
             $('#pairButton')[0].innerHTML = 'Paired';
             snackbarLog('Pairing successful');
             pairingDialog.close();
             var hostSelect = $('#selectHost')[0];
-            for(var i = 0; i < hostSelect.length; i++) {
+            for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
                 if (hostSelect.options[i].value == target) return;
             }
 
@@ -102,15 +111,15 @@ function pairPushed() {
             $('#selectHost')[0].appendChild(opt);
             hosts.push(target);
             saveHosts();
+            // move directly on to retrieving the apps list.
+            showAppsPushed();
         } else {
             snackbarLog('Pairing failed');
             $('#pairButton')[0].innerHTML = 'Pairing Failed';
-            document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret2;
+            document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret3;
         }
-        console.log("pairing attempt returned: " + ret2);
+        console.log("pairing attempt returned: " + ret3);
     });
-    // move directly on to retrieving the apps list.
-    showAppsPushed();
 }
 
 // someone pushed the "show apps" button. 
