@@ -144,6 +144,9 @@ function showAppsPushed() {
                 opt.innerHTML = appList[i].title;
                 $('#selectGame')[0].appendChild(opt);
             }
+            $("#selectGame").html($("#selectGame option").sort(function (a, b) {  // thanks, http://stackoverflow.com/a/7466196/3006365
+                return a.text.toUpperCase() == b.text.toUpperCase() ? 0 : a.text.toUpperCase() < b.text.toUpperCase() ? -1 : 1
+            }));
             if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
             gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
         });
