@@ -170,13 +170,11 @@ function showAppsMode() {
 // in theory we should be able to cache the api.currentGame to prevent another call.
 function gameSelectUpdated() {
     var currentApp = $("#selectGame").val();
-    api.refreshServerInfo().then(function (ret) {
-        if(api.currentGame == parseInt(currentApp)) {
-            $("#startGameButton")[0].innerHTML = 'Resume Game'
-        } else {
-            $("#startGameButton")[0].innerHTML = 'Run Game'
-        }
-    });
+    if(api.currentGame == parseInt(currentApp)) {
+        $("#startGameButton")[0].innerHTML = 'Resume Game'
+    } else {
+        $("#startGameButton")[0].innerHTML = 'Run Game'
+    }
 }
 
 function startSelectedGame() {
@@ -286,8 +284,10 @@ function stopGame(callbackFunction) {
             var appName = runningApp.title;
             snackbarLog('Stopping ' + appName);
             api.quitApp().then(function (ret2) { 
-                showAppsMode();
-                if (typeof(callbackFunction) === "function") callbackFunction();
+                api.refreshServerInfo().then(function (ret3) { // refresh to show no app is currently running.
+                    showAppsMode();
+                    if (typeof(callbackFunction) === "function") callbackFunction();
+                });
             });
         });
     });

@@ -21,7 +21,9 @@ function handleMessage(msg) {
     } else {  // else, it's just info, or an event
         console.log(msg.data);
         if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
-            showAppsMode();
+            api.refreshServerInfo().then(function (ret) {
+                showAppsMode();
+            });
         }
     }
 }
