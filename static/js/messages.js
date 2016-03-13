@@ -15,10 +15,13 @@ var sendMessage = function(method, params) {
 }
 
 function handleMessage(msg) {
-    if (msg.data.callbackId && callbacks[msg.data.callbackId]) {
+    if (msg.data.callbackId && callbacks[msg.data.callbackId]) {  // if it's a callback, treat it as such
         callbacks[msg.data.callbackId][msg.data.type](msg.data.ret);
         delete callbacks[msg.data.callbackId]
-    } else {
+    } else {  // else, it's just info, or an event
         console.log(msg.data);
+        if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
+            showAppsMode();
+        }
     }
 }

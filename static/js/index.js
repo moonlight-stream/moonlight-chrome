@@ -147,10 +147,10 @@ function showAppsPushed() {
 
 function showAppsMode() {
     console.log("entering show apps mode.");
-    $('#streamSettings').css('display', 'none');
-    $('#hostSettings').css('display', 'none');
-    $('#gameSelection').css('display', 'inline-block');
-    $("#main-content").children().not("#listener").css('display', 'inline-block');
+    $(".mdl-layout__header").show();
+    $("#main-content").children().not("#listener").show();
+    $("#main-content").removeClass("fullscreen");
+    $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
 }
 
@@ -202,12 +202,13 @@ function startSelectedGame() {
 }
 
 function playGameMode() {
+    console.log("entering play game mode");
     $(".mdl-layout__header").hide();
     $("#main-content").children().not("#listener").hide();
     $("#main-content").addClass("fullscreen");
     $("#listener").addClass("fullscreen");
     fullscreenNaclModule();
-    document.body.style.backgroundColor = "black";
+    $("body").css('backgroundColor', 'black');
 }
 
 // Maximize the size of the nacl module by scaling and resizing appropriately
