@@ -90,7 +90,6 @@ NvHTTP.prototype = {
     getAppList: function () {
         console.log('Requested app list');
         return sendMessage('openUrl', [_self._baseUrlHttps+'/applist?'+_self._buildUidStr()]).then(function (ret) {
-            console.log('App list request returned with: ' + ret);
             $xml = _self._parseXML(ret);
             
             var rootElement = $xml.find("root")[0];
@@ -104,8 +103,6 @@ NvHTTP.prototype = {
                     running: (appElements[i].getElementsByTagName("IsRunning")[0].innerHTML.trim() == 1)
                 });
             }
-            
-            console.log('Returning app list: ' + appList);
             return appList;
         });
     },
