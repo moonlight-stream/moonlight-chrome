@@ -6,15 +6,18 @@ var api;
 
 // Called by the common.js module.
 function attachListeners() {
-    $('#pairButton').on('click', pairPushed);
-    $('#showAppsButton').on('click', showAppsPushed);
     $('#selectResolution').on('change', saveResolution);
     $('#selectFramerate').on('change', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
-    $('#startGameButton').on('click', startSelectedGame);
-    $('#quitGameButton').on('click', stopGame);
+    $('#pairButton').on('click', pairPushed);
+    $('#cancelPairingDialog').on('click', pairingPopupCanceled);
+    $('#showAppsButton').on('click', showAppsPushed);
     $('#selectGame').on('change', gameSelectUpdated);
+    $('#startGameButton').on('click', startSelectedGame);
+    $('#CancelReplaceApp').on('click', cancelReplaceApp);
+    $('#ContinueReplaceApp').on('click', continueReplaceApp);
+    $('#quitGameButton').on('click', stopGame);
     $(window).resize(fullscreenNaclModule);
 }
 
@@ -90,9 +93,6 @@ function pairPushed() {
     document.getElementById('pairingDialogText').innerHTML = 
         'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
     pairingDialog.showModal();
-    pairingDialog.querySelector('#CancelPairingDialog').addEventListener('click', function() {
-        pairingDialog.close();
-    });
     console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
     sendMessage('pair', [target, randomNumber]).then(function (ret3) {
         console.log('"pair" call returned.');
@@ -121,6 +121,10 @@ function pairPushed() {
         }
         console.log("pairing attempt returned: " + ret3);
     });
+}
+
+function pairingPopupCanceled() {
+    document.querySelector('#pairingDialog').close();
 }
 
 // someone pushed the "show apps" button. 
@@ -160,6 +164,7 @@ function showAppsMode() {
 // every time the user selects an app from the select menu,
 // we want to check if that's the currently running app
 // and if it is, we want the "run" button to change to "resume"
+// in theory we should be able to cache the api.currentGame to prevent another call.
 function gameSelectUpdated() {
     var currentApp = $("#selectGame").val();
     api.refreshServerInfo().then(function (ret) {
@@ -179,17 +184,26 @@ function startSelectedGame() {
     if(!api || !api.paired) {
         api = new NvHTTP(target, myUniqueid);
     }
-    var appID = $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].value;
+    var appID = $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].value;  // app that the user wants to play
     // refresh the server info, because the user might have quit the game.
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
             api.getAppById(api.currentGame).then(function (currentApp) {
                 snackbarLog('Error: ' + target + ' is already in app: ' + currentApp.title);
+
+                var replaceAppDialog = document.querySelector('#replaceAppDialog');
+                document.getElementById('replaceAppDialogText').innerHTML = 
+                    'You wanted to start a new game. ' + currentApp.title + ' is already running. Would you like to stop ' + currentApp.title + ', then start the new game?';
+                replaceAppDialog.showModal();
+                console.log('finished getAppById promise. returning.');
+                return;
             });
-            console.log('ERROR! host is already in an app.');
+            console.log('finished api being in another game. returning out of startSelectedGame');
             return;
         }
-        
+        api.getAppById(appID).then(function (requestedApp) {
+            snackbarLog('Starting app: ' + requestedApp.title);
+        });
         var frameRate = $("#selectFramerate").val();
         var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
         var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
@@ -215,7 +229,20 @@ function startSelectedGame() {
                 sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
             });
     });
+    console.log('finished startSelectedGame.');
     playGameMode();
+}
+
+function cancelReplaceApp() {
+    showAppsMode();
+    document.querySelector('#replaceAppDialog').close();
+    console.log('closing app dialog, and returning');
+}
+
+function continueReplaceApp() {
+    console.log('stopping game, and closing app dialog, and returning');
+    stopGame(startSelectedGame);  // stop the game, then start the selected game once it's done.
+    document.querySelector('#replaceAppDialog').close();
 }
 
 function playGameMode() {
@@ -246,17 +273,21 @@ function fullscreenNaclModule() {
     module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
 }
 
-function stopGame() {
+function stopGame(callbackFunction) {
     api.refreshServerInfo().then(function (ret) {
         api.getAppById(api.currentGame).then(function (runningApp) {
+            if (!runningApp) {
+                snackbarLog('Nothing was running');
+                return;
+            }
             var appName = runningApp.title;
             snackbarLog('Stopping ' + appName);
-            return api.quitApp().then(function (ret2) { 
-                gameSelectUpdated();  // once we quit the app, refresh the button text
+            api.quitApp().then(function (ret2) { 
+                showAppsMode();
+                if (typeof(callbackFunction) === "function") callbackFunction();
             });
         });
     });
-    showAppsMode();
 }
 
 function storeData(key, data, callbackFunction) {
@@ -349,7 +380,7 @@ function onWindowLoad(){
             if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
                 myUniqueid = savedUniqueid.uniqueid;
             }
-        })
+        });
     }
 }
 

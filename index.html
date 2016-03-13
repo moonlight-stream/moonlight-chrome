@@ -89,6 +89,20 @@
             <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="CancelPairingDialog">Cancel</button>
         </div>
     </dialog>
+
+    <dialog id="replaceAppDialog" class="mdl-dialog">
+        <h3 class="mdl-dialog__title">Pairing</h3>
+        <div class="mdl-dialog__content">
+            <p id="replaceAppDialogText">
+                You wanted to start game X. Game Y is already running. Would you like to stop Game Y to start Game X?
+            </p>
+        </div>
+        <div class="mdl-dialog__actions">
+            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="CancelReplaceApp">No</button>
+            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="ContinueReplaceApp">Yes</button>
+        </div>
+    </dialog>
+
     <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
         <button class="mdl-snackbar__action" type="button"></button> <!-- this button exists to suppress the snackbar warning. we're really using a toast. -->
         <div class="mdl-snackbar__text"></div>
