@@ -14,6 +14,7 @@ function attachListeners() {
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
     $('#startGameButton').on('click', startSelectedGame);
     $('#quitGameButton').on('click', stopGame);
+    $('#selectGame').on('change', gameSelectUpdated);
     $(window).resize(fullscreenNaclModule);
 }
 
@@ -70,7 +71,7 @@ function hideAllWorkflowDivs() {
     $('#streamSettings').css('display', 'inline-block');
     $('#hostSettings').css('display', 'inline-block');
     $('#gameSelection').css('display', 'none');
-    // common.hideModule(); // do NOT hide the nacl module. you can't interact with it then
+    // do NOT hide the nacl module. you can't interact with it then
 }
 
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
@@ -140,6 +141,7 @@ function showAppsPushed() {
                 $('#selectGame')[0].appendChild(opt);
             }
             if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
+            gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
         });
     });
     showAppsMode();
@@ -152,6 +154,20 @@ function showAppsMode() {
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
+}
+
+// every time the user selects an app from the select menu,
+// we want to check if that's the currently running app
+// and if it is, we want the "run" button to change to "resume"
+function gameSelectUpdated() {
+    var currentApp = $("#selectGame").val();
+    api.refreshServerInfo().then(function (ret) {
+        if(api.currentGame == parseInt(currentApp)) {
+            $("#startGameButton")[0].innerHTML = 'Resume Game'
+        } else {
+            $("#startGameButton")[0].innerHTML = 'Run Game'
+        }
+    });
 }
 
 function startSelectedGame() {
