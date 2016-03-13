@@ -154,6 +154,7 @@ function showAppsMode() {
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
+    gameSelectUpdated();  // since we just played the game, we need to show it as running once we quit.
 }
 
 // every time the user selects an app from the select menu,
@@ -246,11 +247,14 @@ function fullscreenNaclModule() {
 }
 
 function stopGame() {
-    if(!api || !api.paired) {
-        api = new NvHTTP(target, myUniqueid);
-    }
     api.refreshServerInfo().then(function (ret) {
-        return api.quitApp();
+        api.getAppById(api.currentGame).then(function (runningApp) {
+            var appName = runningApp.title;
+            snackbarLog('Stopping ' + appName);
+            return api.quitApp().then(function (ret2) { 
+                gameSelectUpdated();  // once we quit the app, refresh the button text
+            });
+        });
     });
     showAppsMode();
 }
