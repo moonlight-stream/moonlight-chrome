@@ -164,12 +164,15 @@ void MoonlightInstance::VidDecCleanup(void) {
     
     if (g_Instance->m_Texture2DShader.program) {
         glDeleteProgram(g_Instance->m_Texture2DShader.program);
+        g_Instance->m_Texture2DShader.program = 0;
     }
     if (g_Instance->m_RectangleArbShader.program) {
         glDeleteProgram(g_Instance->m_RectangleArbShader.program);
+        g_Instance->m_RectangleArbShader.program = 0;
     }
     if (g_Instance->m_ExternalOesShader.program) {
         glDeleteProgram(g_Instance->m_ExternalOesShader.program);
+        g_Instance->m_ExternalOesShader.program = 0;
     }
 }
 
