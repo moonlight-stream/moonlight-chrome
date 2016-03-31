@@ -52,6 +52,26 @@ NvHTTP.prototype = {
             }
         });
     },
+
+    refreshServerInfoUnpaired: function () {
+        return sendMessage('openUrl', [_self._baseUrlHttp+'/serverinfo?'+_self._buildUidStr()]).then(function(ret) {
+            $xml = _self._parseXML(ret);
+            $root = $xml.find('root')
+            
+            if($root.attr("status_code") == 200) {
+                _self.paired = $root.find("PairStatus").text().trim() == 1;
+                _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
+                _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
+                
+                // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
+                // has the semantics that its name would indicate. To contain the effects of this change as much
+                // as possible, we'll force the current game to zero if the server isn't in a streaming session.
+                if ($root.find("state").text().trim().endsWith("_SERVER_AVAILABLE")) {
+                    _self.currentGame = 0;
+                }
+            }
+        });
+    },
     
     getAppById: function (appId) {
         return _self.getAppList().then(function (list) {

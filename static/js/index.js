@@ -85,6 +85,9 @@ function pairPushed() {
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
         return;
     }
+    if(!api || !api.paired) {
+        api = new NvHTTP(target, myUniqueid);
+    }
 
     $('#pairButton')[0].innerHTML = 'Pairing...';
     snackbarLog('Attempting pair to: ' + target);
@@ -94,33 +97,37 @@ function pairPushed() {
         'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
     pairingDialog.showModal();
     console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
-    sendMessage('pair', [target, randomNumber]).then(function (ret3) {
-        console.log('"pair" call returned.');
-        console.log(ret3);
-        if (ret3 === 0) { // pairing was successful. save this host.
-            $('#pairButton')[0].innerHTML = 'Paired';
-            snackbarLog('Pairing successful');
-            pairingDialog.close();
-            var hostSelect = $('#selectHost')[0];
-            for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
-                if (hostSelect.options[i].value == target) return;
-            }
 
-            var opt = document.createElement('option');
-            opt.appendChild(document.createTextNode(target));
-            opt.value = target;
-            $('#selectHost')[0].appendChild(opt);
-            hosts.push(target);
-            saveHosts();
-            // move directly on to retrieving the apps list.
-            showAppsPushed();
-        } else {
-            snackbarLog('Pairing failed');
-            $('#pairButton')[0].innerHTML = 'Pairing Failed';
-            document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret3;
-        }
-        console.log("pairing attempt returned: " + ret3);
+    api.refreshServerInfoUnpaired().then(function (ret) {
+        sendMessage('pair', [api.serverMajorVersion, target, randomNumber]).then(function (ret3) {
+            console.log('"pair" call returned.');
+            console.log(ret3);
+            if (ret3 === 0) { // pairing was successful. save this host.
+                $('#pairButton')[0].innerHTML = 'Paired';
+                snackbarLog('Pairing successful');
+                pairingDialog.close();
+                var hostSelect = $('#selectHost')[0];
+                for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
+                    if (hostSelect.options[i].value == target) return;
+                }
+
+                var opt = document.createElement('option');
+                opt.appendChild(document.createTextNode(target));
+                opt.value = target;
+                $('#selectHost')[0].appendChild(opt);
+                hosts.push(target);
+                saveHosts();
+                // move directly on to retrieving the apps list.
+                showAppsPushed();
+            } else {
+                snackbarLog('Pairing failed');
+                $('#pairButton')[0].innerHTML = 'Pairing Failed';
+                document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret3;
+            }
+            console.log("pairing attempt returned: " + ret3);
+        });
     });
+
 }
 
 function pairingPopupCanceled() {
@@ -137,6 +144,11 @@ function showAppsPushed() {
     }
     api.refreshServerInfo().then(function (ret) {
         api.getAppList().then(function (appList) {
+            if ($('#selectGame').has('option').length > 0 ) { 
+                // there was already things in the dropdown. Clear it, then add the new ones.
+                // Most likely, the user just hit the 'retrieve app list' button again
+                $('#selectGame').empty();
+            }
             for(var i = 0; i < appList.length; i++) { // programmatically add each app
                 var opt = document.createElement('option');
                 opt.appendChild(document.createTextNode(appList[i]));
