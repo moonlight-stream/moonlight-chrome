@@ -223,7 +223,7 @@ void MoonlightInstance::HandlePair(int32_t callbackId, pp::VarArray args) {
 }
 
 void MoonlightInstance::PairCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args) {
-    int err = gs_pair(args.Get(0).AsString().c_str(), args.Get(1).AsString().c_str());
+    int err = gs_pair(atoi(args.Get(0).AsString().c_str()), args.Get(1).AsString().c_str(), args.Get(2).AsString().c_str());
     
     pp::VarDictionary ret;
     ret.Set("callbackId", pp::Var(callbackId));

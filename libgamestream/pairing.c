@@ -126,7 +126,7 @@ cleanup:
     return result;
 }
 
-int gs_pair(const char* address, const char* pin) {
+int gs_pair(int serverMajorVersion, const char* address, const char* pin) {
     int ret = GS_OK;
     char url[4096];
     
@@ -143,11 +143,17 @@ int gs_pair(const char* address, const char* pin) {
         goto cleanup;
     
     unsigned char salt_pin[20];
-    unsigned char aes_key_hash[20];
+    unsigned char aes_key_hash[32];
     AES_KEY enc_key, dec_key;
     memcpy(salt_pin, salt_data, 16);
     memcpy(salt_pin+16, pin, 4);
-    SHA1(salt_pin, 20, aes_key_hash);
+    
+    int hash_length = serverMajorVersion >= 7 ? 32 : 20;
+    if (serverMajorVersion >= 7)
+        SHA256(salt_pin, 20, aes_key_hash);
+    else
+        SHA1(salt_pin, 20, aes_key_hash);
+    
     AES_set_encrypt_key((unsigned char *)aes_key_hash, 128, &enc_key);
     AES_set_decrypt_key((unsigned char *)aes_key_hash, 128, &dec_key);
     
@@ -186,10 +192,14 @@ int gs_pair(const char* address, const char* pin) {
     unsigned char challenge_response_hash[32];
     unsigned char challenge_response_hash_enc[32];
     char challenge_response_hex[65];
-    memcpy(challenge_response, challenge_response_data + 20, 16);
+    memcpy(challenge_response, challenge_response_data + hash_length, 16);
     memcpy(challenge_response + 16, g_Cert->signature->data, 256);
     memcpy(challenge_response + 16 + 256, client_secret_data, 16);
-    SHA1(challenge_response, 16 + 256 + 16, challenge_response_hash);
+    
+    if (serverMajorVersion >= 7)
+        SHA256(challenge_response, 16 + 256 + 16, challenge_response_hash);
+    else
+        SHA1(challenge_response, 16 + 256 + 16, challenge_response_hash);
     
     for (int i = 0; i < 32; i += 16) {
         AES_encrypt(&challenge_response_hash[i], &challenge_response_hash_enc[i], &enc_key);
