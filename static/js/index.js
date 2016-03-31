@@ -216,7 +216,7 @@ function startSelectedGame() {
         var rikeyid = 0;
 
         if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
-            return api.resumeApp().then(function (ret) {
+            return api.resumeApp(rikey, rikeyid).then(function (ret) {
                 sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
             });
 
