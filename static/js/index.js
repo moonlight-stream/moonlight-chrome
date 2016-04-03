@@ -89,16 +89,22 @@ function pairPushed() {
         api = new NvHTTP(target, myUniqueid);
     }
 
-    $('#pairButton')[0].innerHTML = 'Pairing...';
-    snackbarLog('Attempting pair to: ' + target);
-    var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
-    var pairingDialog = document.querySelector('#pairingDialog');
-    document.getElementById('pairingDialogText').innerHTML = 
-        'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
-    pairingDialog.showModal();
-    console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
-
     api.refreshServerInfoUnpaired().then(function (ret) {
+
+        if(api.currentGame != 0) { // make sure host isn't already in a game
+            snackbarLog(target + ' is already in game. Cannot pair!');
+            return;
+        }
+
+        $('#pairButton')[0].innerHTML = 'Pairing...';
+        snackbarLog('Attempting pair to: ' + target);
+        var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
+        var pairingDialog = document.querySelector('#pairingDialog');
+        document.getElementById('pairingDialogText').innerHTML = 
+            'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
+        pairingDialog.showModal();
+        console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
+
         sendMessage('pair', [api.serverMajorVersion, target, randomNumber]).then(function (ret3) {
             console.log('"pair" call returned.');
             console.log(ret3);
