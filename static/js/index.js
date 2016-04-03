@@ -89,6 +89,7 @@ function pairPushed() {
         api = new NvHTTP(target, myUniqueid);
     }
 
+
     api.refreshServerInfoUnpaired().then(function (ret) {
 
         if(api.currentGame != 0) { // make sure host isn't already in a game
@@ -96,41 +97,50 @@ function pairPushed() {
             return;
         }
 
-        $('#pairButton')[0].innerHTML = 'Pairing...';
-        snackbarLog('Attempting pair to: ' + target);
-        var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
-        var pairingDialog = document.querySelector('#pairingDialog');
-        document.getElementById('pairingDialogText').innerHTML = 
-            'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
-        pairingDialog.showModal();
-        console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
+        api.refreshServerInfo().then(function (ret) {
+            if(api.paired) { // don't pair if you don't have to
+                snackbarLog('already paired with ' + target + '!');
+                return;
+            } else { // we're not already paired. pair now.
 
-        sendMessage('pair', [api.serverMajorVersion, target, randomNumber]).then(function (ret3) {
-            console.log('"pair" call returned.');
-            console.log(ret3);
-            if (ret3 === 0) { // pairing was successful. save this host.
-                $('#pairButton')[0].innerHTML = 'Paired';
-                snackbarLog('Pairing successful');
-                pairingDialog.close();
-                var hostSelect = $('#selectHost')[0];
-                for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
-                    if (hostSelect.options[i].value == target) return;
-                }
+                $('#pairButton')[0].innerHTML = 'Pairing...';
+                snackbarLog('Attempting pair to: ' + target);
+                var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
+                var pairingDialog = document.querySelector('#pairingDialog');
+                document.getElementById('pairingDialogText').innerHTML = 
+                    'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
+                pairingDialog.showModal();
+                console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
 
-                var opt = document.createElement('option');
-                opt.appendChild(document.createTextNode(target));
-                opt.value = target;
-                $('#selectHost')[0].appendChild(opt);
-                hosts.push(target);
-                saveHosts();
-                // move directly on to retrieving the apps list.
-                showAppsPushed();
-            } else {
-                snackbarLog('Pairing failed');
-                $('#pairButton')[0].innerHTML = 'Pairing Failed';
-                document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret3;
+                sendMessage('pair', [api.serverMajorVersion, target, randomNumber]).then(function (ret3) {
+                    console.log('"pair" call returned.');
+                    console.log(ret3);
+                    if (ret3 === 0) { // pairing was successful. save this host.
+                        $('#pairButton')[0].innerHTML = 'Paired';
+                        snackbarLog('Pairing successful');
+                        pairingDialog.close();
+                        var hostSelect = $('#selectHost')[0];
+                        for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
+                            if (hostSelect.options[i].value == target) return;
+                        }
+
+                        var opt = document.createElement('option');
+                        opt.appendChild(document.createTextNode(target));
+                        opt.value = target;
+                        $('#selectHost')[0].appendChild(opt);
+                        hosts.push(target);
+                        saveHosts();
+                        // move directly on to retrieving the apps list.
+                        showAppsPushed();
+                    } else {
+                        snackbarLog('Pairing failed');
+                        $('#pairButton')[0].innerHTML = 'Pairing Failed';
+                        document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret3;
+                    }
+                    console.log("pairing attempt returned: " + ret3);
+                });
+
             }
-            console.log("pairing attempt returned: " + ret3);
         });
     });
 
