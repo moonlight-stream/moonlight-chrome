@@ -15,8 +15,8 @@ function attachListeners() {
     $('#showAppsButton').on('click', showAppsPushed);
     $('#selectGame').on('change', gameSelectUpdated);
     $('#startGameButton').on('click', startSelectedGame);
-    $('#CancelReplaceApp').on('click', cancelReplaceApp);
-    $('#ContinueReplaceApp').on('click', continueReplaceApp);
+    $('#cancelReplaceApp').on('click', cancelReplaceApp);
+    $('#continueReplaceApp').on('click', continueReplaceApp);
     $('#quitGameButton').on('click', stopGame);
     $(window).resize(fullscreenNaclModule);
 }
