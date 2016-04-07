@@ -31,7 +31,7 @@ function snackbarLog(givenMessage) {
 }
 
 function updateBitrateField() {
-    $('#bitrateField').html($('#bitrateSlider')[0].value + " Mbps");
+    $('#bitrateField').html($('#bitrateSlider').val() + " Mbps");
 }
 
 function moduleDidLoad() {
@@ -60,10 +60,9 @@ function moduleDidLoad() {
 
 // because the user can change the target host at any time, we continually have to check
 function updateTarget() {
-    target = $('#GFEHostIPField')[0].value;
+    target = $('#GFEHostIPField').val();
     if (target == null || target == "") {
-        var e = $("#selectHost")[0];
-        target = e.options[e.selectedIndex].value;
+        target = $("#selectHost option:selected").val();
     }
     
     if(api && api.address != target) {
@@ -95,25 +94,29 @@ function pairPushed() {
         api = new NvHTTP(target, myUniqueid);
     }
     
-    $('#pairButton')[0].innerHTML = 'Pairing...';
+    if(api.paired) {
+        return;
+    }
+    
+    $('#pairButton').html('Pairing...');
     snackbarLog('Attempting pair to: ' + target);
     var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
-    document.getElementById('pairingDialogText').innerHTML = 'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
+    $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
     pairingDialog.showModal();
     console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
     
     api.pair(randomNumber).then(function (paired) {
         if (!paired) {
             snackbarLog('Pairing failed');
-            $('#pairButton')[0].innerHTML = 'Pairing Failed';
-            document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed';
+            $('#pairButton').html('Pairing Failed');
+            $('#pairingDialogText').html('Error: Pairing failed');
             if (api.currentGame != 0)
                 snackbarLog(target + ' is already in game. Cannot pair!');
             return;
         }
         
-        $('#pairButton')[0].innerHTML = 'Paired';
+        $('#pairButton').html('Paired');
         snackbarLog('Pairing successful');
         pairingDialog.close();
         
@@ -153,19 +156,18 @@ function showAppsPushed() {
             // Most likely, the user just hit the 'retrieve app list' button again
             $('#selectGame').empty();
         }
-        for (var i = 0; i < appList.length; i++) { // programmatically add each app
-            var opt = document.createElement('option');
-            opt.appendChild(document.createTextNode(appList[i]));
-            opt.value = appList[i].id;
-            opt.innerHTML = appList[i].title;
-            $('#selectGame')[0].appendChild(opt);
-        }
+        
+        appList.forEach(function (app) {
+            $('#selectGame').append($('<option>', {value: app.id, text: app.title}));
+        });
         
         $("#selectGame").html($("#selectGame option").sort(function (a, b) {  // thanks, http://stackoverflow.com/a/7466196/3006365
             return a.text.toUpperCase() == b.text.toUpperCase() ? 0 : a.text.toUpperCase() < b.text.toUpperCase() ? -1 : 1
         }));
         
-        if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
+        if (api.currentGame != 0)
+            $('#selectGame').val(api.currentGame);
+        
         gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
     });
     
@@ -189,9 +191,9 @@ function showAppsMode() {
 function gameSelectUpdated() {
     var currentApp = $("#selectGame").val();
     if(api.currentGame == parseInt(currentApp)) {
-        $("#startGameButton")[0].innerHTML = 'Resume Game'
+        $("#startGameButton").html('Resume Game');
     } else {
-        $("#startGameButton")[0].innerHTML = 'Run Game'
+        $("#startGameButton").html('Run Game');
     }
 }
 
@@ -289,8 +291,8 @@ function fullscreenNaclModule() {
     var zoom = Math.min(xRatio, yRatio);
 
     var module = $("#nacl_module")[0];
-    module.width=zoom * streamWidth;
-    module.height=zoom * streamHeight;
+    module.width = zoom * streamWidth;
+    module.height = zoom * streamHeight;
     module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
 }
 
@@ -368,12 +370,12 @@ function onWindowLoad(){
         // load stored resolution prefs
         chrome.storage.sync.get('resolution', function(previousValue) {
             $('#selectResolution')[0].remove(0);
-            $('#selectResolution')[0].value = previousValue.resolution != null ? previousValue.resolution : '1280:720';
+            $('#selectResolution').val(previousValue.resolution != null ? previousValue.resolution : '1280:720');
         });
         // load stored framerate prefs
         chrome.storage.sync.get('frameRate', function(previousValue) {
             $('#selectFramerate')[0].remove(0);
-            $('#selectFramerate')[0].value = previousValue.frameRate != null ? previousValue.frameRate : '30';
+            $('#selectFramerate').val(previousValue.frameRate != null ? previousValue.frameRate : '30');
         });
         // load previously connected hosts
         chrome.storage.sync.get('hosts', function(previousValue) {
