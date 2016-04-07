@@ -16,9 +16,13 @@
             "scripts": ["static/js/jquery-2.2.0.min.js", "static/js/material.min.js", "static/js/common.js", "static/js/background.js"]
         }
     },
+    "sockets": {
+        "udp": { "bind": "*", "send": "*" }
+    },
     "permissions": [
         "storage",
         "pointerLock",
+        "system.network",
         "fullscreen", {
         "socket": [
             "tcp-connect", 

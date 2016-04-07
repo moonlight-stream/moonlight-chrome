@@ -227,7 +227,7 @@ void MoonlightInstance::PairCallback(int32_t /*result*/, int32_t callbackId, pp:
     
     pp::VarDictionary ret;
     ret.Set("callbackId", pp::Var(callbackId));
-    ret.Set("type", err ? pp::Var("reject") : pp::Var("resolve"));
+    ret.Set("type", pp::Var("resolve"));
     ret.Set("ret", pp::Var(err));
     PostMessage(ret);
 }
