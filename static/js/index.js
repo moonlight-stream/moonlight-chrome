@@ -65,6 +65,10 @@ function updateTarget() {
         var e = $("#selectHost")[0];
         target = e.options[e.selectedIndex].value;
     }
+    
+    if(api && api.address != target) {
+        api = new NvHTTP(target, myUniqueid);
+    }
 }
 
 // we want the user to progress through the streaming process
@@ -80,70 +84,51 @@ function hideAllWorkflowDivs() {
 // pair button was pushed. pass what the user entered into the GFEHostIPField.
 function pairPushed() {
     updateTarget();
+    
     if(!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCL initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
         return;
     }
-    if(!api || !api.paired) {
+    
+    if(!api) {
         api = new NvHTTP(target, myUniqueid);
     }
-
-
-    api.refreshServerInfoUnpaired().then(function (ret) {
-
-        if(api.currentGame != 0) { // make sure host isn't already in a game
-            snackbarLog(target + ' is already in game. Cannot pair!');
+    
+    $('#pairButton')[0].innerHTML = 'Pairing...';
+    snackbarLog('Attempting pair to: ' + target);
+    var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
+    var pairingDialog = document.querySelector('#pairingDialog');
+    document.getElementById('pairingDialogText').innerHTML = 'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
+    pairingDialog.showModal();
+    console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
+    
+    api.pair(randomNumber).then(function (paired) {
+        if (!paired) {
+            snackbarLog('Pairing failed');
+            $('#pairButton')[0].innerHTML = 'Pairing Failed';
+            document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed';
             return;
         }
+        
+        $('#pairButton')[0].innerHTML = 'Paired';
+        snackbarLog('Pairing successful');
+        pairingDialog.close();
+        
+        var hostSelect = $('#selectHost')[0];
+        for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
+            if (hostSelect.options[i].value == target) return;
+        }
 
-        api.refreshServerInfo().then(function (ret) {
-            if(api.paired) { // don't pair if you don't have to
-                snackbarLog('already paired with ' + target + '!');
-                return;
-            } else { // we're not already paired. pair now.
-
-                $('#pairButton')[0].innerHTML = 'Pairing...';
-                snackbarLog('Attempting pair to: ' + target);
-                var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
-                var pairingDialog = document.querySelector('#pairingDialog');
-                document.getElementById('pairingDialogText').innerHTML = 
-                    'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete';
-                pairingDialog.showModal();
-                console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
-
-                sendMessage('pair', [api.serverMajorVersion, target, randomNumber]).then(function (ret3) {
-                    console.log('"pair" call returned.');
-                    console.log(ret3);
-                    if (ret3 === 0) { // pairing was successful. save this host.
-                        $('#pairButton')[0].innerHTML = 'Paired';
-                        snackbarLog('Pairing successful');
-                        pairingDialog.close();
-                        var hostSelect = $('#selectHost')[0];
-                        for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
-                            if (hostSelect.options[i].value == target) return;
-                        }
-
-                        var opt = document.createElement('option');
-                        opt.appendChild(document.createTextNode(target));
-                        opt.value = target;
-                        $('#selectHost')[0].appendChild(opt);
-                        hosts.push(target);
-                        saveHosts();
-                        // move directly on to retrieving the apps list.
-                        showAppsPushed();
-                    } else {
-                        snackbarLog('Pairing failed');
-                        $('#pairButton')[0].innerHTML = 'Pairing Failed';
-                        document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed with code: ' + ret3;
-                    }
-                    console.log("pairing attempt returned: " + ret3);
-                });
-
-            }
-        });
+        var opt = document.createElement('option');
+        opt.appendChild(document.createTextNode(target));
+        opt.value = target;
+        $('#selectHost')[0].appendChild(opt);
+        hosts.push(target);
+        saveHosts();
+        
+        showAppsPushed();
     });
-
 }
 
 function pairingPopupCanceled() {
@@ -155,30 +140,33 @@ function pairingPopupCanceled() {
 // otherwise, we assume they selected from the host history dropdown.
 function showAppsPushed() {
     updateTarget();
+    
     if(!api || !api.paired) {
-        api = new NvHTTP(target, myUniqueid);
+        return;
     }
-    api.refreshServerInfo().then(function (ret) {
-        api.getAppList().then(function (appList) {
-            if ($('#selectGame').has('option').length > 0 ) { 
-                // there was already things in the dropdown. Clear it, then add the new ones.
-                // Most likely, the user just hit the 'retrieve app list' button again
-                $('#selectGame').empty();
-            }
-            for(var i = 0; i < appList.length; i++) { // programmatically add each app
-                var opt = document.createElement('option');
-                opt.appendChild(document.createTextNode(appList[i]));
-                opt.value = appList[i].id;
-                opt.innerHTML = appList[i].title;
-                $('#selectGame')[0].appendChild(opt);
-            }
-            $("#selectGame").html($("#selectGame option").sort(function (a, b) {  // thanks, http://stackoverflow.com/a/7466196/3006365
-                return a.text.toUpperCase() == b.text.toUpperCase() ? 0 : a.text.toUpperCase() < b.text.toUpperCase() ? -1 : 1
-            }));
-            if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
-            gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
-        });
+    
+    api.getAppList().then(function (appList) {
+        if ($('#selectGame').has('option').length > 0 ) { 
+            // there was already things in the dropdown. Clear it, then add the new ones.
+            // Most likely, the user just hit the 'retrieve app list' button again
+            $('#selectGame').empty();
+        }
+        for (var i = 0; i < appList.length; i++) { // programmatically add each app
+            var opt = document.createElement('option');
+            opt.appendChild(document.createTextNode(appList[i]));
+            opt.value = appList[i].id;
+            opt.innerHTML = appList[i].title;
+            $('#selectGame')[0].appendChild(opt);
+        }
+        
+        $("#selectGame").html($("#selectGame option").sort(function (a, b) {  // thanks, http://stackoverflow.com/a/7466196/3006365
+            return a.text.toUpperCase() == b.text.toUpperCase() ? 0 : a.text.toUpperCase() < b.text.toUpperCase() ? -1 : 1
+        }));
+        
+        if (api.currentGame != 0) $('#selectGame')[0].value = api.currentGame;
+        gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
     });
+    
     showAppsMode();
 }
 
@@ -211,9 +199,11 @@ function startSelectedGame() {
     // if we need to reconnect to the target, and `target` has been updated, we can pass the appID we listed from the previous target
     // then everyone's sad. So we won't do that.  Because the only way to see the startGame button is to list the apps for the target anyways.
     if(!api || !api.paired) {
-        api = new NvHTTP(target, myUniqueid);
+        return;
     }
+
     var appID = $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].value;  // app that the user wants to play
+    
     // refresh the server info, because the user might have quit the game.
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
@@ -230,9 +220,9 @@ function startSelectedGame() {
             console.log('finished api being in another game. returning out of startSelectedGame');
             return;
         }
-        api.getAppById(appID).then(function (requestedApp) {
-            snackbarLog('Starting app: ' + requestedApp.title);
-        });
+        
+        snackbarLog('Starting app: ' + $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].innerHTML);
+        
         var frameRate = $("#selectFramerate").val();
         var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
         var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
@@ -413,6 +403,16 @@ function onWindowLoad(){
             }
         });
     }
+    
+    findNvService(function (finder, opt_error) {
+        if (finder.byService_['_nvstream._tcp']) {
+            var ip = Object.keys(finder.byService_['_nvstream._tcp'])[0];
+            if (finder.byService_['_nvstream._tcp'][ip]) {
+                $('#GFEHostIPField').val(ip);
+                updateTarget();
+            }
+        }
+    });
 }
 
 

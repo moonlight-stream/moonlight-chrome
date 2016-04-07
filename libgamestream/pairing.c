@@ -233,10 +233,6 @@ int gs_pair(int serverMajorVersion, const char* address, const char* pin) {
     if ((ret = http_request(url, data)) != GS_OK)
         goto cleanup;
     
-    sprintf(url, "https://%s:47984/pair?uniqueid=%s&devicename=roth&updateState=1&phrase=pairchallenge", address, g_UniqueId);
-    if ((ret = http_request(url, data)) != GS_OK)
-        goto cleanup;
-    
 cleanup:
     http_free_data(data);
     

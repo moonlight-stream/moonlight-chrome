@@ -29,32 +29,13 @@ function NvHTTP(address, clientUid) {
     this.clientUid = clientUid;
     this._baseUrlHttps = 'https://' + address + ':47984';
     this._baseUrlHttp = 'http://' + address + ':47989';
+    this._appListCache = null;
     _self = this;
 };
 
 NvHTTP.prototype = {
     refreshServerInfo: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps+'/serverinfo?'+_self._buildUidStr()]).then(function(ret) {
-            $xml = _self._parseXML(ret);
-            $root = $xml.find('root')
-            
-            if($root.attr("status_code") == 200) {
-                _self.paired = $root.find("PairStatus").text().trim() == 1;
-                _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
-                _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
-                
-                // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
-                // has the semantics that its name would indicate. To contain the effects of this change as much
-                // as possible, we'll force the current game to zero if the server isn't in a streaming session.
-                if ($root.find("state").text().trim().endsWith("_SERVER_AVAILABLE")) {
-                    _self.currentGame = 0;
-                }
-            }
-        });
-    },
-
-    refreshServerInfoUnpaired: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttp+'/serverinfo?'+_self._buildUidStr()]).then(function(ret) {
+        return sendMessage('openUrl', [ _self._baseUrlHttps + '/serverinfo?' + _self._buildUidStr()]).then(function(ret) {
             $xml = _self._parseXML(ret);
             $root = $xml.find('root')
             
@@ -108,32 +89,42 @@ NvHTTP.prototype = {
     },
     
     getAppList: function () {
-        console.log('Requested app list');
-        return sendMessage('openUrl', [_self._baseUrlHttps+'/applist?'+_self._buildUidStr()]).then(function (ret) {
+        if (_self._appListCache) {
+            console.log('Returning app list from cache');
+            return new Promise(function (resolve, reject) {
+                resolve(_self._appListCache);
+            });
+        }
+        
+        return sendMessage('openUrl', [_self._baseUrlHttps + '/applist?' + _self._buildUidStr()]).then(function (ret) {
             $xml = _self._parseXML(ret);
             
             var rootElement = $xml.find("root")[0];
             var appElements = rootElement.getElementsByTagName("App");
             var appList = [];
             
-            for(var i = 0, len = appElements.length; i < len; i++) {
+            for (var i = 0, len = appElements.length; i < len; i++) {
                 appList.push({
                     title: appElements[i].getElementsByTagName("AppTitle")[0].innerHTML.trim(),
                     id: parseInt(appElements[i].getElementsByTagName("ID")[0].innerHTML.trim(), 10),
                     running: (appElements[i].getElementsByTagName("IsRunning")[0].innerHTML.trim() == 1)
                 });
             }
+            
+            if (appList)
+                _self._appListCache = appList;
+            
             return appList;
         });
     },
     
     getBoxArt: function (appId) {
         return sendMessage('openUrl', [
-            _self._baseUrlHttps+
-            '/appasset?'+_self._buildUidStr()+
+            _self._baseUrlHttps +
+            '/appasset?'+_self._buildUidStr() +
             '&appid=' + appId + 
             '&AssetType=2&AssetIdx=0'
-        ]).then(function(ret) {
+        ]).then(function (ret) {
             return ret;
         });
     },
@@ -166,11 +157,28 @@ NvHTTP.prototype = {
     },
     
     quitApp: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps+'/cancel?'+_self._buildUidStr()]);
+        return sendMessage('openUrl', [_self._baseUrlHttps + '/cancel?' + _self._buildUidStr()]).then(function () {
+            _self.currentGame = 0;
+        });
+    },
+    
+    pair: function(randomNumber) {
+        return _self.refreshServerInfo().then(function () {
+            if (_self.paired)
+                return true;
+            
+            return sendMessage('pair', [_self.serverMajorVersion, _self.address, randomNumber]).then(function (pairStatus) {
+                return sendMessage('openUrl', [_self._baseUrlHttps + '/pair?uniqueid=' + _self.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge']).then(function (ret) {
+                    $xml = _self._parseXML(ret);
+                    _self.paired = $xml.find('paired').html() == "1";
+                    return _self.paired;
+                });
+            });
+        });
     },
     
     unpair: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps+'/unpair?'+_self._buildUidStr()]);
+        return sendMessage('openUrl', [_self._baseUrlHttps + '/unpair?' + _self._buildUidStr()]);
     },
     
     _buildUidStr: function () {
