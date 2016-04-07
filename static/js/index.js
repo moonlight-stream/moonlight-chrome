@@ -108,6 +108,8 @@ function pairPushed() {
             snackbarLog('Pairing failed');
             $('#pairButton')[0].innerHTML = 'Pairing Failed';
             document.getElementById('pairingDialogText').innerHTML = 'Error: Pairing failed';
+            if (api.currentGame != 0)
+                snackbarLog(target + ' is already in game. Cannot pair!');
             return;
         }
         

@@ -36,22 +36,34 @@ function NvHTTP(address, clientUid) {
 NvHTTP.prototype = {
     refreshServerInfo: function () {
         return sendMessage('openUrl', [ _self._baseUrlHttps + '/serverinfo?' + _self._buildUidStr()]).then(function(ret) {
-            $xml = _self._parseXML(ret);
-            $root = $xml.find('root')
-            
-            if($root.attr("status_code") == 200) {
-                _self.paired = $root.find("PairStatus").text().trim() == 1;
-                _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
-                _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
-                
-                // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
-                // has the semantics that its name would indicate. To contain the effects of this change as much
-                // as possible, we'll force the current game to zero if the server isn't in a streaming session.
-                if ($root.find("state").text().trim().endsWith("_SERVER_AVAILABLE")) {
-                    _self.currentGame = 0;
-                }
+            if (!_self._parseServerInfo(ret)) {
+                return sendMessage('openUrl', [ _self._baseUrlHttp + '/serverinfo?' + _self._buildUidStr()]).then(function(retHttp) {
+                    _self._parseServerInfo(retHttp);
+                });
             }
         });
+    },
+    
+    _parseServerInfo: function(xmlStr) {
+        $xml = _self._parseXML(xmlStr);
+        $root = $xml.find('root');
+        
+        if($root.attr("status_code") != 200) {
+            return false;
+        }
+        
+        _self.paired = $root.find("PairStatus").text().trim() == 1;
+        _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
+        _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
+        
+        // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
+        // has the semantics that its name would indicate. To contain the effects of this change as much
+        // as possible, we'll force the current game to zero if the server isn't in a streaming session.
+        if ($root.find("state").text().trim().endsWith("_SERVER_AVAILABLE")) {
+            _self.currentGame = 0;
+        }
+        
+        return true;
     },
     
     getAppById: function (appId) {
@@ -166,6 +178,9 @@ NvHTTP.prototype = {
         return _self.refreshServerInfo().then(function () {
             if (_self.paired)
                 return true;
+            
+            if (_self.currentGame != 0)
+                return false;
             
             return sendMessage('pair', [_self.serverMajorVersion, _self.address, randomNumber]).then(function (pairStatus) {
                 return sendMessage('openUrl', [_self._baseUrlHttps + '/pair?uniqueid=' + _self.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge']).then(function (ret) {
