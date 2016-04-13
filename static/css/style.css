@@ -75,22 +75,21 @@ main {
     margin-bottom: 10px;
 }
 
-#pairButton {
+.pairButton {
     margin: 3px;
 }
-#showAppsButton {
+.showAppsButton {
     margin: 3px;
 }
-#listener {
+.listener {
     overflow: hidden;
     margin-top: 20px;
     border: 1px solid;
 }
 .fullscreen {
-    height: 100vh !important;
-    overflow: none !important;
-    margin: auto !important;
-    padding: 0 !important;
+    height: 100vh;
+    margin: auto;
+    padding: 0;
     width: 100%;
     border: none !important;
 }
