@@ -1,5 +1,5 @@
 .mdl-layout__header-row {
-	color: #fff;
+    color: #fff;
 }
 
 /*Never use !important, it breaks CSS. Do best to override naturally*/
@@ -7,13 +7,13 @@
     color: #fff;
 }
 .mdl-button--raised .mdl-button--colored .mdl-button--colored-white {
-	color: #fff;
+    color: #fff;
 }
 
 .mdl-dialog {
-  border: none;
-  box-shadow: 0 9px 46px 8px rgba(0, 0, 0, 0.14), 0 11px 15px -7px rgba(0, 0, 0, 0.12), 0 24px 38px 3px rgba(0, 0, 0, 0.2);
-  width: 280px; 
+    border: none;
+    box-shadow: 0 9px 46px 8px rgba(0, 0, 0, 0.14), 0 11px 15px -7px rgba(0, 0, 0, 0.12), 0 24px 38px 3px rgba(0, 0, 0, 0.2);
+    width: 280px; 
 }
 .mdl-dialog__title {
     padding: 24px 24px 0;
@@ -28,68 +28,69 @@
 }
 
 .mdl-snackbar {
-	max-width:50%;
-	left: 25%;
+    max-width:50%;
+    left: 25%;
 }
 main {
-	padding: 50px 100px;
+    padding: 50px 100px;
 }
 
-/*Don't use IDs, ever. Classes for everything.*/
-#bitrateField {
-  text-align: center;
-  display: block;
-  padding-top: 15px;
+/*Don't use IDs, ever for selectors. Always classes.*/
+.bitrateField {
+    text-align: center;
+    display: block;
+    padding-top: 15px;
 }
-#hostSettings {
-	padding: 5px 10px;
-	border: 1px dashed;
-	margin: 10px 0;
+.hostSettings {
+    padding: 5px 10px;
+    border: 1px dashed;
+    margin: 10px 0;
 }
-#hostSettings p {
-	margin: 0;
+.hostSettings p {
+    margin: 0;
 }
-#hostSettings div {
-	display: inline-block;
+.hostSettings div {
+    display: inline-block;
 }
-#hostSettings .mdl-textfield {
-	width: 200px;
-	margin-right: 20px;
-	margin-bottom: 0;
+.hostSettings .mdl-textfield {
+    width: 200px;
+    margin-right: 20px;
+    margin-bottom: 0;
 }
-#hostSettings #GFEHostIPField {
-	padding-bottom: 0;
+.hostSettings .GFEHostIPField {
+    padding-bottom: 0;
 }
-#hostSettings #selectHost {
-	padding: 0;
-	line-height: 20px;
-	height: 20px;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	margin-right: 20px;
-	background: none;
+.hostSettings .selectHost {
+    padding: 0;
+    line-height: 20px;
+    height: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-right: 20px;
+    background: none;
 }
-#hostSettings .button-holder {
-	padding: 0px;
-	margin-top: 10px;
-	margin-bottom: 10px;
+.hostSettings .button-holder {
+    padding: 0;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
+
 #pairButton {
-	margin: 3px;
+    margin: 3px;
 }
 #showAppsButton {
-	margin: 3px;
+    margin: 3px;
 }
 #listener {
-	overflow: hidden;
-	margin-top: 20px;
-	border: 1px solid;
+    overflow: hidden;
+    margin-top: 20px;
+    border: 1px solid;
 }
 .fullscreen {
-	height: 100vh !important;
-	overflow: none !important;
-	margin: auto !important;
-	padding: 0 !important;
-	width: 100%;
-	border: none !important;
+    height: 100vh !important;
+    overflow: none !important;
+    margin: auto !important;
+    padding: 0 !important;
+    width: 100%;
+    border: none !important;
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="-1">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="/node_modules/material-design-lite/material.min.css">
     <link rel="stylesheet" href="static/css/style.css">
 </head>
+
 <body data-name="moonlight-chrome" data-tools="pnacl" data-configs="Debug Release" data-path="{tc}/{config}">
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
@@ -23,7 +25,6 @@
             </div>
         </header>
         <main id="main-content" class="mdl-layout__content">
-
             <div id="streamSettings">
                 <div class="mdl-select">
                     <select id="selectResolution">
@@ -32,25 +33,24 @@
                         <option value="1920:1080">1920x1080</option>
                     </select>
                 </div>
-                <div class="mdl-select"> 
+                <div class="mdl-select">
                     <select id="selectFramerate">
                         <option value="NONE">Framerate</option>
                         <option value="30">30fps</option>
                         <option value="60">60fps</option>
                     </select>
-                    <output id='bitrateField'>15 Mbps</output>
+                    <output id='bitrateField' class='bitrateField'>15 Mbps</output>
                 </div>
                 <input id="bitrateSlider" class="mdl-slider mdl-js-slider" type="range" min="0" max="100" step="0.5" value="15">
             </div>
-
-            <div id="hostSettings">
+            <div id="hostSettings" class='hostSettings'>
                 <p>Enter the IP/hostname of the GFE streaming computer, or select one from the history:</p>
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="GFEHostIPField">
+                    <input class="GFEHostIPField mdl-textfield__input" type="text" id="GFEHostIPField">
                     <label class="mdl-textfield__label" for="GFEHostIPField">IP Address</label>
                 </div>
                 <div class="mdl-select">
-                    <select id="selectHost">
+                    <select id="selectHost" class='selectHost'>
                         <option value="">No history available</option>
                     </select>
                 </div>
@@ -59,14 +59,12 @@
                     <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-button--colored-white" id="showAppsButton">Retrieve App List</button>
                 </div>
             </div>
-
             <div id="gameSelection" class="mdl-select">
                 <p>Select a game to run</p>
                 <select id="selectGame"> </select>
                 <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="startGameButton">Run Game</button>
                 <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="quitGameButton">Quit Current Game</button>
             </div>
-
             <div id="listener">
             </div>
         </main>
@@ -79,19 +77,17 @@
     <script type="text/javascript" src="static/js/utils.js"></script>
     <script type="text/javascript" src="static/js/mdns-browser/dns.js"></script>
     <script type="text/javascript" src="static/js/mdns-browser/main.js"></script>
-
     <dialog id="pairingDialog" class="mdl-dialog">
         <h3 class="mdl-dialog__title">Pairing</h3>
         <div class="mdl-dialog__content">
             <p id="pairingDialogText">
-                Please enter the number XXXX on the GFE dialog on the computer.  This dialog will be dismissed once complete
+                Please enter the number XXXX on the GFE dialog on the computer. This dialog will be dismissed once complete
             </p>
         </div>
         <div class="mdl-dialog__actions">
             <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelPairingDialog">Cancel</button>
         </div>
     </dialog>
-
     <dialog id="replaceAppDialog" class="mdl-dialog">
         <h3 class="mdl-dialog__title">Pairing</h3>
         <div class="mdl-dialog__content">
@@ -104,10 +100,11 @@
             <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="continueReplaceApp">Yes</button>
         </div>
     </dialog>
-
     <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
-        <button class="mdl-snackbar__action" type="button"></button> <!-- this button exists to suppress the snackbar warning. we're really using a toast. -->
+        <button class="mdl-snackbar__action" type="button"></button>
+        <!-- this button exists to suppress the snackbar warning. we're really using a toast. -->
         <div class="mdl-snackbar__text"></div>
     </div>
 </body>
+
 </html>
