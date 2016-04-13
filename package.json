@@ -1,0 +1,28 @@
+{
+  "name": "moonlight-chrome",
+  "version": "1.0.0",
+  "description": "Chrome extension for Moonlight, the open source Nvidia Stream app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moonlight-stream/moonlight-chrome.git"
+  },
+  "keywords": [
+    "moonlight",
+    "chrome",
+    "nvidia"
+  ],
+  "author": "Moonlight",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/moonlight-stream/moonlight-chrome/issues"
+  },
+  "homepage": "https://github.com/moonlight-stream/moonlight-chrome#readme",
+  "dependencies": {
+    "jquery": "^2.2.3",
+    "material-design-lite": "^1.1.3"
+  }
+}
