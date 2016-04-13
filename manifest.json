@@ -12,8 +12,8 @@
     "app": {
         "background": {
             "persistent": false,
-            "css": ["static/css/material.min.css", "static/css/style.css"],
-            "scripts": ["static/js/jquery-2.2.0.min.js", "static/js/material.min.js", "static/js/common.js", "static/js/background.js"]
+            "css": ["/node_modules/material-design-lite/material.min.css", "static/css/style.css"],
+            "scripts": ["/node_modules/jquery/dist/jquery.min.js", "/node_modules/material-design-lite/material.min.js", "static/js/common.js", "static/js/background.js"]
         }
     },
     "sockets": {

@@ -1,0 +1,28 @@
+{
+  "name": "moonlight-chrome",
+  "version": "1.0.0",
+  "description": "Moonlight game streaming plugin for Google Chrome",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moonlight-stream/moonlight-chrome.git"
+  },
+  "keywords": [
+    "moonlight",
+    "chrome",
+    "gamestream"
+  ],
+  "author": "Moonlight Game Straming Project",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/moonlight-stream/moonlight-chrome/issues"
+  },
+  "homepage": "moonlight-stream.com",
+  "dependencies": {
+    "jquery": "^2.2.3",
+    "material-design-lite": "^1.1.3"
+  }
+}

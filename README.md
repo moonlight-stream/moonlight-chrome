@@ -34,6 +34,7 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 2. Set the `NACL_SDK_ROOT` environment variable to your Pepper SDK folder. If you need more detailed instructions, see [here](https://github.com/google/pepper.js/wiki/Getting-Started)
 3. Run `git submodule update --init --recursive` from within `moonlight-chrome/`
 4. Run `make` from within the `moonlight-chrome/` repo
+5. Run `npm install` from within the `moonlight-chrome/` repo to get dependancies
 
 ##Testing
 1. Open the Extensions page in Chrome
