@@ -1,9 +1,15 @@
 .mdl-layout__header-row {
 	color: #fff;
 }
-.mdl-button {
-	color: #fff !important;
+
+/*Never use !important, it breaks CSS. Do best to override naturally*/
+.mdl-button--colored-white {
+    color: #fff;
 }
+.mdl-button--raised .mdl-button--colored .mdl-button--colored-white {
+	color: #fff;
+}
+
 .mdl-dialog {
   border: none;
   box-shadow: 0 9px 46px 8px rgba(0, 0, 0, 0.14), 0 11px 15px -7px rgba(0, 0, 0, 0.12), 0 24px 38px 3px rgba(0, 0, 0, 0.2);
@@ -16,8 +22,11 @@
 }
 .mdl-dialog__content {
     padding: 20px 24px 24px 24px;
+    /*always have a fallback color*/
+    color: #000D11;
     color: rgba(0,0,0, 0.54); 
 }
+
 .mdl-snackbar {
 	max-width:50%;
 	left: 25%;
@@ -25,6 +34,8 @@
 main {
 	padding: 50px 100px;
 }
+
+/*Don't use IDs, ever. Classes for everything.*/
 #bitrateField {
   text-align: center;
   display: block;
@@ -44,13 +55,13 @@ main {
 #hostSettings .mdl-textfield {
 	width: 200px;
 	margin-right: 20px;
-	margin-bottom: 0px;
+	margin-bottom: 0;
 }
 #hostSettings #GFEHostIPField {
-	padding-bottom: 0px;
+	padding-bottom: 0;
 }
 #hostSettings #selectHost {
-	padding: 0px;
+	padding: 0;
 	line-height: 20px;
 	height: 20px;
 	margin-top: 10px;
@@ -79,6 +90,6 @@ main {
 	overflow: none !important;
 	margin: auto !important;
 	padding: 0 !important;
-	width 100%;
+	width: 100%;
 	border: none !important;
 }
