@@ -20,6 +20,7 @@ static const unsigned int k_StandardGamepadTriggerButtonIndexes[] = {
 
 void MoonlightInstance::PollGamepads() {
     PP_GamepadsSampleData gamepadData;
+    short controllerIndex = 0;
     
     m_GamepadApi->Sample(pp_instance(), &gamepadData);
     
@@ -31,8 +32,18 @@ void MoonlightInstance::PollGamepads() {
             continue;
         }
         
+        if (padData.timestamp == 0) {
+            // On some platforms, Chrome returns "connected" pads that
+            // really aren't, so timestamp stays at zero. To work around this,
+            // we'll only count gamepads that have a non-zero timestamp in our
+            // controller index.
+            continue;
+        }
+        
         if (padData.timestamp == m_LastPadTimestamps[p]) {
-            // No change from last poll
+            // No change from last poll, but this controller is still valid
+            // so we skip this index.
+            controllerIndex++;
             continue;
         }
         
@@ -75,7 +86,8 @@ void MoonlightInstance::PollGamepads() {
             rightStickY = -padData.axes[3] * 0x7FFF;
         }
         
-        LiSendMultiControllerEvent(p, buttonFlags, leftTrigger, rightTrigger,
+        LiSendMultiControllerEvent(controllerIndex, buttonFlags, leftTrigger, rightTrigger,
                                    leftStickX, leftStickY, rightStickX, rightStickY);
+        controllerIndex++;
     }
 }
