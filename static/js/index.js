@@ -151,6 +151,7 @@ function hostChosen() {
             hosts.push(target);
             saveHosts();
             $('#GFEHostIPField').val(''); // eat the contents of the textbox
+            $('#GFEHostIPField').parent().removeClass('is-dirty');
         }
         showApps();
     });
@@ -405,9 +406,6 @@ function onWindowLoad(){
         // load previously connected hosts
         chrome.storage.sync.get('hosts', function(previousValue) {
             hosts = previousValue.hosts != null ? previousValue.hosts : [];
-            if ($('#selectHost')[0].length > 0) {
-                $('#selectHost')[0].remove($('#selectHost')[0].selectedIndex);
-            }
             for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
                 var opt = document.createElement('option');
                 opt.appendChild(document.createTextNode(hosts[i]));
