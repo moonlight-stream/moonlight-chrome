@@ -11,6 +11,7 @@ function attachListeners() {
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
     $('#hostChosen').on('click', hostChosen);
+    $('#forgetHost').on('click', forgetHost);
     $('#cancelPairingDialog').on('click', pairingPopupCanceled);
     $('#selectGame').on('change', gameSelectUpdated);
     $('#startGameButton').on('click', startSelectedGame);
@@ -142,9 +143,27 @@ function hostChosen() {
         if(!api.paired) {
             pairTo(target);
         }
+        if(hosts.indexOf(target) < 0) { // we don't have this host in our list. add it, and save it.
+            var opt = document.createElement('option');
+            opt.appendChild(document.createTextNode(target));
+            opt.value = target;
+            $('#selectHost')[0].appendChild(opt);
+            hosts.push(target);
+            saveHosts();
+            $('#GFEHostIPField').val(''); // eat the contents of the textbox
+        }
         showApps();
     });
+}
 
+// locally remove the hostname/ip from the saved `hosts` array.
+// note: this does not make the host forget the pairing to us.
+// this means we can re-add the host, and will still be paired.
+function forgetHost() {
+    updateTarget();
+    $("#selectHost option:selected").remove();
+    hosts.splice(hosts.indexOf(target), 1); // remove the host from the array;
+    saveHosts();
 }
 
 function pairingPopupCanceled() {
@@ -419,6 +438,7 @@ function onWindowLoad(){
             var ip = Object.keys(finder.byService_['_nvstream._tcp'])[0];
             if (finder.byService_['_nvstream._tcp'][ip]) {
                 $('#GFEHostIPField').val(ip);
+                $('#GFEHostIPField').parent().addClass('is-dirty'); // mark it as dirty to float the textfield label
                 updateTarget();
             }
         }
