@@ -256,7 +256,7 @@ function startSelectedGame() {
         return;
     }
 
-    var appID = $("#selectHost").val();  // app that the user wants to play
+    var appID = $("#selectGame").val();  // app that the user wants to play
     
     // refresh the server info, because the user might have quit the game.
     api.refreshServerInfo().then(function (ret) {
