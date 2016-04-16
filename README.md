@@ -22,7 +22,7 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 
 ##Installation
 * Download [GeForce Experience](http://www.geforce.com/geforce-experience) and install on your GameStream-compatible PC
-* Install Moonlight for Chrome from the Chrome Web Store
+* Moonlight Chrome isn't on the Chrome Web Store yet, currently you have to build it yourself.
 
 ##Requirements
 * Chrome browser on Windows, Mac OS X, Linux, or Chrome OS
@@ -31,8 +31,9 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 
 ##Building
 1. Install the Chrome Native Client SDK and download the current Pepper SDK
-2. Set the NACL_SDK_ROOT environment variable to your Pepper SDK folder
-3. Run 'make' from within the moonlight-chrome repo
+2. Set the `NACL_SDK_ROOT` environment variable to your Pepper SDK folder. If you need more detailed instructions, see [here](https://github.com/google/pepper.js/wiki/Getting-Started)
+3. Run `git submodule update --init --recursive` from within `moonlight-chrome/`
+4. Run `make` from within the `moonlight-chrome/` repo
 
 ##Testing
 1. Open the Extensions page in Chrome
@@ -42,9 +43,7 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 5. If making changes, make sure to click the Reload button on the Extensions page
 
 ##Streaming
-Moonlight Chrome is not yet able to start a stream by itself. It requires another client specially configured to bootstrap it. A modified version of Moonlight PC will do the job for now. Simply pair it to your PC, start whatever app you want with it, then quit it with Ctrl+Alt+Shift+Q 5 or 10 seconds after you see the "Starting <app>..." message on screen. You should then be able to connect Moonlight Chrome to your PC. Also worth noting is that without code modifications, Moonlight Chrome can only stream from GeForce Experience 2.10.2 (latest production version) at this time.
-
-[Bootstrap Clients for PC](https://dl.dropboxusercontent.com/u/19391088/bootstrap-only-clients.zip)
+Simply type the hostname or IP into the textbox, pair, choose an app to run, then begin streaming.  Once paired, the host will be remembered in a dropdown menu.  To exit a stream, press Ctrl+Alt+Shift+Q. To remove focus from the stream, press Ctrl+Alt+Shift.
 
 ##Contribute
 
