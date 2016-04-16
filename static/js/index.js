@@ -10,9 +10,8 @@ function attachListeners() {
     $('#selectFramerate').on('change', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
-    $('#pairButton').on('click', pairPushed);
+    $('#hostChosen').on('click', hostChosen);
     $('#cancelPairingDialog').on('click', pairingPopupCanceled);
-    $('#showAppsButton').on('click', showAppsPushed);
     $('#selectGame').on('change', gameSelectUpdated);
     $('#startGameButton').on('click', startSelectedGame);
     $('#cancelReplaceApp').on('click', cancelReplaceApp);
@@ -80,10 +79,8 @@ function hideAllWorkflowDivs() {
     // do NOT hide the nacl module. you can't interact with it then
 }
 
-// pair button was pushed. pass what the user entered into the GFEHostIPField.
-function pairPushed() {
-    updateTarget();
-    
+// pair to the given hostname or IP
+function pairTo(targetHost) {
     if(!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCL initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
@@ -91,7 +88,7 @@ function pairPushed() {
     }
     
     if(!api) {
-        api = new NvHTTP(target, myUniqueid);
+        api = new NvHTTP(targetHost, myUniqueid);
     }
     
     if(api.paired) {
@@ -99,12 +96,12 @@ function pairPushed() {
     }
     
     $('#pairButton').html('Pairing...');
-    snackbarLog('Attempting pair to: ' + target);
+    snackbarLog('Attempting pair to: ' + targetHost);
     var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
     $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
     pairingDialog.showModal();
-    console.log('sending pairing request to ' + target + ' with random number ' + randomNumber);
+    console.log('sending pairing request to ' + targetHost + ' with random number ' + randomNumber);
     
     api.pair(randomNumber).then(function (paired) {
         if (!paired) {
@@ -112,7 +109,7 @@ function pairPushed() {
             $('#pairButton').html('Pairing Failed');
             $('#pairingDialogText').html('Error: Pairing failed');
             if (api.currentGame != 0)
-                snackbarLog(target + ' is already in game. Cannot pair!');
+                snackbarLog(targetHost + ' is already in game. Cannot pair!');
             return;
         }
         
@@ -122,31 +119,42 @@ function pairPushed() {
         
         var hostSelect = $('#selectHost')[0];
         for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
-            if (hostSelect.options[i].value == target) return;
+            if (hostSelect.options[i].value == targetHost) return;
         }
 
         var opt = document.createElement('option');
-        opt.appendChild(document.createTextNode(target));
-        opt.value = target;
+        opt.appendChild(document.createTextNode(targetHost));
+        opt.value = targetHost;
         $('#selectHost')[0].appendChild(opt);
-        hosts.push(target);
+        hosts.push(targetHost);
         saveHosts();
-        
-        showAppsPushed();
     });
+}
+
+function hostChosen() {
+    updateTarget();
+
+    if(!api || api.address != target) {
+        api = new NvHTTP(target, myUniqueid);
+    }
+
+    api.refreshServerInfo().then(function (ret) {
+        if(!api.paired) {
+            pairTo(target);
+        }
+        showApps();
+    });
+
 }
 
 function pairingPopupCanceled() {
     document.querySelector('#pairingDialog').close();
 }
 
-// someone pushed the "show apps" button. 
-// if they entered something in the GFEHostIPField, use that.
-// otherwise, we assume they selected from the host history dropdown.
-function showAppsPushed() {
-    updateTarget();
-    
-    if(!api || !api.paired) {
+// show the app list
+function showApps() {
+    if(!api || !api.paired) {  // safety checking. shouldn't happen.
+        console.log('Moved into showApps, but `api` did not initialize properly! Failing.');
         return;
     }
     
@@ -369,12 +377,10 @@ function onWindowLoad(){
     if(chrome.storage) {
         // load stored resolution prefs
         chrome.storage.sync.get('resolution', function(previousValue) {
-            $('#selectResolution')[0].remove(0);
             $('#selectResolution').val(previousValue.resolution != null ? previousValue.resolution : '1280:720');
         });
         // load stored framerate prefs
         chrome.storage.sync.get('frameRate', function(previousValue) {
-            $('#selectFramerate')[0].remove(0);
             $('#selectFramerate').val(previousValue.frameRate != null ? previousValue.frameRate : '30');
         });
         // load previously connected hosts
