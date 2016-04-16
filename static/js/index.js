@@ -47,13 +47,22 @@ function moduleDidLoad() {
             storeData('cert', cert, null);
             pairingCert = cert;
             console.log("Generated new cert.");
+        }, function (failedCert) {
+            console.log('ERROR: failed to generate new cert!');
+            console.log('Returned error was: ' + failedCert);            
         }).then(function (ret) {
             sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]);
+        }, function (failedInit) {
+            console.log('ERROR: failed httpInit!');
+            console.log('Returned error was: ' + failedInit);
         });
     }
     else {
         sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
             snackbarLog('Initialization complete.');
+        }, function (failedInit) {
+            console.log('ERROR: failed httpInit!');
+            console.log('Returned error was: ' + failedInit);
         });
     }
 }
@@ -106,11 +115,15 @@ function pairTo(targetHost) {
     
     api.pair(randomNumber).then(function (paired) {
         if (!paired) {
-            snackbarLog('Pairing failed');
-            $('#pairButton').html('Pairing Failed');
-            $('#pairingDialogText').html('Error: Pairing failed');
-            if (api.currentGame != 0)
+            if (api.currentGame != 0) {
                 snackbarLog(targetHost + ' is already in game. Cannot pair!');
+                $('#pairButton').html('Pairing Failed');
+                $('#pairingDialogText').html('Error: ' + targetHost + ' is in app.  Cannot pair until the app is stopped.');
+            } else {
+                snackbarLog('Pairing failed');
+                $('#pairButton').html('Pairing Failed');
+                $('#pairingDialogText').html('Error: failed to pair with ' + targetHost + '.  failure reason unknown.');
+            }
             return;
         }
         
@@ -126,9 +139,12 @@ function pairTo(targetHost) {
         var opt = document.createElement('option');
         opt.appendChild(document.createTextNode(targetHost));
         opt.value = targetHost;
-        $('#selectHost')[0].appendChild(opt);
+        $('#selectHost').append(opt);
         hosts.push(targetHost);
         saveHosts();
+    }, function (failedPairing) {
+        snackbarLog('Failed pairing to: ' + targetHost);
+        console.log('pairing failed, and returned ' + failedPairing);
     });
 }
 
@@ -147,13 +163,16 @@ function hostChosen() {
             var opt = document.createElement('option');
             opt.appendChild(document.createTextNode(target));
             opt.value = target;
-            $('#selectHost')[0].appendChild(opt);
+            $('#selectHost').append(opt);
             hosts.push(target);
             saveHosts();
             $('#GFEHostIPField').val(''); // eat the contents of the textbox
             $('#GFEHostIPField').parent().removeClass('is-dirty');
         }
         showApps();
+    }, function (failedRefreshInfo) {
+        snackbarLog('Failed to connect to ' + target + '! Are you sure the host is on?');
+        console.log('Returned error was: ' + failedRefreshInfo);
     });
 }
 
@@ -197,6 +216,8 @@ function showApps() {
             $('#selectGame').val(api.currentGame);
         
         gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
+    }, function (failedAppList) {
+        console.log('Failed to get applist from host: ' + api.address);
     });
     
     showAppsMode();
@@ -231,10 +252,11 @@ function startSelectedGame() {
     // if we need to reconnect to the target, and `target` has been updated, we can pass the appID we listed from the previous target
     // then everyone's sad. So we won't do that.  Because the only way to see the startGame button is to list the apps for the target anyways.
     if(!api || !api.paired) {
+        console.log('attempted to start a game, but `api` did not initialize properly. Failing!');
         return;
     }
 
-    var appID = $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].value;  // app that the user wants to play
+    var appID = $("#selectHost").val();  // app that the user wants to play
     
     // refresh the server info, because the user might have quit the game.
     api.refreshServerInfo().then(function (ret) {
@@ -246,14 +268,16 @@ function startSelectedGame() {
                 document.getElementById('replaceAppDialogText').innerHTML = 
                     'You wanted to start a new game. ' + currentApp.title + ' is already running. Would you like to stop ' + currentApp.title + ', then start the new game?';
                 replaceAppDialog.showModal();
-                console.log('finished getAppById promise. returning.');
+                return;
+            }, function (failedCurrentApp) {
+                console.log('ERROR: failed to get the current running app from host!');
+                console.log('Returned error was: ' + failedCurrentApp);
                 return;
             });
-            console.log('finished api being in another game. returning out of startSelectedGame');
             return;
         }
         
-        snackbarLog('Starting app: ' + $("#selectGame")[0].options[$("#selectGame")[0].selectedIndex].innerHTML);
+        snackbarLog('Starting app: ' + $('#selectGame option:selected').text());
         
         var frameRate = $("#selectFramerate").val();
         var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
@@ -268,6 +292,10 @@ function startSelectedGame() {
         if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
             return api.resumeApp(rikey, rikeyid).then(function (ret) {
                 sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+            }, function (failedResumeApp) {
+                console.log('ERROR: failed to resume the app!');
+                console.log('Returned error was: ' + failedResumeApp);
+                return;
             });
 
         api.launchApp(appID,
@@ -278,6 +306,10 @@ function startSelectedGame() {
             0x030002 // Surround channel mask << 16 | Surround channel count
             ).then(function (ret) {
                 sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+            }, function (failedLaunchApp) {
+                console.log('ERROR: failed to launch app with appID: ' + appID);
+                console.log('Returned error was: ' + failedLaunchApp);
+                return;
             });
     });
     console.log('finished startSelectedGame.');
@@ -337,9 +369,21 @@ function stopGame(callbackFunction) {
                 api.refreshServerInfo().then(function (ret3) { // refresh to show no app is currently running.
                     showAppsMode();
                     if (typeof(callbackFunction) === "function") callbackFunction();
+                }, function (failedRefreshInfo2) {
+                    console.log('ERROR: failed to refresh server info!');
+                    console.log('Returned error was: ' + failedRefreshInfo2);
                 });
+            }, function (failedQuitApp) {
+                console.log('ERROR: failed to quit app!');
+                console.log('Returned error was: ' + failedQuitApp);
             });
+        }, function (failedGetApp) {
+            console.log('ERROR: failed to get app ID!');
+            console.log('Returned error was: ' + failedRefreshInfo);
         });
+    }, function (failedRefreshInfo) {
+        console.log('ERROR: failed to refresh server info!');
+        console.log('Returned error was: ' + failedRefreshInfo);
     });
 }
 
@@ -410,7 +454,7 @@ function onWindowLoad(){
                 var opt = document.createElement('option');
                 opt.appendChild(document.createTextNode(hosts[i]));
                 opt.value = hosts[i];
-                $('#selectHost')[0].appendChild(opt);
+                $('#selectHost').append(opt);
             }
         });
         // load stored bitrate prefs
