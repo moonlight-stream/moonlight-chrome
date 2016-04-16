@@ -23,7 +23,8 @@
         "storage",
         "pointerLock",
         "system.network",
-        "fullscreen", {
+        "fullscreen",
+        "overrideEscFullscreen", {
         "socket": [
             "tcp-connect", 
             "resolve-host", 
