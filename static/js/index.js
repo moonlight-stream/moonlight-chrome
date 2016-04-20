@@ -96,15 +96,15 @@ function pairTo(targetHost) {
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
         return;
     }
-    
+
     if(!api) {
         api = new NvHTTP(targetHost, myUniqueid);
     }
-    
+
     if(api.paired) {
         return;
     }
-    
+
     $('#pairButton').html('Pairing...');
     snackbarLog('Attempting pair to: ' + targetHost);
     var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
@@ -112,7 +112,7 @@ function pairTo(targetHost) {
     $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
     pairingDialog.showModal();
     console.log('sending pairing request to ' + targetHost + ' with random number ' + randomNumber);
-    
+
     api.pair(randomNumber).then(function (paired) {
         if (!paired) {
             if (api.currentGame != 0) {
@@ -196,30 +196,30 @@ function showApps() {
         console.log('Moved into showApps, but `api` did not initialize properly! Failing.');
         return;
     }
-    
+
     api.getAppList().then(function (appList) {
         if ($('#selectGame').has('option').length > 0 ) { 
             // there was already things in the dropdown. Clear it, then add the new ones.
             // Most likely, the user just hit the 'retrieve app list' button again
             $('#selectGame').empty();
         }
-        
+
         appList.forEach(function (app) {
             $('#selectGame').append($('<option>', {value: app.id, text: app.title}));
         });
-        
+
         $("#selectGame").html($("#selectGame option").sort(function (a, b) {  // thanks, http://stackoverflow.com/a/7466196/3006365
             return a.text.toUpperCase() == b.text.toUpperCase() ? 0 : a.text.toUpperCase() < b.text.toUpperCase() ? -1 : 1
         }));
-        
+
         if (api.currentGame != 0)
             $('#selectGame').val(api.currentGame);
-        
+
         gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
     }, function (failedAppList) {
         console.log('Failed to get applist from host: ' + api.address);
     });
-    
+
     showAppsMode();
 }
 
@@ -257,7 +257,7 @@ function startSelectedGame() {
     }
 
     var appID = $("#selectGame").val();  // app that the user wants to play
-    
+
     // refresh the server info, because the user might have quit the game.
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
@@ -276,9 +276,9 @@ function startSelectedGame() {
             });
             return;
         }
-        
+
         snackbarLog('Starting app: ' + $('#selectGame option:selected').text());
-        
+
         var frameRate = $("#selectFramerate").val();
         var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
         var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
@@ -428,7 +428,14 @@ function updateDefaultBitrate() {
         } else { // 720, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         }
+    } else if (res.lastIndexOf("2160:3840", 0) === 0) {
+        if (frameRate.lastIndexOf("30", 0) === 0) { // 2160p, 30fps
+            $('#bitrateSlider')[0].MaterialSlider.change('40');
+        } else { // 2160p, 60fps
+            $('#bitrateSlider')[0].MaterialSlider.change('80');
+        }
     }
+
     updateBitrateField();
     saveBitrate();
 }
@@ -437,7 +444,7 @@ function onWindowLoad(){
     // don't show the game selection div
     $('#gameSelection').css('display', 'none');
     $("#bitrateField").addClass("bitrateField");
-    
+
     if(chrome.storage) {
         // load stored resolution prefs
         chrome.storage.sync.get('resolution', function(previousValue) {
@@ -459,7 +466,7 @@ function onWindowLoad(){
         });
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function(previousValue) {
-            $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '15');
+            $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '5');
             updateBitrateField();
         });
         // load the HTTP cert if we have one.
@@ -474,7 +481,7 @@ function onWindowLoad(){
             }
         });
     }
-    
+
     findNvService(function (finder, opt_error) {
         if (finder.byService_['_nvstream._tcp']) {
             var ip = Object.keys(finder.byService_['_nvstream._tcp'])[0];
@@ -489,4 +496,3 @@ function onWindowLoad(){
 
 
 window.onload = onWindowLoad;
-
