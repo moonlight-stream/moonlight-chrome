@@ -452,7 +452,7 @@ function onWindowLoad(){
         });
         // load stored framerate prefs
         chrome.storage.sync.get('frameRate', function(previousValue) {
-            $('#selectFramerate').val(previousValue.frameRate != null ? previousValue.frameRate : '30');
+            $('#selectFramerate').val(previousValue.frameRate != null ? previousValue.frameRate : '60');
         });
         // load previously connected hosts
         chrome.storage.sync.get('hosts', function(previousValue) {
@@ -466,7 +466,7 @@ function onWindowLoad(){
         });
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function(previousValue) {
-            $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '5');
+            $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
             updateBitrateField();
         });
         // load the HTTP cert if we have one.
