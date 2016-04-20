@@ -89,12 +89,12 @@ function hideAllWorkflowDivs() {
     // do NOT hide the nacl module. you can't interact with it then
 }
 
-// pair to the given hostname or IP
+// pair to the given hostname or IP.  Returns whether pairing was successful.
 function pairTo(targetHost) {
     if(!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCL initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
-        return;
+        return false;
     }
 
     if(!api) {
@@ -102,7 +102,7 @@ function pairTo(targetHost) {
     }
 
     if(api.paired) {
-        return;
+        return true;
     }
 
     $('#pairButton').html('Pairing...');
@@ -124,7 +124,7 @@ function pairTo(targetHost) {
                 $('#pairButton').html('Pairing Failed');
                 $('#pairingDialogText').html('Error: failed to pair with ' + targetHost + '.  failure reason unknown.');
             }
-            return;
+            return false;
         }
         
         $('#pairButton').html('Paired');
@@ -133,7 +133,7 @@ function pairTo(targetHost) {
         
         var hostSelect = $('#selectHost')[0];
         for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
-            if (hostSelect.options[i].value == targetHost) return;
+            if (hostSelect.options[i].value == targetHost) return true;
         }
 
         var opt = document.createElement('option');
@@ -142,9 +142,11 @@ function pairTo(targetHost) {
         $('#selectHost').append(opt);
         hosts.push(targetHost);
         saveHosts();
+        return true;
     }, function (failedPairing) {
         snackbarLog('Failed pairing to: ' + targetHost);
         console.log('pairing failed, and returned ' + failedPairing);
+        return false;
     });
 }
 
@@ -428,7 +430,7 @@ function updateDefaultBitrate() {
         } else { // 720, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         }
-    } else if (res.lastIndexOf("2160:3840", 0) === 0) {
+    } else if (res.lastIndexOf("3840:2160", 0) === 0) {
         if (frameRate.lastIndexOf("30", 0) === 0) { // 2160p, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('40');
         } else { // 2160p, 60fps
