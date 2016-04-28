@@ -436,6 +436,12 @@ function updateDefaultBitrate() {
         } else { // 720, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         }
+    } else if (res.lastIndexOf("1280:800") === 0) {
+        if (frameRate.lastIndexOf("30", 0) === 0) { // 800, 30fps
+            $('#bitrateSlider')[0].MaterialSlider.change('5');
+        } else { // 800, 60fps
+            $('#bitrateSlider')[0].MaterialSlider.change('10');
+        }
     } else if (res.lastIndexOf("3840:2160", 0) === 0) {
         if (frameRate.lastIndexOf("30", 0) === 0) { // 2160p, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('40');
