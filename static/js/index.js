@@ -424,10 +424,22 @@ function updateDefaultBitrate() {
         } else { // 1080p, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('20');
         }
+    } else if (res.lastIndexOf("1920:1200") === 0) {
+        if (frameRate.lastIndexOf("30", 0) === 0) { // 1200p, 30fps
+            $('#bitrateSlider')[0].MaterialSlider.change('10');
+        } else { // 1200p, 60fps
+            $('#bitrateSlider')[0].MaterialSlider.change('20');
+        }
     } else if (res.lastIndexOf("1280:720") === 0) {
         if (frameRate.lastIndexOf("30", 0) === 0) { // 720, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('5');
         } else { // 720, 60fps
+            $('#bitrateSlider')[0].MaterialSlider.change('10');
+        }
+    } else if (res.lastIndexOf("1280:800") === 0) {
+        if (frameRate.lastIndexOf("30", 0) === 0) { // 800, 30fps
+            $('#bitrateSlider')[0].MaterialSlider.change('5');
+        } else { // 800, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         }
     } else if (res.lastIndexOf("3840:2160", 0) === 0) {
