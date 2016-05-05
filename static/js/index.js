@@ -19,6 +19,18 @@ function attachListeners() {
     $('#continueReplaceApp').on('click', continueReplaceApp);
     $('#quitGameButton').on('click', stopGame);
     $(window).resize(fullscreenNaclModule);
+    chrome.app.window.current().onMaximized.addListener(fullscreenChromeWindow);
+}
+
+function fullscreenChromeWindow() {
+    // when the user clicks the maximize button on the window,
+    // FIRST restore it to the previous size, then fullscreen it to the whole screen
+    // this prevents the previous window size from being 'maximized',
+    // and allows us to functionally retain two window sizes
+    // so that when the user hits `esc`, they go back to the "restored" size, 
+    // instead of "maximized", which would immediately go to fullscreen
+    chrome.app.window.current().restore();
+    chrome.app.window.current().fullscreen();
 }
 
 function snackbarLog(givenMessage) {
