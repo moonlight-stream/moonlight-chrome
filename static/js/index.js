@@ -1,4 +1,4 @@
-var target = "";
+var host = "";
 var hosts = [];
 var pairingCert;
 var myUniqueid;
@@ -67,15 +67,15 @@ function moduleDidLoad() {
     }
 }
 
-// because the user can change the target host at any time, we continually have to check
-function updateTarget() {
-    target = $('#GFEHostIPField').val();
-    if (target == null || target == "") {
-        target = $("#selectHost option:selected").val();
+// because the user can change the host at any time, we continually have to check
+function updateHost() {
+    host = $('#GFEHostIPField').val();
+    if (host == null || host == "") {
+        host = $("#selectHost option:selected").val();
     }
     
-    if(api && api.address != target) {
-        api = new NvHTTP(target, myUniqueid);
+    if(api && api.address != host) {
+        api = new NvHTTP(host, myUniqueid);
     }
 }
 
@@ -90,7 +90,7 @@ function hideAllWorkflowDivs() {
 }
 
 // pair to the given hostname or IP.  Returns whether pairing was successful.
-function pairTo(targetHost) {
+function pairTo(host) {
     if(!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCL initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
@@ -98,7 +98,7 @@ function pairTo(targetHost) {
     }
 
     if(!api) {
-        api = new NvHTTP(targetHost, myUniqueid);
+        api = new NvHTTP(host, myUniqueid);
     }
 
     if(api.paired) {
@@ -106,23 +106,23 @@ function pairTo(targetHost) {
     }
 
     $('#pairButton').html('Pairing...');
-    snackbarLog('Attempting pair to: ' + targetHost);
+    snackbarLog('Attempting pair to: ' + host);
     var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
     $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
     pairingDialog.showModal();
-    console.log('sending pairing request to ' + targetHost + ' with random number ' + randomNumber);
+    console.log('sending pairing request to ' + host + ' with random number ' + randomNumber);
 
     api.pair(randomNumber).then(function (paired) {
         if (!paired) {
             if (api.currentGame != 0) {
-                snackbarLog(targetHost + ' is already in game. Cannot pair!');
+                snackbarLog(host + ' is already in app. Cannot pair!');
                 $('#pairButton').html('Pairing Failed');
-                $('#pairingDialogText').html('Error: ' + targetHost + ' is in app.  Cannot pair until the app is stopped.');
+                $('#pairingDialogText').html('Error: ' + host + ' is in app.  Cannot pair until the app is stopped.');
             } else {
                 snackbarLog('Pairing failed');
                 $('#pairButton').html('Pairing Failed');
-                $('#pairingDialogText').html('Error: failed to pair with ' + targetHost + '.  failure reason unknown.');
+                $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
             }
             return false;
         }
@@ -133,47 +133,47 @@ function pairTo(targetHost) {
         
         var hostSelect = $('#selectHost')[0];
         for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
-            if (hostSelect.options[i].value == targetHost) return true;
+            if (hostSelect.options[i].value == host) return true;
         }
 
         var opt = document.createElement('option');
-        opt.appendChild(document.createTextNode(targetHost));
-        opt.value = targetHost;
+        opt.appendChild(document.createTextNode(host));
+        opt.value = host;
         $('#selectHost').append(opt);
-        hosts.push(targetHost);
+        hosts.push(host);
         saveHosts();
         return true;
     }, function (failedPairing) {
-        snackbarLog('Failed pairing to: ' + targetHost);
+        snackbarLog('Failed pairing to: ' + host);
         console.log('pairing failed, and returned ' + failedPairing);
         return false;
     });
 }
 
 function hostChosen() {
-    updateTarget();
+    updateHost();
 
-    if(!api || api.address != target) {
-        api = new NvHTTP(target, myUniqueid);
+    if(!api || api.address != host) {
+        api = new NvHTTP(host, myUniqueid);
     }
 
     api.refreshServerInfo().then(function (ret) {
         if(!api.paired) {
-            pairTo(target);
+            pairTo(host);
         }
-        if(hosts.indexOf(target) < 0) { // we don't have this host in our list. add it, and save it.
+        if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
             var opt = document.createElement('option');
-            opt.appendChild(document.createTextNode(target));
-            opt.value = target;
+            opt.appendChild(document.createTextNode(host));
+            opt.value = host;
             $('#selectHost').append(opt);
-            hosts.push(target);
+            hosts.push(host);
             saveHosts();
             $('#GFEHostIPField').val(''); // eat the contents of the textbox
             $('#GFEHostIPField').parent().removeClass('is-dirty');
         }
         showApps();
     }, function (failedRefreshInfo) {
-        snackbarLog('Failed to connect to ' + target + '! Are you sure the host is on?');
+        snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
     });
 }
@@ -182,9 +182,9 @@ function hostChosen() {
 // note: this does not make the host forget the pairing to us.
 // this means we can re-add the host, and will still be paired.
 function forgetHost() {
-    updateTarget();
+    updateHost();
     $("#selectHost option:selected").remove();
-    hosts.splice(hosts.indexOf(target), 1); // remove the host from the array;
+    hosts.splice(hosts.indexOf(host), 1); // remove the host from the array;
     saveHosts();
 }
 
@@ -249,10 +249,10 @@ function gameSelectUpdated() {
 }
 
 function startSelectedGame() {
-    // do NOT update the target.
+    // do NOT update the host.
     // we're just grabbing the currently selected option from #selectGame, and feeding it into NvHTTP
-    // if we need to reconnect to the target, and `target` has been updated, we can pass the appID we listed from the previous target
-    // then everyone's sad. So we won't do that.  Because the only way to see the startGame button is to list the apps for the target anyways.
+    // if we need to reconnect to the host, and `host` has been updated, we can pass the appID we listed from the previous host
+    // then everyone's sad. So we won't do that.  Because the only way to see the startGame button is to list the apps for the host anyways.
     if(!api || !api.paired) {
         console.log('attempted to start a game, but `api` did not initialize properly. Failing!');
         return;
@@ -264,7 +264,7 @@ function startSelectedGame() {
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
             api.getAppById(api.currentGame).then(function (currentApp) {
-                snackbarLog('Error: ' + target + ' is already in app: ' + currentApp.title);
+                snackbarLog('Error: ' + host + ' is already in app: ' + currentApp.title);
 
                 var replaceAppDialog = document.querySelector('#replaceAppDialog');
                 document.getElementById('replaceAppDialogText').innerHTML = 
@@ -286,14 +286,14 @@ function startSelectedGame() {
         var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
         // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
         var bitrate = parseInt($("#bitrateSlider").val()) * 1024;
-        console.log('startRequest:' + target + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
+        console.log('startRequest:' + host + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
         var rikey = '00000000000000000000000000000000';
         var rikeyid = 0;
 
         if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
             return api.resumeApp(rikey, rikeyid).then(function (ret) {
-                sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+                sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
             }, function (failedResumeApp) {
                 console.log('ERROR: failed to resume the app!');
                 console.log('Returned error was: ' + failedResumeApp);
@@ -307,7 +307,7 @@ function startSelectedGame() {
             0, // Play audio locally too
             0x030002 // Surround channel mask << 16 | Surround channel count
             ).then(function (ret) {
-                sendMessage('startRequest', [target, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+                sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
             }, function (failedLaunchApp) {
                 console.log('ERROR: failed to launch app with appID: ' + appID);
                 console.log('Returned error was: ' + failedLaunchApp);
@@ -338,6 +338,8 @@ function playGameMode() {
     $("#listener").addClass("fullscreen");
     fullscreenNaclModule();
     $("body").css('backgroundColor', 'black');
+
+    chrome.app.window.current().fullscreen();
 }
 
 // Maximize the size of the nacl module by scaling and resizing appropriately
@@ -359,6 +361,7 @@ function fullscreenNaclModule() {
 }
 
 function stopGame(callbackFunction) {
+
     api.refreshServerInfo().then(function (ret) {
         api.getAppById(api.currentGame).then(function (runningApp) {
             if (!runningApp) {
@@ -490,7 +493,7 @@ function onWindowLoad(){
             if (finder.byService_['_nvstream._tcp'][ip]) {
                 $('#GFEHostIPField').val(ip);
                 $('#GFEHostIPField').parent().addClass('is-dirty'); // mark it as dirty to float the textfield label
-                updateTarget();
+                updateHost();
             }
         }
     });

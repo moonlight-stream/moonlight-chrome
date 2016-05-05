@@ -23,6 +23,7 @@ function handleMessage(msg) {
         if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
             api.refreshServerInfo().then(function (ret) {
                 showAppsMode();
+                chrome.app.window.current().restore();
             });
         }
     }
