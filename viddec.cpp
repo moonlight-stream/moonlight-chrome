@@ -13,8 +13,6 @@ static unsigned char* s_DecodeBuffer;
 static unsigned int s_DecodeBufferLength;
 static int s_LastTextureType;
 static int s_LastTextureId;
-static int s_NextDecodeFrameNumber;
-static int s_LastDisplayFrameNumber;
 static unsigned char s_LastSps[256];
 static unsigned char s_LastPps[256];
 static unsigned int s_LastSpsLength;
@@ -61,14 +59,6 @@ static const char k_FragmentShaderExternal[] =
       "{"
       "    gl_FragColor = texture2D(s_texture, v_texCoord); \n"
       "}";
-    
-void MoonlightInstance::DidChangeFocus(bool got_focus) {
-    // Request an IDR frame to dump the frame queue that may have
-    // built up from the GL pipeline being stalled.
-    if (got_focus) {
-        g_Instance->m_RequestIdrFrame = true;
-    }
-}
 
 void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     if (!glInitializePPAPI(pp::Module::Get()->get_browser_interface())) {
@@ -136,8 +126,6 @@ void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int 
     s_LastTextureId = 0;
     s_LastSpsLength = 0;
     s_LastPpsLength = 0;
-    s_NextDecodeFrameNumber = 0;
-    s_LastDisplayFrameNumber = 0;
     
     g_Instance->m_VideoDecoder->Initialize(g_Instance->m_Graphics3D,
                                            PP_VIDEOPROFILE_H264HIGH,
@@ -206,12 +194,6 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     bool isPps = false;
     bool isIframe = false;
     
-    // Request an IDR frame if needed
-    if (g_Instance->m_RequestIdrFrame) {
-        g_Instance->m_RequestIdrFrame = false;
-        return DR_NEED_IDR;
-    }
-    
     // Look at the NALU type
     if (decodeUnit->bufferList->length > 5) {
         switch (decodeUnit->bufferList->data[4]) {
@@ -279,7 +261,7 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     }
     
     // Start the decoding
-    g_Instance->m_VideoDecoder->Decode(s_NextDecodeFrameNumber++, offset, s_DecodeBuffer, pp::BlockUntilComplete());
+    g_Instance->m_VideoDecoder->Decode(0, offset, s_DecodeBuffer, pp::BlockUntilComplete());
     
     return DR_OK;
 }
@@ -324,20 +306,13 @@ Shader MoonlightInstance::CreateProgram(const char* vertexShader, const char* fr
 void MoonlightInstance::PaintPicture(void) {
     m_IsPainting = true;
     
-    // Free and skip all frames except the latest one
-    PP_VideoPicture picture;
-    while (m_PendingPictureQueue.size() > 1) {
-        picture = m_PendingPictureQueue.front();
-        m_PendingPictureQueue.pop();
-        g_Instance->m_VideoDecoder->RecyclePicture(picture);
-    }
-    
-    picture = m_PendingPictureQueue.front();
+    // Take the next picture into our ownership
+    m_CurrentPicture = m_NextPicture;
+    m_HasNextPicture = false;
     
     // Recycle bogus pictures immediately
-    if (picture.texture_target == 0) {
-        g_Instance->m_VideoDecoder->RecyclePicture(picture);
-        m_PendingPictureQueue.pop();
+    if (m_CurrentPicture.texture_target == 0) {
+        m_VideoDecoder->RecyclePicture(m_CurrentPicture);
         m_IsPainting = false;
         return;
     }
@@ -349,23 +324,23 @@ void MoonlightInstance::PaintPicture(void) {
     int originalTextureTarget = s_LastTextureType;
     
     // Only make these state changes if we've changed from the last texture type
-    if (picture.texture_target != s_LastTextureType) {
-        if (picture.texture_target == GL_TEXTURE_2D) {
+    if (m_CurrentPicture.texture_target != s_LastTextureType) {
+        if (m_CurrentPicture.texture_target == GL_TEXTURE_2D) {
             if (!g_Instance->m_Texture2DShader.program) {
                 g_Instance->m_Texture2DShader = CreateProgram(k_VertexShader, k_FragmentShader2D);
             }
             glUseProgram(g_Instance->m_Texture2DShader.program);
             glUniform2f(g_Instance->m_Texture2DShader.texcoord_scale_location, 1.0, 1.0);
         }
-        else if (picture.texture_target == GL_TEXTURE_RECTANGLE_ARB) {
+        else if (m_CurrentPicture.texture_target == GL_TEXTURE_RECTANGLE_ARB) {
             if (!g_Instance->m_RectangleArbShader.program) {
                 g_Instance->m_RectangleArbShader = CreateProgram(k_VertexShader, k_FragmentShaderRectangle);
             }
             glUseProgram(g_Instance->m_RectangleArbShader.program);
             glUniform2f(g_Instance->m_RectangleArbShader.texcoord_scale_location,
-                        picture.texture_size.width, picture.texture_size.height);
+                        m_CurrentPicture.texture_size.width, m_CurrentPicture.texture_size.height);
         }
-        else if (picture.texture_target == GL_TEXTURE_EXTERNAL_OES) {
+        else if (m_CurrentPicture.texture_target == GL_TEXTURE_EXTERNAL_OES) {
             if (!g_Instance->m_ExternalOesShader.program) {
                 g_Instance->m_ExternalOesShader = CreateProgram(k_VertexShader, k_FragmentShaderExternal);
             }
@@ -375,32 +350,31 @@ void MoonlightInstance::PaintPicture(void) {
 
         glActiveTexture(GL_TEXTURE0);
 
-        s_LastTextureType = picture.texture_target;
+        s_LastTextureType = m_CurrentPicture.texture_target;
     }
     
     // Only rebind our texture if we've changed since last time
-    if (picture.texture_id != s_LastTextureId || picture.texture_target != originalTextureTarget) {
-        glBindTexture(picture.texture_target, picture.texture_id);
-        s_LastTextureId = picture.texture_id;
+    if (m_CurrentPicture.texture_id != s_LastTextureId || m_CurrentPicture.texture_target != originalTextureTarget) {
+        glBindTexture(m_CurrentPicture.texture_target, m_CurrentPicture.texture_id);
+        s_LastTextureId = m_CurrentPicture.texture_id;
     }
     
     // Draw the image
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     
     // Swap buffers
-    g_Instance->m_Graphics3D.SwapBuffers(
-        g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::PaintFinished));
+    m_Graphics3D.SwapBuffers(
+        m_CallbackFactory.NewCallback(&MoonlightInstance::PaintFinished));
 }
 
 void MoonlightInstance::PaintFinished(int32_t result) {
     m_IsPainting = false;
     
     // Recycle the picture now that it's been painted
-    g_Instance->m_VideoDecoder->RecyclePicture(m_PendingPictureQueue.front());
-    m_PendingPictureQueue.pop();
+    m_VideoDecoder->RecyclePicture(m_CurrentPicture);
     
     // Keep painting if we still have frames
-    if (!m_PendingPictureQueue.empty()) {
+    if (m_HasNextPicture) {
         PaintPicture();
     }
 }
@@ -410,21 +384,21 @@ void MoonlightInstance::PictureReady(int32_t result, PP_VideoPicture picture) {
         return;
     }
     
-    // Ensure we only push newer frames onto the display queue
-    if (picture.decode_id > s_LastDisplayFrameNumber) {
-        m_PendingPictureQueue.push(picture);
-        s_LastDisplayFrameNumber = picture.decode_id;
-    }
-    else {
-        // This picture is older than the last one we displayed. Discard
-        // it without displaying.
-        g_Instance->m_VideoDecoder->RecyclePicture(picture);
+    // Free a picture if there's one the renderer hasn't consumed yet
+    if (m_HasNextPicture) {
+        m_VideoDecoder->RecyclePicture(m_NextPicture);
     }
     
+    // Put the latest picture in the slot for rendering next
+    m_NextPicture = picture;
+    m_HasNextPicture = true;
+    
+    // Queue another call to get another picture
     g_Instance->m_VideoDecoder->GetPicture(
         g_Instance->m_CallbackFactory.NewCallbackWithOutput(&MoonlightInstance::PictureReady));
     
-    if (!m_IsPainting && !m_PendingPictureQueue.empty()) {
+    // Start painting if we aren't now
+    if (!m_IsPainting) {
         PaintPicture();
     }
 }

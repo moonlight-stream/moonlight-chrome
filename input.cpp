@@ -27,11 +27,6 @@ static int ConvertPPButtonToLiButton(PP_InputEvent_MouseButton ppButton) {
 
 void MoonlightInstance::DidLockMouse(int32_t result) {
     m_MouseLocked = (result == PP_OK);
-    if (m_MouseLocked) {
-        // Request an IDR frame to dump the frame queue that may have
-        // built up from the GL pipeline being stalled.
-        m_RequestIdrFrame = true;
-    }
 }
 
 void MoonlightInstance::MouseLockLost() {
