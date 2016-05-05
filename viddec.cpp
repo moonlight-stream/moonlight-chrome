@@ -412,5 +412,5 @@ DECODER_RENDERER_CALLBACKS MoonlightInstance::s_DrCallbacks = {
     MoonlightInstance::VidDecSetup,
     MoonlightInstance::VidDecCleanup,
     MoonlightInstance::VidDecSubmitDecodeUnit,
-    CAPABILITY_SLICES_PER_FRAME(4)
+    CAPABILITY_SLICES_PER_FRAME(4) | CAPABILITY_DIRECT_SUBMIT
 };
