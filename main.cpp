@@ -38,8 +38,7 @@ void MoonlightInstance::OnConnectionStarted(uint32_t unused) {
     PostMessage(response);
     
     // Start receiving input events
-    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE);
-    RequestFilteringInputEvents(PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
+    RequestInputEvents(PP_INPUTEVENT_CLASS_KEYBOARD | PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL);
 }
 
 void MoonlightInstance::OnConnectionStopped(uint32_t error) {
