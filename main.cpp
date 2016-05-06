@@ -38,7 +38,12 @@ void MoonlightInstance::OnConnectionStarted(uint32_t unused) {
     PostMessage(response);
     
     // Start receiving input events
-    RequestInputEvents(PP_INPUTEVENT_CLASS_KEYBOARD | PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL);
+    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL);
+    
+    // Filtering is suboptimal but it ensures that we can pass keyboard events
+    // to the browser when mouse lock is disabled. This is neccessary for Esc
+    // to kick the app out of full-screen.
+    RequestFilteringInputEvents(PP_INPUTEVENT_CLASS_KEYBOARD);
 }
 
 void MoonlightInstance::OnConnectionStopped(uint32_t error) {
