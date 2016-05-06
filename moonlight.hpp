@@ -46,7 +46,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             m_OpusDecoder(NULL),
             m_CallbackFactory(this),
             m_MouseLocked(false),
-            m_KeyModifiers(0),
             m_WaitingForAllModifiersUp(false),
             m_AccumulatedTicks(0),
             openHttpThread(this) {
@@ -74,7 +73,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void HandleOpenURL(int32_t callbackId, pp::VarArray args);
         void PairCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args);
     
-        void UpdateModifiers(PP_InputEvent_Type eventType, short keyCode);
         bool HandleInputEvent(const pp::InputEvent& event);
         
         void PollGamepads();
@@ -150,7 +148,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         const PPB_Gamepad* m_GamepadApi;
         pp::CompletionCallbackFactory<MoonlightInstance> m_CallbackFactory;
         bool m_MouseLocked;
-        char m_KeyModifiers;
         bool m_WaitingForAllModifiersUp;
         float m_AccumulatedTicks;
     
