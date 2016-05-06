@@ -71,8 +71,8 @@ main {
 }
 #listener {
 	overflow: hidden;
-	margin-top: 20px;
-	border: 1px solid;
+	margin-top: 0px;
+	height: 0px;
 }
 .fullscreen {
 	height: 100vh !important;
