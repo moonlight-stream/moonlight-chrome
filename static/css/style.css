@@ -7,7 +7,7 @@
 .mdl-dialog {
   border: none;
   box-shadow: 0 9px 46px 8px rgba(0, 0, 0, 0.14), 0 11px 15px -7px rgba(0, 0, 0, 0.12), 0 24px 38px 3px rgba(0, 0, 0, 0.2);
-  width: 280px; 
+  width: 400px; 
 }
 .mdl-dialog__title {
     padding: 24px 24px 0;
@@ -23,7 +23,7 @@
     z-index: 1;
     position: fixed;
     left: 50%;
-    bottom: 20px;
+    bottom: 50%;
     transform: translate(-50%, -50%);
     margin: 0 auto;
 }

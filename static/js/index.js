@@ -37,7 +37,7 @@ function snackbarLog(givenMessage) {
     console.log(givenMessage);
     var data = {
       message: givenMessage,
-      timeout: 5000
+      timeout: 2000
     };
     document.querySelector('#snackbar').MaterialSnackbar.showSnackbar(data);
 }
@@ -117,8 +117,6 @@ function pairTo(host) {
         return true;
     }
 
-    $('#pairButton').html('Pairing...');
-    snackbarLog('Attempting pair to: ' + host);
     var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
     $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
@@ -128,18 +126,13 @@ function pairTo(host) {
     api.pair(randomNumber).then(function (paired) {
         if (!paired) {
             if (api.currentGame != 0) {
-                snackbarLog(host + ' is already in app. Cannot pair!');
-                $('#pairButton').html('Pairing Failed');
                 $('#pairingDialogText').html('Error: ' + host + ' is in app.  Cannot pair until the app is stopped.');
             } else {
-                snackbarLog('Pairing failed');
-                $('#pairButton').html('Pairing Failed');
                 $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
             }
             return false;
         }
         
-        $('#pairButton').html('Paired');
         snackbarLog('Pairing successful');
         pairingDialog.close();
         
@@ -276,11 +269,10 @@ function startSelectedGame() {
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
             api.getAppById(api.currentGame).then(function (currentApp) {
-                snackbarLog('Error: ' + host + ' is already in app: ' + currentApp.title);
-
                 var replaceAppDialog = document.querySelector('#replaceAppDialog');
                 document.getElementById('replaceAppDialogText').innerHTML = 
-                    'You wanted to start a new game. ' + currentApp.title + ' is already running. Would you like to stop ' + currentApp.title + ', then start the new game?';
+                    currentApp.title + ' is already running. Would you like to quit ' +
+                    currentApp.title + ' to start ' + $("#selectGame option:selected").text() + '?';
                 replaceAppDialog.showModal();
                 return;
             }, function (failedCurrentApp) {
@@ -291,8 +283,6 @@ function startSelectedGame() {
             return;
         }
 
-        snackbarLog('Starting app: ' + $('#selectGame option:selected').text());
-
         var frameRate = $("#selectFramerate").val();
         var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
         var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
@@ -302,6 +292,8 @@ function startSelectedGame() {
 
         var rikey = '00000000000000000000000000000000';
         var rikeyid = 0;
+
+        playGameMode();
 
         if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
             return api.resumeApp(rikey, rikeyid).then(function (ret) {
@@ -326,8 +318,6 @@ function startSelectedGame() {
                 return;
             });
     });
-    console.log('finished startSelectedGame.');
-    playGameMode();
 }
 
 function cancelReplaceApp() {
