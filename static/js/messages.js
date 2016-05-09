@@ -25,6 +25,8 @@ function handleMessage(msg) {
                 showAppsMode();
                 chrome.app.window.current().restore();
             });
+        } else if(msg.data === 'Connection Established') {
+            $('#loadingSpinner').css('display', 'none');
         }
     }
 }

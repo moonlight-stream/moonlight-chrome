@@ -240,7 +240,7 @@ function showApps() {
 function showAppsMode() {
     console.log("entering show apps mode.");
     $(".mdl-layout__header").show();
-    $("#main-content").children().not("#listener").show();
+    $("#main-content").children().not("#listener, #loadingSpinner").show();
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
@@ -345,13 +345,15 @@ function continueReplaceApp() {
 function playGameMode() {
     console.log("entering play game mode");
     $(".mdl-layout__header").hide();
-    $("#main-content").children().not("#listener").hide();
+    $("#main-content").children().not("#listener, #loadingSpinner").hide();
     $("#main-content").addClass("fullscreen");
     $("#listener").addClass("fullscreen");
     fullscreenNaclModule();
     $("body").css('backgroundColor', 'black');
 
     chrome.app.window.current().fullscreen();
+    $('#loadingSpinner').css('display', 'inline-block');
+
 }
 
 // Maximize the size of the nacl module by scaling and resizing appropriately
