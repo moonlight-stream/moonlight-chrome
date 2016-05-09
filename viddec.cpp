@@ -17,6 +17,7 @@ static unsigned char s_LastSps[256];
 static unsigned char s_LastPps[256];
 static unsigned int s_LastSpsLength;
 static unsigned int s_LastPpsLength;
+static uint64_t s_LastPaintFinishedTime;
 
 #define assertNoGLError() assert(!g_Instance->m_GlesApi->GetError(g_Instance->m_Graphics3D->pp_resource()))
 
@@ -266,7 +267,9 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     }
     
     // Start the decoding
-    g_Instance->m_VideoDecoder->Decode(0, offset, s_DecodeBuffer, pp::BlockUntilComplete());
+    uint32_t packedMillis = ProfilerGetPackedMillis();
+    g_Instance->m_VideoDecoder->Decode(packedMillis, offset, s_DecodeBuffer, pp::BlockUntilComplete());
+    ProfilerPrintPackedDeltaFromNow("Decode (blocking)", packedMillis);
     
     return DR_OK;
 }
@@ -375,8 +378,13 @@ void MoonlightInstance::PaintPicture(void) {
 void MoonlightInstance::PaintFinished(int32_t result) {
     m_IsPainting = false;
     
+    ProfilerPrintDeltaFromNow("Paint -> Paint", s_LastPaintFinishedTime);
+    s_LastPaintFinishedTime = ProfilerGetMillis();
+    
     // Recycle the picture now that it's been painted
+    uint64_t millis = ProfilerGetMillis();
     m_VideoDecoder->RecyclePicture(m_CurrentPicture);
+    ProfilerPrintDeltaFromNow("RecyclePicture (PaintFinished)", millis);
     
     // Keep painting if we still have frames
     if (m_HasNextPicture) {
@@ -389,9 +397,14 @@ void MoonlightInstance::PictureReady(int32_t result, PP_VideoPicture picture) {
         return;
     }
     
+    ProfilerPrintPackedDeltaFromNow("Decode -> PictureReady", picture.decode_id);
+    
     // Free a picture if there's one the renderer hasn't consumed yet
     if (m_HasNextPicture) {
+        ProfilerPrintWarning("Decoder is outpacing renderer!");
+        uint64_t millis = ProfilerGetMillis();
         m_VideoDecoder->RecyclePicture(m_NextPicture);
+        ProfilerPrintDeltaFromNow("RecyclePicture (PictureReady)", millis);
     }
     
     // Put the latest picture in the slot for rendering next
