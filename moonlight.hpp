@@ -28,6 +28,9 @@
 
 #include <opus_multistream.h>
 
+// Uncomment this line to enable the profiling infrastructure
+//#define ENABLE_PROFILING 1
+
 struct Shader {
   Shader() : program(0), texcoord_scale_location(0) {}
   ~Shader() {}
@@ -83,7 +86,13 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void OnConnectionStopped(uint32_t unused);
         void OnConnectionStarted(uint32_t error);
         void StopConnection();
-        
+
+        static uint32_t ProfilerGetPackedMillis();
+        static uint64_t ProfilerGetMillis();
+        static uint64_t ProfilerUnpackTime(uint32_t packedTime);
+        static void ProfilerPrintPackedDelta(const char* message, uint32_t packedTimeA, uint32_t packedTimeB);
+        static void ProfilerPrintDelta(const char* message, uint64_t timeA, uint64_t timeB);
+
         static void* ConnectionThreadFunc(void* context);
         static void* GamepadThreadFunc(void* context);
         static void* StopThreadFunc(void* context);
