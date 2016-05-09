@@ -1,8 +1,8 @@
 .mdl-layout__header-row {
-	color: #fff;
+    color: #fff;
 }
 .mdl-button {
-	color: #fff !important;
+    color: #fff !important;
 }
 .mdl-dialog {
   border: none;
@@ -18,12 +18,8 @@
     padding: 20px 24px 24px 24px;
     color: rgba(0,0,0, 0.54); 
 }
-.mdl-snackbar {
-	max-width:50%;
-	left: 25%;
-}
 main {
-	padding: 50px 100px;
+    padding: 50px 100px;
 }
 #bitrateField {
   text-align: center;
@@ -31,54 +27,54 @@ main {
   padding-top: 15px;
 }
 #hostSettings {
-	padding: 5px 10px;
-	border: 1px dashed;
-	margin: 10px 0;
+    padding: 5px 10px;
+    border: 1px dashed;
+    margin: 10px 0;
 }
 #hostSettings p {
-	margin: 0;
+    margin: 0;
 }
 #hostSettings div {
-	display: inline-block;
+    display: inline-block;
 }
 #hostSettings .mdl-textfield {
-	width: 200px;
-	margin-right: 20px;
-	margin-bottom: 0px;
+    width: 200px;
+    margin-right: 20px;
+    margin-bottom: 0px;
 }
 #hostSettings #GFEHostIPField {
-	padding-bottom: 0px;
+    padding-bottom: 0px;
 }
 #hostSettings #selectHost {
-	padding: 0px;
-	line-height: 20px;
-	height: 20px;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	margin-right: 20px;
-	background: none;
+    padding: 0px;
+    line-height: 20px;
+    height: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-right: 20px;
+    background: none;
 }
 #hostSettings .button-holder {
-	padding: 0px;
-	margin-top: 10px;
-	margin-bottom: 10px;
+    padding: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 #pairButton {
-	margin: 3px;
+    margin: 3px;
 }
 #showAppsButton {
-	margin: 3px;
+    margin: 3px;
 }
 #listener {
-	overflow: hidden;
-	margin-top: 20px;
-	border: 1px solid;
+    overflow: hidden;
+    margin-top: 20px;
+    border: 1px solid;
 }
 .fullscreen {
-	height: 100vh !important;
-	overflow: none !important;
-	margin: auto !important;
-	padding: 0 !important;
-	width 100%;
-	border: none !important;
+    height: 100vh !important;
+    overflow: none !important;
+    margin: auto !important;
+    padding: 0 !important;
+    width 100%;
+    border: none !important;
 }
