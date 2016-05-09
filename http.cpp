@@ -86,8 +86,6 @@ void MoonlightInstance::NvHTTPInit(int32_t callbackId, pp::VarArray args)
     LoadCert(_cert.c_str(), _key.c_str());
     g_UniqueId = strdup(_uniqueId.c_str());
     
-    http_init();
-    
     pp::VarDictionary ret;
     ret.Set("callbackId", pp::Var(callbackId));
     ret.Set("type", pp::Var("resolve"));

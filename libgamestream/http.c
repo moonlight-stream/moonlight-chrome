@@ -27,8 +27,6 @@
 #include <openssl/x509v3.h>
 #include <openssl/pem.h>
 
-static CURL *curl;
-
 extern X509 *g_Cert;
 extern EVP_PKEY *g_PrivateKey;
 
@@ -61,7 +59,10 @@ static CURLcode sslctx_function(CURL * curl, void * sslctx, void * parm)
     return CURLE_OK;
 }
 
-int http_init() {
+int http_request(char* url, PHTTP_DATA data) {
+  int ret;
+  CURL *curl;
+
   curl = curl_easy_init();
   if (!curl)
     return GS_FAILED;
@@ -75,19 +76,16 @@ int http_init() {
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _write_curl);
   curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
   curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, *sslctx_function);
-
-  return GS_OK;
-}
-
-int http_request(char* url, PHTTP_DATA data) {
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
   curl_easy_setopt(curl, CURLOPT_URL, url);
 
   if (data->size > 0) {
     free(data->memory);
     data->memory = malloc(1);
-    if(data->memory == NULL)
-      return GS_OUT_OF_MEMORY;
+    if(data->memory == NULL) {
+      ret = GS_OUT_OF_MEMORY;
+      goto cleanup;
+    }
 
     data->size = 0;
   }
@@ -95,16 +93,16 @@ int http_request(char* url, PHTTP_DATA data) {
   CURLcode res = curl_easy_perform(curl);
   
   if(res != CURLE_OK) {
-    return GS_FAILED;
+    ret = GS_FAILED;
   } else if (data->memory == NULL) {
-    return GS_OUT_OF_MEMORY;
+    ret = GS_OUT_OF_MEMORY;
+  } else {
+    ret = GS_OK;
   }
   
-  return GS_OK;
-}
-
-void http_cleanup() {
+cleanup:
   curl_easy_cleanup(curl);
+  return ret;
 }
 
 PHTTP_DATA http_create_data() {
