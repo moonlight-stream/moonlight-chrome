@@ -143,6 +143,11 @@ void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int 
         g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::DispatchGetPicture));
 }
 
+void MoonlightInstance::DispatchClearDisplay(uint32_t unused) {
+    glClear(GL_COLOR_BUFFER_BIT);
+    g_Instance->m_Graphics3D.SwapBuffers(pp::BlockUntilComplete());
+}
+
 void MoonlightInstance::DispatchGetPicture(uint32_t unused) {
     // Queue the initial GetPicture callback on the main thread
     g_Instance->m_VideoDecoder->GetPicture(
@@ -155,6 +160,10 @@ void MoonlightInstance::VidDecCleanup(void) {
     // Flush and delete the decoder
     g_Instance->m_VideoDecoder->Flush(pp::BlockUntilComplete());
     delete g_Instance->m_VideoDecoder;
+    
+    // Clear the current contents of the display
+    pp::Module::Get()->core()->CallOnMainThread(0,
+        g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::DispatchClearDisplay));
     
     if (g_Instance->m_Texture2DShader.program) {
         glDeleteProgram(g_Instance->m_Texture2DShader.program);
