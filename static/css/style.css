@@ -18,6 +18,15 @@
     padding: 20px 24px 24px 24px;
     color: rgba(0,0,0, 0.54); 
 }
+#loadingSpinner {
+    display: none;
+    z-index: 1;
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translate(-50%, -50%);
+    margin: 0 auto;
+}
 main {
     padding: 50px 100px;
 }
