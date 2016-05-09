@@ -290,15 +290,16 @@ function startSelectedGame() {
         var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
         console.log('startRequest:' + host + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
-        var rikey = '00000000000000000000000000000000';
-        var rikeyid = 0;
+        var rikey = generateRemoteInputKey();
+        var rikeyid = generateRemoteInputKeyId();
 
         $('#loadingMessage').text('Starting ' + $("#selectGame option:selected").text() + '...');
         playGameMode();
 
         if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
             return api.resumeApp(rikey, rikeyid).then(function (ret) {
-                sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+                sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,
+                    bitrate.toString(), api.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
             }, function (failedResumeApp) {
                 console.log('ERROR: failed to resume the app!');
                 console.log('Returned error was: ' + failedResumeApp);
@@ -312,7 +313,8 @@ function startSelectedGame() {
             0, // Play audio locally too
             0x030002 // Surround channel mask << 16 | Surround channel count
             ).then(function (ret) {
-                sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate, bitrate.toString(), api.serverMajorVersion.toString()]);
+                sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,
+                    bitrate.toString(), api.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
             }, function (failedLaunchApp) {
                 console.log('ERROR: failed to launch app with appID: ' + appID);
                 console.log('Returned error was: ' + failedLaunchApp);

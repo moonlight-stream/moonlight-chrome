@@ -12,6 +12,17 @@ function uniqueid() {
 	});
 }
 
+function generateRemoteInputKey() {
+    return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[x]/g, function(c) {
+        var r = Math.random()*16|0;
+        return r.toString(16);
+    });
+}
+
+function generateRemoteInputKeyId() {
+    return ((Math.random()-0.5) * 0x7FFFFFFF)|0;
+}
+
 String.prototype.toHex = function() {
 	var hex = '';
 	for(var i = 0; i < this.length; i++) {

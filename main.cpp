@@ -9,6 +9,8 @@
 
 #include "ppapi/cpp/input_event.h"
 
+#include <netinet/in.h>
+
 // Requests the NaCl module to connection to the server specified after the :
 #define MSG_START_REQUEST "startRequest"
 // Requests the NaCl module stop streaming
@@ -155,6 +157,12 @@ void MoonlightInstance::HandleMessage(const pp::Var& var_message) {
     }
 }
 
+static void hexStringToBytes(const char* str, char* output) {
+    for (int i = 0; i < strlen(str); i += 2) {
+        sscanf(&str[i], "%2hhx", &output[i / 2]);
+    }
+}
+
 void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args) {
     std::string host = args.Get(0).AsString();
     std::string width = args.Get(1).AsString();
@@ -162,6 +170,8 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     std::string fps = args.Get(3).AsString();
     std::string bitrate = args.Get(4).AsString();
     std::string serverMajorVersion = args.Get(5).AsString();
+    std::string rikey = args.Get(6).AsString();
+    std::string rikeyid = args.Get(7).AsString();
     
     pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
@@ -175,14 +185,20 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     PostMessage(response);
     response = ("Setting server major version to: " + serverMajorVersion);
     PostMessage(response);
+    response = ("Setting rikey to: " + rikey);
+    PostMessage(response);
+    response = ("Setting rikeyid to: " + rikeyid);
+    PostMessage(response);
     
     // Populate the stream configuration
+    LiInitializeStreamConfiguration(&m_StreamConfig);
     m_StreamConfig.width = stoi(width);
     m_StreamConfig.height = stoi(height);
     m_StreamConfig.fps = stoi(fps);
     m_StreamConfig.bitrate = stoi(bitrate); // kilobits per second
     m_StreamConfig.streamingRemotely = 0;
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
+    m_ServerMajorVersion = stoi(serverMajorVersion);
     
     // The overhead of receiving a packet is much higher in NaCl because we must
     // pass through various layers of abstraction on each recv() call. We're using a
@@ -190,7 +206,10 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     // receiving packets. The possible cost is greater network losses.
     m_StreamConfig.packetSize = 1392;
     
-    m_ServerMajorVersion = stoi(serverMajorVersion);
+    // Load the rikey and rikeyid into the stream configuration
+    hexStringToBytes(rikey.c_str(), m_StreamConfig.remoteInputAesKey);
+    int rikeyiv = htonl(stoi(rikeyid));
+    memcpy(m_StreamConfig.remoteInputAesIv, &rikeyiv, sizeof(rikeyiv));
     
     // Initialize the rendering surface before starting the connection
     InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height);
