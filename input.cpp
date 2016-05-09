@@ -8,10 +8,6 @@
 
 #define KEY_PREFIX 0x80
 
-#define KEY_CODE_ALT 18
-#define KEY_CODE_CTRL 17
-#define KEY_CODE_SHIFT 16
-
 static int ConvertPPButtonToLiButton(PP_InputEvent_MouseButton ppButton) {
     switch (ppButton) {
         case PP_INPUTEVENT_MOUSEBUTTON_LEFT:
@@ -31,38 +27,23 @@ void MoonlightInstance::DidLockMouse(int32_t result) {
 
 void MoonlightInstance::MouseLockLost() {
     m_MouseLocked = false;
-    m_KeyModifiers = 0;
 }
 
-void MoonlightInstance::UpdateModifiers(PP_InputEvent_Type eventType, short keyCode) {
-    switch (keyCode) {
-        case KEY_CODE_ALT:
-            if (eventType == PP_INPUTEVENT_TYPE_KEYDOWN) {
-                m_KeyModifiers |= MODIFIER_ALT;
-            }
-            else {
-                m_KeyModifiers &= ~MODIFIER_ALT;
-            }
-            break;
-            
-        case KEY_CODE_CTRL:
-            if (eventType == PP_INPUTEVENT_TYPE_KEYDOWN) {
-                m_KeyModifiers |= MODIFIER_CTRL;
-            }
-            else {
-                m_KeyModifiers &= ~MODIFIER_CTRL;
-            }
-            break;
-            
-        case KEY_CODE_SHIFT:
-            if (eventType == PP_INPUTEVENT_TYPE_KEYDOWN) {
-                m_KeyModifiers |= MODIFIER_SHIFT;
-            }
-            else {
-                m_KeyModifiers &= ~MODIFIER_SHIFT;
-            }
-            break;
+static char GetModifierFlags(const pp::InputEvent& event) {
+    uint32_t modifiers = event.GetModifiers();
+    char flags = 0;
+    
+    if (modifiers & PP_INPUTEVENT_MODIFIER_SHIFTKEY) {
+        flags |= MODIFIER_SHIFT;
     }
+    if (modifiers & PP_INPUTEVENT_MODIFIER_CONTROLKEY) {
+        flags |= MODIFIER_CTRL;
+    }
+    if (modifiers & PP_INPUTEVENT_MODIFIER_ALTKEY) {
+        flags |= MODIFIER_ALT;
+    }
+    
+    return flags;
 }
 
 bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
@@ -135,11 +116,9 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             }
             
             pp::KeyboardInputEvent keyboardEvent(event);
+            char modifiers = GetModifierFlags(event);
             
-            // Update modifier state before sending the key event
-            UpdateModifiers(event.GetType(), keyboardEvent.GetKeyCode());
-            
-            if (m_KeyModifiers == (MODIFIER_ALT | MODIFIER_CTRL | MODIFIER_SHIFT)) {
+            if (modifiers == (MODIFIER_ALT | MODIFIER_CTRL | MODIFIER_SHIFT)) {
                 if (keyboardEvent.GetKeyCode() == 0x51) { // Q key
                     // Terminate the connection
                     StopConnection();
@@ -152,7 +131,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             }
             
             LiSendKeyboardEvent(KEY_PREFIX << 8 | keyboardEvent.GetKeyCode(),
-                                KEY_ACTION_DOWN, m_KeyModifiers);
+                                KEY_ACTION_DOWN, modifiers);
             return true;
         }
         
@@ -162,19 +141,17 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             }
             
             pp::KeyboardInputEvent keyboardEvent(event);
-            
-            // Update modifier state before sending the key event
-            UpdateModifiers(event.GetType(), keyboardEvent.GetKeyCode());
+            char modifiers = GetModifierFlags(event);
              
             // Check if all modifiers are up now
-            if (m_WaitingForAllModifiersUp && m_KeyModifiers == 0) {
+            if (m_WaitingForAllModifiersUp && modifiers == 0) {
                 UnlockMouse();
                 m_MouseLocked = false;
                 m_WaitingForAllModifiersUp = false;
             }
             
             LiSendKeyboardEvent(KEY_PREFIX << 8 | keyboardEvent.GetKeyCode(),
-                                KEY_ACTION_UP, m_KeyModifiers);
+                                KEY_ACTION_UP, modifiers);
             return true;
         }
         
