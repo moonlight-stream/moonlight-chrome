@@ -26,6 +26,8 @@
     bottom: 50%;
     transform: translate(-50%, -50%);
     margin: 0 auto;
+    color: white;
+    text-align: center;
 }
 main {
     padding: 50px 100px;

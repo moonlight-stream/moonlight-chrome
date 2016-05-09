@@ -28,6 +28,8 @@ function handleMessage(msg) {
             });
         } else if(msg.data === 'Connection Established') {
             $('#loadingSpinner').css('display', 'none');
+        } else if(msg.data.indexOf('ProgressMsg: ') === 0) {
+            $('#loadingMessage').text(msg.data.replace('ProgressMsg: ', ''));
         }
     }
 }

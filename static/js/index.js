@@ -293,6 +293,7 @@ function startSelectedGame() {
         var rikey = '00000000000000000000000000000000';
         var rikeyid = 0;
 
+        $('#loadingMessage').text('Starting ' + $("#selectGame option:selected").text() + '...');
         playGameMode();
 
         if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.

@@ -6,7 +6,7 @@
 #include "ppapi/cpp/mouse_lock.h"
 
 void MoonlightInstance::ClStageStarting(int stage) {
-    pp::Var response(std::string("Starting ") + std::string(LiGetStageName(stage)) + std::string("..."));
+    pp::Var response(std::string("ProgressMsg: Starting ") + std::string(LiGetStageName(stage)) + std::string("..."));
     g_Instance->PostMessage(response);
 }
 
