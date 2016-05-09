@@ -287,7 +287,7 @@ function startSelectedGame() {
         var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
         var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
         // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
-        var bitrate = parseInt($("#bitrateSlider").val()) * 1024;
+        var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
         console.log('startRequest:' + host + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
         var rikey = '00000000000000000000000000000000';
