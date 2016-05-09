@@ -31,6 +31,10 @@
 // Uncomment this line to enable the profiling infrastructure
 //#define ENABLE_PROFILING 1
 
+// Use this define to choose the time threshold in milliseconds above
+// which a profiling message is printed
+#define PROFILING_MESSAGE_THRESHOLD 1
+
 struct Shader {
   Shader() : program(0), texcoord_scale_location(0) {}
   ~Shader() {}
@@ -92,6 +96,9 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static uint64_t ProfilerUnpackTime(uint32_t packedTime);
         static void ProfilerPrintPackedDelta(const char* message, uint32_t packedTimeA, uint32_t packedTimeB);
         static void ProfilerPrintDelta(const char* message, uint64_t timeA, uint64_t timeB);
+        static void ProfilerPrintPackedDeltaFromNow(const char* message, uint32_t packedTime);
+        static void ProfilerPrintDeltaFromNow(const char* message, uint64_t time);
+        static void ProfilerPrintWarning(const char* message);
 
         static void* ConnectionThreadFunc(void* context);
         static void* GamepadThreadFunc(void* context);

@@ -51,19 +51,38 @@ uint64_t MoonlightInstance::ProfilerUnpackTime(uint32_t packedTime) {
 #endif
 }
 
+static void printDeltaAboveThreshold(const char* message, uint32_t delta) {
+#if defined(ENABLE_PROFILING)
+    if (PROFILING_MESSAGE_THRESHOLD < 0 || delta > PROFILING_MESSAGE_THRESHOLD) {
+        printf("%s: %d ms\n", message, delta);
+    }
+#endif
+}
+
+void MoonlightInstance::ProfilerPrintPackedDeltaFromNow(const char* message, uint32_t packedTime) {
+    ProfilerPrintPackedDelta(message, packedTime, ProfilerGetPackedMillis());
+}
+
 void MoonlightInstance::ProfilerPrintPackedDelta(const char* message,
                                                  uint32_t packedTimeA,
                                                  uint32_t packedTimeB) {
+    printDeltaAboveThreshold(message,
+                             (uint32_t)(ProfilerUnpackTime(packedTimeB) -
+                                        ProfilerUnpackTime(packedTimeA)));
+}
+
+void MoonlightInstance::ProfilerPrintWarning(const char* message) {
 #if defined(ENABLE_PROFILING)
-    printf("%s: %d ms\n", message,
-           (uint32_t)(ProfilerUnpackTime(packedTimeB) - ProfilerUnpackTime(packedTimeA)));
+    printf("PROFILING WARNING: %s\n", message);
 #endif
+}
+
+void MoonlightInstance::ProfilerPrintDeltaFromNow(const char* message, uint64_t time) {
+    ProfilerPrintDelta(message, time, ProfilerGetMillis());
 }
 
 void MoonlightInstance::ProfilerPrintDelta(const char* message,
                                            uint64_t timeA,
                                            uint64_t timeB) {
-#if defined(ENABLE_PROFILING)
-    printf("%s: %d ms\n", message, (uint32_t)(timeA - timeB));
-#endif
+    printDeltaAboveThreshold(message, (uint32_t)(timeB - timeA));
 }
