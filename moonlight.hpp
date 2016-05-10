@@ -116,7 +116,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         
         void PaintFinished(int32_t result);
         void DispatchGetPicture(uint32_t unused);
-        void DispatchClearDisplay(uint32_t unused);
         void PictureReady(int32_t result, PP_VideoPicture picture);
         void PaintPicture(void);
         void InitializeRenderingSurface(int width, int height);
