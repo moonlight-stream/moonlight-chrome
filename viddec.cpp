@@ -19,7 +19,7 @@ static unsigned int s_LastSpsLength;
 static unsigned int s_LastPpsLength;
 static uint64_t s_LastPaintFinishedTime;
 
-#define assertNoGLError() assert(!g_Instance->m_GlesApi->GetError(g_Instance->m_Graphics3D->pp_resource()))
+#define assertNoGLError() assert(!glGetError())
 
 static const char k_VertexShader[] =
     "varying vec2 v_texCoord;            \n"
