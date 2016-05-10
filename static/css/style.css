@@ -29,6 +29,17 @@
     color: white;
     text-align: center;
 }
+#snackButton {
+    width: 0px;
+    height: 0px;
+    display: none;
+}
+.mdl-snackbar__text {
+    padding: 14px 30px 14px 30px;
+}
+.mdl-snackbar {
+    min-width:0px;
+}
 main {
     padding: 50px 100px;
 }
