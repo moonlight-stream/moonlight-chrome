@@ -156,6 +156,7 @@ void MoonlightInstance::VidDecCleanup(void) {
     g_Instance->m_VideoDecoder->Flush(pp::BlockUntilComplete());
     delete g_Instance->m_VideoDecoder;
     
+    // Delete shader programs
     if (g_Instance->m_Texture2DShader.program) {
         glDeleteProgram(g_Instance->m_Texture2DShader.program);
         g_Instance->m_Texture2DShader.program = 0;
@@ -168,6 +169,11 @@ void MoonlightInstance::VidDecCleanup(void) {
         glDeleteProgram(g_Instance->m_ExternalOesShader.program);
         g_Instance->m_ExternalOesShader.program = 0;
     }
+    
+    // Unbind graphics device by binding a default constructed object
+    glSetCurrentContextPPAPI(0);
+    g_Instance->m_Graphics3D = pp::Graphics3D();
+    g_Instance->BindGraphics(g_Instance->m_Graphics3D);
 }
 
 static void ProcessSpsNalu(unsigned char* data, int length) {
