@@ -18,6 +18,16 @@
     padding: 20px 24px 24px 24px;
     color: rgba(0,0,0, 0.54); 
 }
+#naclSpinner {
+    display: none;
+    z-index: 2;
+    position: fixed;
+    left: 50%;
+    bottom: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0 auto;
+    text-align: center;
+}
 #loadingSpinner {
     display: none;
     z-index: 1;

@@ -6,6 +6,8 @@ var api;
 
 // Called by the common.js module.
 function attachListeners() {
+    changeUiModeForNaClLoad();
+
     $('#selectResolution').on('change', saveResolution);
     $('#selectFramerate').on('change', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
@@ -31,6 +33,19 @@ function fullscreenChromeWindow() {
     // instead of "maximized", which would immediately go to fullscreen
     chrome.app.window.current().restore();
     chrome.app.window.current().fullscreen();
+}
+
+function changeUiModeForNaClLoad() {
+    $("#main-content").children().not("#listener, #naclSpinner").hide();
+
+    $('#naclSpinnerMessage').text('Loading Moonlight plugin...');
+    $('#naclSpinner').css('display', 'inline-block');
+}
+
+function restoreUiAfterNaClLoad() {
+    $("#main-content").children().not("#listener, #naclSpinner, #gameSelection").show();
+    $('#naclSpinner').hide();
+    $('#loadingSpinner').css('display', 'none');
 }
 
 function snackbarLog(givenMessage) {
@@ -63,15 +78,17 @@ function moduleDidLoad() {
             console.log('ERROR: failed to generate new cert!');
             console.log('Returned error was: ' + failedCert);            
         }).then(function (ret) {
-            sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]);
+            sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+            restoreUiAfterNaClLoad();
         }, function (failedInit) {
             console.log('ERROR: failed httpInit!');
             console.log('Returned error was: ' + failedInit);
         });
+        });
     }
     else {
         sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-            snackbarLog('Initialization complete.');
+            restoreUiAfterNaClLoad();
         }, function (failedInit) {
             console.log('ERROR: failed httpInit!');
             console.log('Returned error was: ' + failedInit);
@@ -89,16 +106,6 @@ function updateHost() {
     if(api && api.address != host) {
         api = new NvHTTP(host, myUniqueid);
     }
-}
-
-// we want the user to progress through the streaming process
-// but to save from the PITA of inter-chrome-app-page JS message passing,
-// I'm opting to do it in a single page, and keep the data around.
-function hideAllWorkflowDivs() {
-    $('#streamSettings').css('display', 'inline-block');
-    $('#hostSettings').css('display', 'inline-block');
-    $('#gameSelection').css('display', 'none');
-    // do NOT hide the nacl module. you can't interact with it then
 }
 
 // pair to the given hostname or IP.  Returns whether pairing was successful.
@@ -233,7 +240,7 @@ function showApps() {
 function showAppsMode() {
     console.log("entering show apps mode.");
     $(".mdl-layout__header").show();
-    $("#main-content").children().not("#listener, #loadingSpinner").show();
+    $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');

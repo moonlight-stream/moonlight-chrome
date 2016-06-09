@@ -16,10 +16,6 @@
                 <span class="mdl-layout-title">Moonlight</span>
                 <!-- Add spacer, to align navigation to the right -->
                 <div class="mdl-layout-spacer"></div>
-                <!-- Navigation. We hide it in small screens. -->
-                <ul class='mdl-list'>
-                    <li>Chrome App Status: <code id="statusField">NO-STATUS</code></li>
-                </ul>
             </div>
         </header>
         <main id="main-content" class="mdl-layout__content">
@@ -69,6 +65,10 @@
 
             <div id="loadingSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate">
                 <h5 id="loadingMessage"></h5>
+            </div>
+
+            <div id="naclSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate">
+                <h5 id="naclSpinnerMessage"></h5>
             </div>
         </main>
     </div>
