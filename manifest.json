@@ -31,6 +31,11 @@
             "udp-bind:*:*", 
             "udp-send-to:*:*"
         ] }
-    ]
+    ],
+    "requirements": {
+        "3D": {
+            "features": ["webgl"]
+        }
+    }
 }
 
