@@ -32,6 +32,8 @@ function handleMessage(msg) {
             $('#loadingMessage').text(msg.data.replace('ProgressMsg: ', ''));
         } else if(msg.data.indexOf('TransientMsg: ') === 0) {
             snackbarLog(msg.data.replace('TransientMsg: ', ''));
+        } else if(msg.data === 'displayVideo') {
+            $("#listener").addClass("fullscreen");
         }
     }
 }

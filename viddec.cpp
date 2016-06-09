@@ -17,6 +17,7 @@ static unsigned char s_LastSps[256];
 static unsigned char s_LastPps[256];
 static unsigned int s_LastSpsLength;
 static unsigned int s_LastPpsLength;
+static bool s_FirstFrameDisplayed;
 static uint64_t s_LastPaintFinishedTime;
 
 #define assertNoGLError() assert(!glGetError())
@@ -132,6 +133,7 @@ void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int 
     s_LastTextureId = 0;
     s_LastSpsLength = 0;
     s_LastPpsLength = 0;
+    s_FirstFrameDisplayed = false;
     
     int32_t err;
 
@@ -407,6 +409,13 @@ void MoonlightInstance::PaintPicture(void) {
 
 void MoonlightInstance::PaintFinished(int32_t result) {
     m_IsPainting = false;
+
+    if (!s_FirstFrameDisplayed) {
+        // Tell the JS code to display the video stream now
+        pp::Var response("displayVideo");
+        g_Instance->PostMessage(response);
+        s_FirstFrameDisplayed = true;
+    }
     
     ProfilerPrintDeltaFromNow("Paint -> Paint", s_LastPaintFinishedTime);
     s_LastPaintFinishedTime = ProfilerGetMillis();

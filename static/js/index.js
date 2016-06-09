@@ -340,7 +340,6 @@ function playGameMode() {
     $(".mdl-layout__header").hide();
     $("#main-content").children().not("#listener, #loadingSpinner").hide();
     $("#main-content").addClass("fullscreen");
-    $("#listener").addClass("fullscreen");
     fullscreenNaclModule();
     $("body").css('backgroundColor', 'black');
 
