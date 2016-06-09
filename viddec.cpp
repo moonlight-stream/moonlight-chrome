@@ -133,11 +133,35 @@ void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int 
     s_LastSpsLength = 0;
     s_LastPpsLength = 0;
     
-    g_Instance->m_VideoDecoder->Initialize(g_Instance->m_Graphics3D,
-                                           PP_VIDEOPROFILE_H264HIGH,
-                                           PP_HARDWAREACCELERATION_ONLY,
-                                           0,
-                                           pp::BlockUntilComplete());
+    int32_t err;
+
+    if (!(drFlags & DR_FLAG_FORCE_SW_DECODE)) {
+        // Try to initialize hardware decoding only
+        err = g_Instance->m_VideoDecoder->Initialize(
+           g_Instance->m_Graphics3D,
+           PP_VIDEOPROFILE_H264HIGH,
+           PP_HARDWAREACCELERATION_ONLY,
+           0,
+           pp::BlockUntilComplete());
+    }
+    else {
+        err = PP_ERROR_NOTSUPPORTED;
+    }
+
+    if (err == PP_ERROR_NOTSUPPORTED) {
+        // Fallback to software decoding
+        err = g_Instance->m_VideoDecoder->Initialize(
+           g_Instance->m_Graphics3D,
+           PP_VIDEOPROFILE_H264HIGH,
+           PP_HARDWAREACCELERATION_NONE,
+           0,
+           pp::BlockUntilComplete());
+
+        if (!(drFlags & DR_FLAG_FORCE_SW_DECODE)) {
+            // Tell the user we had to fall back
+            ClDisplayTransientMessage("Hardware decoding is unavailable. Falling back to CPU decoding");
+        }
+    }
     
     pp::Module::Get()->core()->CallOnMainThread(0,
         g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::DispatchGetPicture));

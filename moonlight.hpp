@@ -35,6 +35,9 @@
 // which a profiling message is printed
 #define PROFILING_MESSAGE_THRESHOLD 1
 
+
+#define DR_FLAG_FORCE_SW_DECODE     0x01
+
 struct Shader {
   Shader() : program(0), texcoord_scale_location(0) {}
   ~Shader() {}
@@ -108,8 +111,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void ClStageFailed(int stage, long errorCode);
         static void ClConnectionStarted(void);
         static void ClConnectionTerminated(long errorCode);
-        static void ClDisplayMessage(char* message);
-        static void ClDisplayTransientMessage(char* message);
+        static void ClDisplayMessage(const char* message);
+        static void ClDisplayTransientMessage(const char* message);
         
         static Shader CreateProgram(const char* vertexShader, const char* fragmentShader);
         static void CreateShader(GLuint program, GLenum type, const char* source, int size);

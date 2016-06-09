@@ -28,13 +28,13 @@ void MoonlightInstance::ClConnectionTerminated(long errorCode) {
         g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::OnConnectionStopped), (uint32_t)errorCode);
 }
 
-void MoonlightInstance::ClDisplayMessage(char* message) {
-    pp::Var response(message);
+void MoonlightInstance::ClDisplayMessage(const char* message) {
+    pp::Var response(std::string("DialogMsg: ") + std::string(message));
     g_Instance->PostMessage(response);
 }
 
-void MoonlightInstance::ClDisplayTransientMessage(char* message) {
-    pp::Var response(message);
+void MoonlightInstance::ClDisplayTransientMessage(const char* message) {
+    pp::Var response(std::string("TransientMsg: ") + std::string(message));
     g_Instance->PostMessage(response);
 }
 

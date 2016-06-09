@@ -30,6 +30,8 @@ function handleMessage(msg) {
             $('#loadingSpinner').css('display', 'none');
         } else if(msg.data.indexOf('ProgressMsg: ') === 0) {
             $('#loadingMessage').text(msg.data.replace('ProgressMsg: ', ''));
+        } else if(msg.data.indexOf('TransientMsg: ') === 0) {
+            snackbarLog(msg.data.replace('TransientMsg: ', ''));
         }
     }
 }
