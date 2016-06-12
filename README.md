@@ -6,27 +6,26 @@ Moonlight for Chrome allows you to stream your full collection of games from you
 
 Moonlight also has mobile versions for [Android](https://github.com/moonlight-stream/moonlight-android) and  [iOS](https://github.com/moonlight-stream/moonlight-ios).
 
-**This client is not yet complete, so you will probably not find much use for it unless you're a developer wishing to tinker with it**
-
 ##Features
 
 * Streams Steam Big Picture and all of your games from your PC to your Chrome browser
 * Keyboard and mouse support
 * Hardware-accelerated video decoding
 * Full support for Xbox controllers and PlayStation controllers, and some other HID gamepads
-
+* Use mDNS to scan for compatible GeForce Experience (GFE) machines on the network
 
 ##Features to come
-* Use mDNS to scan for compatible GeForce Experience (GFE) machines on the network
-* Choose from your list of available games instead of just launching Steam
+* Gamepad mapping
+* Improved UI
+* Better error handling
 
 ##Installation
 * Download [GeForce Experience](http://www.geforce.com/geforce-experience) and install on your GameStream-compatible PC
-* Moonlight Chrome isn't on the Chrome Web Store yet, currently you have to build it yourself.
+* Install the [latest release](https://github.com/moonlight-stream/moonlight-chrome/releases)
 
 ##Requirements
 * Chrome browser on Windows, Mac OS X, Linux, or Chrome OS
-* [GFE compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600+ series desktop or mobile GPU (for the PC from which you're streaming)
+* [GameStream-compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600+ series desktop or mobile GPU (for the PC from which you're streaming)
 * High-end wireless router (802.11n dual-band recommended) or wired network
 
 ##Building
