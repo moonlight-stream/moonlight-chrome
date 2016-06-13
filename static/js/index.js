@@ -162,8 +162,16 @@ function pairTo(host) {
     });
 }
 
-function hostChosen() {
-    updateHost();
+function hostChosen(sourceEvent) {
+
+    if(sourceEvent && sourceEvent.srcElement) {
+        console.log('parsing host from grid element.');
+        host = sourceEvent.srcElement.innerText;
+    } else {
+        console.log('falling back to old host selection');
+        updateHost();
+    }
+
 
     if(!api || api.address != host) {
         api = new NvHTTP(host, myUniqueid);
@@ -480,6 +488,17 @@ function onWindowLoad(){
                 opt.appendChild(document.createTextNode(hosts[i]));
                 opt.value = hosts[i];
                 $('#selectHost').append(opt);
+            }
+
+            for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
+                var opt = document.createElement('div');
+                // opt.appendChild(document.createTextNode(hosts[i]));
+                console.log(opt);
+                opt.className += 'mdl-cell mdl-cell--3-col';
+                opt.id = 'hostgrid-' + hosts[i];
+                opt.innerHTML = hosts[i];
+                $('#host-grid').append(opt);
+                opt.onclick = hostChosen;
             }
         });
         // load stored bitrate prefs
