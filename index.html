@@ -40,8 +40,9 @@
 
             <div id="hostSettings">
                 <div class="mdl-grid" id='host-grid'>
+                    <div class='mdl-cell mdl-cell--3-col' id='addHostCell'>+</div>
                 </div>
-                
+
                 <p>Enter the IP/hostname of the GFE streaming computer, or select one from the history:</p>
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                     <input class="mdl-textfield__input" type="text" id="GFEHostIPField">
@@ -106,6 +107,22 @@
         <div class="mdl-dialog__actions">
             <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelReplaceApp">No</button>
             <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="continueReplaceApp">Yes</button>
+        </div>
+    </dialog>
+
+    <dialog id="addHostDialog" class="mdl-dialog">
+        <h3 class="mdl-dialog__title">Add PC Manually</h3>
+        <div class="mdl-dialog__content">
+            <p>IP Address or Hostname of Geforce PC</p>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="dialogInputHost"/>
+                <label class="mdl-textfield__label" for="dialogInputHost">IP Address or Hostname of Geforce PC</label>
+            </div>
+
+        </div>
+        <div class="mdl-dialog__actions">
+            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelAddHost">Cancel</button>
+            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="continueAddHost">Continue</button>
         </div>
     </dialog>
 

@@ -13,6 +13,9 @@ function attachListeners() {
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
     $('#hostChosen').on('click', hostChosen);
+    $('#addHostCell').on('click', addHost);
+    $('#cancelAddHost').on('click', cancelAddHost);
+    $('#continueAddHost').on('click', continueAddHost);
     $('#forgetHost').on('click', forgetHost);
     $('#cancelPairingDialog').on('click', pairingPopupCanceled);
     $('#selectGame').on('change', gameSelectUpdated);
@@ -109,11 +112,11 @@ function updateHost() {
 }
 
 // pair to the given hostname or IP.  Returns whether pairing was successful.
-function pairTo(host) {
+function pairTo(host, onSuccess, onFailure) {
     if(!pairingCert) {
-        snackbarLog('ERROR: cert has not been generated yet. Is NaCL initialized?');
+        snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
-        return false;
+        onFailure();
     }
 
     if(!api) {
@@ -121,7 +124,7 @@ function pairTo(host) {
     }
 
     if(api.paired) {
-        return true;
+        onSuccess();
     }
 
     var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
@@ -137,7 +140,7 @@ function pairTo(host) {
             } else {
                 $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
             }
-            return false;
+            onFailure();
         }
         
         snackbarLog('Pairing successful');
@@ -145,20 +148,31 @@ function pairTo(host) {
         
         var hostSelect = $('#selectHost')[0];
         for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
-            if (hostSelect.options[i].value == host) return true;
+            if (hostSelect.options[i].value == host) onSuccess();
         }
 
+        // old code for the drop down menu
         var opt = document.createElement('option');
         opt.appendChild(document.createTextNode(host));
         opt.value = host;
         $('#selectHost').append(opt);
         hosts.push(host);
+
+        // new code for grid layout
+        var cell = document.createElement('div');
+        cell.className += 'mdl-cell mdl-cell--3-col';
+        cell.id = 'hostgrid-' + hosts[i];
+        cell.innerHTML = hosts[i];
+        $('#host-grid').append(cell);
+        cell.onclick = hostChosen;
+
         saveHosts();
-        return true;
+        onSuccess();
+
     }, function (failedPairing) {
         snackbarLog('Failed pairing to: ' + host);
         console.log('pairing failed, and returned ' + failedPairing);
-        return false;
+        onFailure();
     });
 }
 
@@ -196,6 +210,27 @@ function hostChosen(sourceEvent) {
         snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
     });
+}
+
+// the `+` was selected on the host grid.
+// give the user a dialog to input connection details for the PC
+function addHost() {
+    document.querySelector('#addHostDialog').showModal();
+}
+
+// user canceled the dialog for adding a new PC
+function cancelAddHost() {
+    document.querySelector('#addHostDialog').close();
+}
+
+function continueAddHost() {
+    var inputHost = $('#dialogInputHost').val();
+
+    pairTo(inputHost, 
+        function() { document.querySelector('#addHostDialog').close() }, 
+        function() {snackbarLog('pairing to ' + inputHost + ' failed!');} 
+        );
+
 }
 
 // locally remove the hostname/ip from the saved `hosts` array.
@@ -488,18 +523,16 @@ function onWindowLoad(){
                 opt.appendChild(document.createTextNode(hosts[i]));
                 opt.value = hosts[i];
                 $('#selectHost').append(opt);
+
+                var cell = document.createElement('div');
+                cell.className += 'mdl-cell mdl-cell--3-col';
+                cell.id = 'hostgrid-' + hosts[i];
+                cell.innerHTML = hosts[i];
+                $('#host-grid').append(cell);
+                cell.onclick = hostChosen;
+
             }
 
-            for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
-                var opt = document.createElement('div');
-                // opt.appendChild(document.createTextNode(hosts[i]));
-                console.log(opt);
-                opt.className += 'mdl-cell mdl-cell--3-col';
-                opt.id = 'hostgrid-' + hosts[i];
-                opt.innerHTML = hosts[i];
-                $('#host-grid').append(opt);
-                opt.onclick = hostChosen;
-            }
         });
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function(previousValue) {
