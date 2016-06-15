@@ -554,11 +554,16 @@ function onWindowLoad(){
 
     findNvService(function (finder, opt_error) {
         if (finder.byService_['_nvstream._tcp']) {
-            var ip = Object.keys(finder.byService_['_nvstream._tcp'])[0];
-            if (finder.byService_['_nvstream._tcp'][ip]) {
-                $('#GFEHostIPField').val(ip);
-                $('#GFEHostIPField').parent().addClass('is-dirty'); // mark it as dirty to float the textfield label
-                updateHost();
+            var ips = Object.keys(finder.byService_['_nvstream._tcp']);
+            for (var ip in ips) {
+                if (finder.byService_['_nvstream._tcp'][ip]) {
+                    var cell = document.createElement('div');
+                    cell.className += 'mdl-cell mdl-cell--3-col';
+                    cell.id = 'hostgrid-' + ip;
+                    cell.innerHTML = ip;
+                    $('#host-grid').append(cell);
+                    cell.onclick = hostChosen;
+                }
             }
         }
     });
