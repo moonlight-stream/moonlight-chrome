@@ -74,9 +74,6 @@ main {
 #hostSettings p {
     margin: 0;
 }
-#hostSettings div {
-    display: inline-block;
-}
 #hostSettings .mdl-textfield {
     width: 200px;
     margin-right: 20px;
