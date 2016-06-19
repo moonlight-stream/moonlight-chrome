@@ -13,6 +13,16 @@
     color:#fff;
     padding:25px;
 } 
+#addHostIcon {
+    width:64px;
+    height:64px;
+    margin:auto;
+    display:block;
+}
+#addHostCell {
+    padding-top:3px;
+    padding-bottom:3px;
+}
 .mdl-dialog {
   border: none;
   box-shadow: 0 9px 46px 8px rgba(0, 0, 0, 0.14), 0 11px 15px -7px rgba(0, 0, 0, 0.12), 0 24px 38px 3px rgba(0, 0, 0, 0.2);
