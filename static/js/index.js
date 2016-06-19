@@ -14,6 +14,7 @@ function attachListeners() {
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
     $('#hostChosen').on('click', hostChosen);
     $('#addHostCell').on('click', addHost);
+    $('#addHostIcon').on('click', addHost); // duplicate, because clicking the icon inside the button requires a different listener
     $('#cancelAddHost').on('click', cancelAddHost);
     $('#continueAddHost').on('click', continueAddHost);
     $('#forgetHost').on('click', forgetHost);
