@@ -55,8 +55,8 @@ function restoreUiAfterNaClLoad() {
 function snackbarLog(givenMessage) {
     console.log(givenMessage);
     var data = {
-      message: givenMessage,
-      timeout: 2000
+        message: givenMessage,
+        timeout: 2000
     };
     document.querySelector('#snackbar').MaterialSnackbar.showSnackbar(data);
 }
@@ -83,11 +83,11 @@ function moduleDidLoad() {
             console.log('Returned error was: ' + failedCert);            
         }).then(function (ret) {
             sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-            restoreUiAfterNaClLoad();
-        }, function (failedInit) {
-            console.log('ERROR: failed httpInit!');
-            console.log('Returned error was: ' + failedInit);
-        });
+                restoreUiAfterNaClLoad();
+            }, function (failedInit) {
+                console.log('ERROR: failed httpInit!');
+                console.log('Returned error was: ' + failedInit);
+            });
         });
     }
     else {
@@ -106,7 +106,7 @@ function updateHost() {
     if (host == null || host == "") {
         host = $("#selectHost option:selected").val();
     }
-    
+
     if(api && api.address != host) {
         api = new NvHTTP(host, myUniqueid);
     }
@@ -143,10 +143,10 @@ function pairTo(host, onSuccess, onFailure) {
             }
             onFailure();
         }
-        
+
         snackbarLog('Pairing successful');
         pairingDialog.close();
-        
+
         var hostSelect = $('#selectHost')[0];
         for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
             if (hostSelect.options[i].value == host) onSuccess();
@@ -228,9 +228,9 @@ function continueAddHost() {
     var inputHost = $('#dialogInputHost').val();
 
     pairTo(inputHost, 
-        function() { document.querySelector('#addHostDialog').close() }, 
-        function() {snackbarLog('pairing to ' + inputHost + ' failed!');} 
-        );
+            function() { document.querySelector('#addHostDialog').close() }, 
+            function() {snackbarLog('pairing to ' + inputHost + ' failed!');} 
+          );
 
 }
 
@@ -256,22 +256,29 @@ function showApps() {
     }
 
     api.getAppList().then(function (appList) {
-        if ($('#selectGame').has('option').length > 0 ) { 
-            // there was already things in the dropdown. Clear it, then add the new ones.
-            // Most likely, the user just hit the 'retrieve app list' button again
-            $('#selectGame').empty();
+
+        // if game grid is populated, empty it
+        if($("#game-grid").children().length > 0) {
+            $("game-grid").empty();
         }
+        
 
         appList.forEach(function (app) {
-            $('#selectGame').append($('<option>', {value: app.id, text: app.title}));
+            api.getBoxArt(app.id).then(function (resolvedPromise) {
+                var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
+                $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id }), class: 'box-art mdl-cell mdl-cell--3-col'}));
+            }, function (failedPromise) {
+                console.log(failedPromise)
+            });
+            
         });
 
-        $("#selectGame").html($("#selectGame option").sort(function (a, b) {  // thanks, http://stackoverflow.com/a/7466196/3006365
-            return a.text.toUpperCase() == b.text.toUpperCase() ? 0 : a.text.toUpperCase() < b.text.toUpperCase() ? -1 : 1
-        }));
-
         if (api.currentGame != 0)
-            $('#selectGame').val(api.currentGame);
+            $('#game-'+ api.currentGame).addClass(".current-game");
+
+        $("#streamSettings").hide();
+        $("#hostSettings").hide();
+        $(".mdl-layout__header-row").append("<button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab'><i class='material-icons'>arrow_back</i></button>") 
 
         gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
     }, function (failedAppList) {
@@ -350,7 +357,7 @@ function startSelectedGame() {
         if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
             return api.resumeApp(rikey, rikeyid).then(function (ret) {
                 sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,
-                    bitrate.toString(), api.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
+                        bitrate.toString(), api.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
             }, function (failedResumeApp) {
                 console.log('ERROR: failed to resume the app!');
                 console.log('Returned error was: ' + failedResumeApp);
@@ -358,19 +365,19 @@ function startSelectedGame() {
             });
 
         api.launchApp(appID,
-            streamWidth + "x" + streamHeight + "x" + frameRate,
-            1, // Allow GFE to optimize game settings
-            rikey, rikeyid,
-            0, // Play audio locally too
-            0x030002 // Surround channel mask << 16 | Surround channel count
-            ).then(function (ret) {
-                sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,
+                streamWidth + "x" + streamHeight + "x" + frameRate,
+                1, // Allow GFE to optimize game settings
+                rikey, rikeyid,
+                0, // Play audio locally too
+                0x030002 // Surround channel mask << 16 | Surround channel count
+                ).then(function (ret) {
+            sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,
                     bitrate.toString(), api.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
-            }, function (failedLaunchApp) {
-                console.log('ERROR: failed to launch app with appID: ' + appID);
-                console.log('Returned error was: ' + failedLaunchApp);
-                return;
-            });
+        }, function (failedLaunchApp) {
+            console.log('ERROR: failed to launch app with appID: ' + appID);
+            console.log('Returned error was: ' + failedLaunchApp);
+            return;
+        });
     });
 }
 
