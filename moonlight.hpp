@@ -135,7 +135,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void LoadCert(const char* certStr, const char* keyStr);
         
         void NvHTTPInit(int32_t callbackId, pp::VarArray args);
-        void NvHTTPRequest(int32_t, int32_t callbackId, std::string url);
+        void NvHTTPRequest(int32_t, int32_t callbackId, std::string url, bool binaryResponse);
         
     private:
         static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;

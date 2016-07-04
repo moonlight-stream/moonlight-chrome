@@ -46,9 +46,9 @@ function NvHTTP(address, clientUid) {
 
 NvHTTP.prototype = {
     refreshServerInfo: function () {
-        return sendMessage('openUrl', [ _self._baseUrlHttps + '/serverinfo?' + _self._buildUidStr()]).then(function(ret) {
+        return sendMessage('openUrl', [ _self._baseUrlHttps + '/serverinfo?' + _self._buildUidStr(), false]).then(function(ret) {
             if (!_self._parseServerInfo(ret)) {
-                return sendMessage('openUrl', [ _self._baseUrlHttp + '/serverinfo?' + _self._buildUidStr()]).then(function(retHttp) {
+                return sendMessage('openUrl', [ _self._baseUrlHttp + '/serverinfo?' + _self._buildUidStr(), false]).then(function(retHttp) {
                     _self._parseServerInfo(retHttp);
                 });
             }
@@ -119,7 +119,7 @@ NvHTTP.prototype = {
             });
         }
         
-        return sendMessage('openUrl', [_self._baseUrlHttps + '/applist?' + _self._buildUidStr()]).then(function (ret) {
+        return sendMessage('openUrl', [_self._baseUrlHttps + '/applist?' + _self._buildUidStr(), false]).then(function (ret) {
             $xml = _self._parseXML(ret);
             
             var rootElement = $xml.find("root")[0];
@@ -146,10 +146,9 @@ NvHTTP.prototype = {
             _self._baseUrlHttps +
             '/appasset?'+_self._buildUidStr() +
             '&appid=' + appId + 
-            '&AssetType=2&AssetIdx=0'
-        ]).then(function (ret) {
-            return ret;
-        });
+            '&AssetType=2&AssetIdx=0',
+            true
+        ]);
     },
     
     launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
@@ -162,7 +161,8 @@ NvHTTP.prototype = {
             '&rikey=' + rikey +
             '&rikeyid=' + rikeyid +
             '&localAudioPlayMode=' + localAudio +
-            '&surroundAudioInfo=' + surroundAudioInfo
+            '&surroundAudioInfo=' + surroundAudioInfo,
+            false
         ]).then(function (ret) {
             return true;
         });
@@ -173,14 +173,15 @@ NvHTTP.prototype = {
             _self._baseUrlHttps +
             '/resume?' + _self._buildUidStr() +
             '&rikey=' + rikey +
-            '&rikeyid=' + rikeyid
+            '&rikeyid=' + rikeyid,
+            false
         ]).then(function (ret) {
             return true;
         });
     },
     
     quitApp: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps + '/cancel?' + _self._buildUidStr()]).then(function () {
+        return sendMessage('openUrl', [_self._baseUrlHttps + '/cancel?' + _self._buildUidStr(), false]).then(function () {
             _self.currentGame = 0;
         });
     },
@@ -194,7 +195,7 @@ NvHTTP.prototype = {
                 return false;
             
             return sendMessage('pair', [_self.serverMajorVersion, _self.address, randomNumber]).then(function (pairStatus) {
-                return sendMessage('openUrl', [_self._baseUrlHttps + '/pair?uniqueid=' + _self.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge']).then(function (ret) {
+                return sendMessage('openUrl', [_self._baseUrlHttps + '/pair?uniqueid=' + _self.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function (ret) {
                     $xml = _self._parseXML(ret);
                     _self.paired = $xml.find('paired').html() == "1";
                     return _self.paired;
@@ -204,7 +205,7 @@ NvHTTP.prototype = {
     },
     
     unpair: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps + '/unpair?' + _self._buildUidStr()]);
+        return sendMessage('openUrl', [_self._baseUrlHttps + '/unpair?' + _self._buildUidStr(), false]);
     },
     
     _buildUidStr: function () {

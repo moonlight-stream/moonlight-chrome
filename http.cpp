@@ -93,7 +93,7 @@ void MoonlightInstance::NvHTTPInit(int32_t callbackId, pp::VarArray args)
     PostMessage(ret);
 }
 
-void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, std::string url)
+void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, std::string url, bool binaryResponse)
 {
     char* _url = strdup(url.c_str());
     PHTTP_DATA data = http_create_data();
@@ -118,7 +118,23 @@ void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, st
         goto clean_data;
     }
     
-    {
+    if (binaryResponse) {
+        // Response data will be returned to JS as an ArrayBuffer
+        
+        pp::VarDictionary ret;
+        ret.Set("callbackId", pp::Var(callbackId));
+        ret.Set("type", pp::Var("resolve"));
+        
+        // Construct an array buffer and copy the response data into it
+        pp::VarArrayBuffer arrBuf = pp::VarArrayBuffer(data->size);
+        memcpy(arrBuf.Map(), data->memory, data->size);
+        arrBuf.Unmap();
+        
+        ret.Set("ret", arrBuf);
+        PostMessage(ret);
+    } else {
+        // Response data will be returned to JS as a UTF-8 string
+        
         pp::VarDictionary ret;
         ret.Set("callbackId", pp::Var(callbackId));
         ret.Set("type", pp::Var("resolve"));

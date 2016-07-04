@@ -240,8 +240,9 @@ void MoonlightInstance::HandleStopStream(int32_t callbackId, pp::VarArray args) 
 
 void MoonlightInstance::HandleOpenURL(int32_t callbackId, pp::VarArray args) {
     std::string url = args.Get(0).AsString();
+    bool binaryResponse = args.Get(1).AsBool();
     
-    openHttpThread.message_loop().PostWork(m_CallbackFactory.NewCallback(&MoonlightInstance::NvHTTPRequest, callbackId, url));
+    openHttpThread.message_loop().PostWork(m_CallbackFactory.NewCallback(&MoonlightInstance::NvHTTPRequest, callbackId, url, binaryResponse));
     
     PostMessage(pp::Var (url.c_str()));
 }
