@@ -19,8 +19,8 @@ function attachListeners() {
     $('#continueAddHost').on('click', continueAddHost);
     $('#forgetHost').on('click', forgetHost);
     $('#cancelPairingDialog').on('click', pairingPopupCanceled);
-    $('#cancelReplaceApp').on('click', cancelReplaceApp);
-    $('#continueReplaceApp').on('click', continueReplaceApp);
+    $('#cancelQuitApp').on('click', cancelQuitApp);
+    $('#continueQuitApp').on('click', continueQuitApp);
     $('#quitGameButton').on('click', stopGame);
     $(window).resize(fullscreenNaclModule);
     chrome.app.window.current().onMaximized.addListener(fullscreenChromeWindow);
@@ -258,8 +258,8 @@ function showAppsMode() {
 
     $("#streamSettings").hide();
     $("#hostSettings").hide();
-    // TODO: grab a material `back` icon to use here
-    $(".mdl-layout__header-row").append("<button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab'><i class='material-icons'>arrow_back</i></button>") 
+
+    $('#backIcon').show();
     $(".mdl-layout__header").show();
     $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
     $("#main-content").removeClass("fullscreen");
@@ -268,7 +268,7 @@ function showAppsMode() {
 }
 
 
-// start the given appID.  if another app is running, offer to quit it and start this one.
+// start the given appID.  if another app is running, offer to quit it.
 // if the given app is already running, just resume it.
 function startGame(sourceEvent) {
     if(!api || !api.paired) {
@@ -279,11 +279,6 @@ function startGame(sourceEvent) {
     if(sourceEvent && sourceEvent.target) {
         appID = parseInt(sourceEvent.target.id.substring('game-'.length));  // parse the AppID from the ID of the grid icon.
         appName = sourceEvent.target.name;
-        if(!appID && appName) {  // ugly hack to allow us to continue parsing the appID from the sourceEvent (part 2 of 2)
-            api.getAppByName(appName).then(function (appToPlay) {
-                appID = appToPlay.id;
-            });
-        }
     } else {
         console.log('Error! failed to parse appID from grid icon! Failing...');
         snackbarLog('An error occurred while parsing the appID from the grid icon.')
@@ -294,12 +289,11 @@ function startGame(sourceEvent) {
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
             api.getAppById(api.currentGame).then(function (currentApp) {
-                var replaceAppDialog = document.querySelector('#replaceAppDialog');
-                document.getElementById('replaceAppDialogText').innerHTML = 
+                var quitAppDialog = document.querySelector('#quitAppDialog');
+                document.getElementById('quitAppDialogText').innerHTML = 
                     currentApp.title + ' is already running. Would you like to quit ' +
-                    currentApp.title + ' to start ' + appName+ '?';
-                replaceAppDialog.showModal();
-                $('#continueReplaceApp').attr('name', appName);
+                    currentApp.title + '?';
+                quitAppDialog.showModal();
                 return;
             }, function (failedCurrentApp) {
                 console.log('ERROR: failed to get the current running app from host!');
@@ -349,18 +343,17 @@ function startGame(sourceEvent) {
     });
 }
 
-function cancelReplaceApp() {
+function cancelQuitApp() {
     showAppsMode();
-    document.querySelector('#replaceAppDialog').close();
+    document.querySelector('#quitAppDialog').close();
     console.log('closing app dialog, and returning');
 }
 
-function continueReplaceApp(sourceEvent) {
+function continueQuitApp(sourceEvent) {
     // I want the sourceEvent's sourceEvent
     console.log('stopping game, and closing app dialog, and returning');
-    stopGame();  // stop the game, then start the selected game once it's done.
-    startGame(sourceEvent);
-    document.querySelector('#replaceAppDialog').close();
+    stopGame();
+    document.querySelector('#quitAppDialog').close();
 }
 
 function playGameMode() {

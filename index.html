@@ -15,6 +15,8 @@
                     <span class="mdl-layout-title">Moonlight</span>
                     <!-- Add spacer, to align navigation to the right -->
                     <div class="mdl-layout-spacer"></div>
+                    <!-- Navigation on the right -->
+                    <object type="image/svg+xml" data="static/res/ic_arrow_back_white_24px.svg" id='backIcon'></object>
                 </div>
             </header>
             <main id="main-content" class="mdl-layout__content">
@@ -80,16 +82,16 @@
             </div>
         </dialog>
 
-        <dialog id="replaceAppDialog" class="mdl-dialog">
+        <dialog id="quitAppDialog" class="mdl-dialog">
             <h3 class="mdl-dialog__title">Quit Running App?</h3>
             <div class="mdl-dialog__content">
-                <p id="replaceAppDialogText">
-                Y is already running. Would you like to quit Y to start X?
+                <p id="quitAppDialogText">
+                Y is already running. Would you like to quit Y?
                 </p>
             </div>
             <div class="mdl-dialog__actions">
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelReplaceApp">No</button>
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="continueReplaceApp">Yes</button>
+                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelQuitApp">No</button>
+                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="continueQuitApp">Yes</button>
             </div>
         </dialog>
 
