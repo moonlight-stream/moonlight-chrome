@@ -169,5 +169,5 @@ main {
     height: 100%;
 }
 .current-game {
-    border: 1px solid red;
+    border: 3px solid green;
 }

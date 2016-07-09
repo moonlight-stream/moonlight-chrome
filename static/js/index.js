@@ -19,7 +19,6 @@ function attachListeners() {
     $('#continueAddHost').on('click', continueAddHost);
     $('#forgetHost').on('click', forgetHost);
     $('#cancelPairingDialog').on('click', pairingPopupCanceled);
-    $('#selectGame').on('change', gameSelectUpdated);
     $('#cancelReplaceApp').on('click', cancelReplaceApp);
     $('#continueReplaceApp').on('click', continueReplaceApp);
     $('#quitGameButton').on('click', stopGame);
@@ -99,18 +98,6 @@ function moduleDidLoad() {
     }
 }
 
-// because the user can change the host at any time, we continually have to check
-function updateHost() {
-    host = $('#GFEHostIPField').val();
-    if (host == null || host == "") {
-        host = $("#selectHost option:selected").val();
-    }
-
-    if(api && api.address != host) {
-        api = new NvHTTP(host, myUniqueid);
-    }
-}
-
 // pair to the given hostname or IP.  Returns whether pairing was successful.
 function pairTo(host, onSuccess, onFailure) {
     if(!pairingCert) {
@@ -146,19 +133,6 @@ function pairTo(host, onSuccess, onFailure) {
         snackbarLog('Pairing successful');
         pairingDialog.close();
 
-        var hostSelect = $('#selectHost')[0];
-        for(var i = 0; i < hostSelect.length; i++) { // check if we already have the host.
-            if (hostSelect.options[i].value == host) onSuccess();
-        }
-
-        // old code for the drop down menu
-        var opt = document.createElement('option');
-        opt.appendChild(document.createTextNode(host));
-        opt.value = host;
-        $('#selectHost').append(opt);
-        hosts.push(host);
-
-        // new code for grid layout
         var cell = document.createElement('div');
         cell.className += 'mdl-cell mdl-cell--3-col';
         cell.id = 'hostgrid-' + hosts[i];
@@ -181,9 +155,6 @@ function hostChosen(sourceEvent) {
     if(sourceEvent && sourceEvent.srcElement) {
         console.log('parsing host from grid element.');
         host = sourceEvent.srcElement.innerText;
-    } else {
-        console.log('falling back to old host selection');
-        updateHost();
     }
 
 
@@ -196,14 +167,12 @@ function hostChosen(sourceEvent) {
             pairTo(host);
         }
         if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
-            var opt = document.createElement('option');
-            opt.appendChild(document.createTextNode(host));
-            opt.value = host;
-            $('#selectHost').append(opt);
-            hosts.push(host);
-            saveHosts();
-            $('#GFEHostIPField').val(''); // eat the contents of the textbox
-            $('#GFEHostIPField').parent().removeClass('is-dirty');
+            var cell = document.createElement('div');
+            cell.className += 'mdl-cell mdl-cell--3-col';
+            cell.id = 'hostgrid-' + hosts[i];
+            cell.innerHTML = hosts[i];
+            $('#host-grid').append(cell);
+            cell.onclick = hostChosen;
         }
         showApps();
     }, function (failedRefreshInfo) {
@@ -239,8 +208,7 @@ function continueAddHost() {
 // TODO: use the chrome context menu to add right-click support to remove the host in grid-ui
 // https://github.com/GoogleChrome/chrome-app-samples/blob/master/samples/context-menu/main.js
 function forgetHost() {
-    updateHost();
-    $("#selectHost option:selected").remove();
+    snackbarLog('Feature not yet ported to grid-ui');
     hosts.splice(hosts.indexOf(host), 1); // remove the host from the array;
     saveHosts();
 }
@@ -260,14 +228,14 @@ function showApps() {
 
         // if game grid is populated, empty it
         if($("#game-grid").children().length > 0) {
-            $("game-grid").empty();
+            $("#game-grid").empty();
         }
         
 
         appList.forEach(function (app) {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
                 var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
-                $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id }), class: 'box-art mdl-cell mdl-cell--3-col'}));
+                $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}));
                 $('#game-'+app.id).on('click', startGame);
             }, function (failedPromise) {
                 console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
@@ -275,15 +243,6 @@ function showApps() {
             
         });
 
-        if (api.currentGame != 0)
-            $('#game-'+ api.currentGame).addClass(".current-game");
-
-        $("#streamSettings").hide();
-        $("#hostSettings").hide();
-        // TODO: grab a material `back` icon to use here
-        $(".mdl-layout__header-row").append("<button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab'><i class='material-icons'>arrow_back</i></button>") 
-
-        gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
     }, function (failedAppList) {
         console.log('Failed to get applist from host: ' + api.address);
     });
@@ -293,26 +252,21 @@ function showApps() {
 
 function showAppsMode() {
     console.log("entering show apps mode.");
+
+    if (api.currentGame != 0)
+        $('#game-'+ api.currentGame).addClass(".current-game");
+
+    $("#streamSettings").hide();
+    $("#hostSettings").hide();
+    // TODO: grab a material `back` icon to use here
+    $(".mdl-layout__header-row").append("<button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab'><i class='material-icons'>arrow_back</i></button>") 
     $(".mdl-layout__header").show();
     $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
-    gameSelectUpdated();  // since we just played the game, we need to show it as running once we quit.
 }
 
-// every time the user selects an app from the select menu,
-// we want to check if that's the currently running app
-// and if it is, we want the "run" button to change to "resume"
-// in theory we should be able to cache the api.currentGame to prevent another call.
-function gameSelectUpdated() {
-    var currentApp = $("#selectGame").val();
-    if(api.currentGame == parseInt(currentApp)) {
-        $("#startGameButton").html('Resume Game');
-    } else {
-        $("#startGameButton").html('Run Game');
-    }
-}
 
 // start the given appID.  if another app is running, offer to quit it and start this one.
 // if the given app is already running, just resume it.
@@ -324,6 +278,12 @@ function startGame(sourceEvent) {
 
     if(sourceEvent && sourceEvent.target) {
         appID = parseInt(sourceEvent.target.id.substring('game-'.length));  // parse the AppID from the ID of the grid icon.
+        appName = sourceEvent.target.name;
+        if(!appID && appName) {  // ugly hack to allow us to continue parsing the appID from the sourceEvent (part 2 of 2)
+            api.getAppByName(appName).then(function (appToPlay) {
+                appID = appToPlay.id;
+            });
+        }
     } else {
         console.log('Error! failed to parse appID from grid icon! Failing...');
         snackbarLog('An error occurred while parsing the appID from the grid icon.')
@@ -337,8 +297,9 @@ function startGame(sourceEvent) {
                 var replaceAppDialog = document.querySelector('#replaceAppDialog');
                 document.getElementById('replaceAppDialogText').innerHTML = 
                     currentApp.title + ' is already running. Would you like to quit ' +
-                    currentApp.title + ' to start ' + $("#selectGame option:selected").text() + '?';
+                    currentApp.title + ' to start ' + appName+ '?';
                 replaceAppDialog.showModal();
+                $('#continueReplaceApp').attr('name', appName);
                 return;
             }, function (failedCurrentApp) {
                 console.log('ERROR: failed to get the current running app from host!');
@@ -358,7 +319,7 @@ function startGame(sourceEvent) {
         var rikey = generateRemoteInputKey();
         var rikeyid = generateRemoteInputKeyId();
 
-        $('#loadingMessage').text('Starting ' + $("#selectGame option:selected").text() + '...');
+        $('#loadingMessage').text('Starting ' + appName + '...');
         playGameMode();
 
         if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
@@ -394,9 +355,11 @@ function cancelReplaceApp() {
     console.log('closing app dialog, and returning');
 }
 
-function continueReplaceApp() {
+function continueReplaceApp(sourceEvent) {
+    // I want the sourceEvent's sourceEvent
     console.log('stopping game, and closing app dialog, and returning');
-    stopGame(startSelectedGame);  // stop the game, then start the selected game once it's done.
+    stopGame();  // stop the game, then start the selected game once it's done.
+    startGame(sourceEvent);
     document.querySelector('#replaceAppDialog').close();
 }
 
