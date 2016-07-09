@@ -20,7 +20,6 @@ function attachListeners() {
     $('#forgetHost').on('click', forgetHost);
     $('#cancelPairingDialog').on('click', pairingPopupCanceled);
     $('#selectGame').on('change', gameSelectUpdated);
-    $('#startGameButton').on('click', startSelectedGame);
     $('#cancelReplaceApp').on('click', cancelReplaceApp);
     $('#continueReplaceApp').on('click', continueReplaceApp);
     $('#quitGameButton').on('click', stopGame);
@@ -237,6 +236,8 @@ function continueAddHost() {
 // locally remove the hostname/ip from the saved `hosts` array.
 // note: this does not make the host forget the pairing to us.
 // this means we can re-add the host, and will still be paired.
+// TODO: use the chrome context menu to add right-click support to remove the host in grid-ui
+// https://github.com/GoogleChrome/chrome-app-samples/blob/master/samples/context-menu/main.js
 function forgetHost() {
     updateHost();
     $("#selectHost option:selected").remove();
@@ -267,8 +268,9 @@ function showApps() {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
                 var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
                 $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id }), class: 'box-art mdl-cell mdl-cell--3-col'}));
+                $('#game-'+app.id).on('click', startGame);
             }, function (failedPromise) {
-                console.log(failedPromise)
+                console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
             });
             
         });
@@ -278,6 +280,7 @@ function showApps() {
 
         $("#streamSettings").hide();
         $("#hostSettings").hide();
+        // TODO: grab a material `back` icon to use here
         $(".mdl-layout__header-row").append("<button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab'><i class='material-icons'>arrow_back</i></button>") 
 
         gameSelectUpdated();  // default the button to 'Resume Game' if one is running.
@@ -311,17 +314,21 @@ function gameSelectUpdated() {
     }
 }
 
-function startSelectedGame() {
-    // do NOT update the host.
-    // we're just grabbing the currently selected option from #selectGame, and feeding it into NvHTTP
-    // if we need to reconnect to the host, and `host` has been updated, we can pass the appID we listed from the previous host
-    // then everyone's sad. So we won't do that.  Because the only way to see the startGame button is to list the apps for the host anyways.
+// start the given appID.  if another app is running, offer to quit it and start this one.
+// if the given app is already running, just resume it.
+function startGame(sourceEvent) {
     if(!api || !api.paired) {
         console.log('attempted to start a game, but `api` did not initialize properly. Failing!');
         return;
     }
 
-    var appID = $("#selectGame").val();  // app that the user wants to play
+    if(sourceEvent && sourceEvent.target) {
+        appID = parseInt(sourceEvent.target.id.substring('game-'.length));  // parse the AppID from the ID of the grid icon.
+    } else {
+        console.log('Error! failed to parse appID from grid icon! Failing...');
+        snackbarLog('An error occurred while parsing the appID from the grid icon.')
+        return;
+    }
 
     // refresh the server info, because the user might have quit the game.
     api.refreshServerInfo().then(function (ret) {
@@ -527,18 +534,12 @@ function onWindowLoad(){
         chrome.storage.sync.get('hosts', function(previousValue) {
             hosts = previousValue.hosts != null ? previousValue.hosts : [];
             for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
-                var opt = document.createElement('option');
-                opt.appendChild(document.createTextNode(hosts[i]));
-                opt.value = hosts[i];
-                $('#selectHost').append(opt);
-
                 var cell = document.createElement('div');
                 cell.className += 'mdl-cell mdl-cell--3-col';
                 cell.id = 'hostgrid-' + hosts[i];
                 cell.innerHTML = hosts[i];
                 $('#host-grid').append(cell);
                 cell.onclick = hostChosen;
-
             }
 
         });
