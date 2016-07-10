@@ -183,7 +183,7 @@ NvHTTP.prototype = {
                 chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
 
                     var storedBoxArtArray;  // load cached data if it exists
-                    if (JSONCachedBoxArtArray.boxArtCache != undefined) {
+                    if (JSONCachedBoxArtArray.boxArtCache != undefined && JSONCachedBoxArtArray.boxArtCache[appId] != undefined) {
                         storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
 
                         storedBoxArtArray[appId] = _base64ToArrayBuffer(storedBoxArtArray[appId]);
