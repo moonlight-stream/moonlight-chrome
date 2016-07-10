@@ -239,12 +239,15 @@ function showApps() {
                 $('#game-'+app.id).on('click', startGame);
 
                 if (api.currentGame === app.id){ // stylize the currently running game
-                    $('#game-'+ api.currentGame).addClass("current-game");
+                    // destylize it, if it has the not-current-game style
+                    if ($('#game-'+ app.id).hasClass("not-current-game")) $('#game-'+ app.id).removeClass("not-current-game");
+                    // add the current-game style
+                    $('#game-'+ app.id).addClass("current-game");
                 } else {
-                    if ($('#game-'+ api.id).hasClass("current-game")) {  // destylize it otherwise
-                        console.log('stripping now inactive game: ' + app.title);
-                        $('#game-'+ api.id).removeClass("current-game");
-                    }
+                    // destylize it, if it has the current-game style
+                    if ($('#game-'+ app.id).hasClass("current-game")) $('#game-'+ app.id).removeClass("current-game");
+                    // add the not-current-game style
+                    $('#game-'+ app.id).addClass('not-current-game');
                 }
 
             }, function (failedPromise) {

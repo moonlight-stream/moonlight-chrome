@@ -175,3 +175,6 @@ main {
 .current-game {
     border: 3px solid green;
 }
+.not-current-game {
+  border: 1px solid black;
+}
