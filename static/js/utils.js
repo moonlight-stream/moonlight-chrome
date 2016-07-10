@@ -45,17 +45,24 @@ function NvHTTP(address, clientUid) {
     _self = this;
 };
 
-function ab2str(buf) {
-  return String.fromCharCode.apply(null, new Uint16Array(buf));
+function _arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa( binary );
 }
 
-function str2ab(str) {
-  var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-  var bufView = new Uint16Array(buf);
-  for (var i=0, strLen=str.length; i < strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-  return buf;
+function _base64ToArrayBuffer(base64) {
+    var binary_string =  window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array( len );
+    for (var i = 0; i < len; i++)        {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
 }
 
 NvHTTP.prototype = {
@@ -167,16 +174,18 @@ NvHTTP.prototype = {
                     var storedBoxArtArray;
                     if (JSONCachedBoxArtArray.boxArtCache != undefined) {
                         storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
-                        for (key in storedBoxArtArray) {
-                            storedBoxArtArray[key] = str2ab(storedBoxArtArray[key]);
+                        for (key in storedBoxArtArray) { // decode all the data
+                            storedBoxArtArray[key] = _base64ToArrayBuffer(storedBoxArtArray[key]);
                         }
                     } else {
                          storedBoxArtArray = {};
                     }
 
                     // if we already have it, load it.
-                    if (storedBoxArtArray[appId] !== undefined && Object.keys(storedBoxArtArray[appId]).length !== 0 && storedBoxArtArray[appId].constructor !== Object) {
-                        resolve(_self._memCachedBoxArtArray[appId]);
+                    if (storedBoxArtArray[appId] !== undefined && Object.keys(storedBoxArtArray).length !== 0 && storedBoxArtArray[appId].constructor !== Object) {
+                        console.log('returning cached box art');
+                        resolve(storedBoxArtArray[appId]);
+                        return;
                     }
 
                     // otherwise, put it in our cache, then return it
@@ -192,11 +201,13 @@ NvHTTP.prototype = {
                         var obj = {};
                         var arrayToStore = {}
                         for (key in _self._memCachedBoxArtArray) { // convert the arraybuffer into a string
-                            arrayToStore[key] = ab2str(_self._memCachedBoxArtArray[key]);
+                            arrayToStore[key] = _arrayBufferToBase64(_self._memCachedBoxArtArray[key]);
                         }
                         obj['boxArtCache'] = arrayToStore;  // storage is in JSON format.  JSON does not support binary data.
                         chrome.storage.local.set(obj, function(onSuccess) {});
+                        console.log('returning streamed box art');
                         resolve(streamedBoxArt);
+                        return;
                     });
 
 
