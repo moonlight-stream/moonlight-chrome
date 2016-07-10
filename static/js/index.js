@@ -262,13 +262,11 @@ function showApps() {
 
 function showAppsMode() {
     console.log("entering show apps mode.");
-
-    $("#streamSettings").hide();
-    $("#hostSettings").hide();
-
     $('#backIcon').show();
     $(".mdl-layout__header").show();
     $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
+    $("#streamSettings").hide();
+    $("#hostSettings").hide();
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
