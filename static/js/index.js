@@ -237,6 +237,16 @@ function showApps() {
                 var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
                 $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}));
                 $('#game-'+app.id).on('click', startGame);
+
+                if (api.currentGame === app.id){ // stylize the currently running game
+                    $('#game-'+ api.currentGame).addClass("current-game");
+                } else {
+                    if ($('#game-'+ api.id).hasClass("current-game")) {  // destylize it otherwise
+                        console.log('stripping now inactive game: ' + app.title);
+                        $('#game-'+ api.id).removeClass("current-game");
+                    }
+                }
+
             }, function (failedPromise) {
                 console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
             });
@@ -252,9 +262,6 @@ function showApps() {
 
 function showAppsMode() {
     console.log("entering show apps mode.");
-
-    if (api.currentGame != 0)
-        $('#game-'+ api.currentGame).addClass(".current-game");
 
     $("#streamSettings").hide();
     $("#hostSettings").hide();
