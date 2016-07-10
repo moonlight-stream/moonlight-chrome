@@ -41,6 +41,7 @@ function NvHTTP(address, clientUid) {
     this._baseUrlHttps = 'https://' + address + ':47984';
     this._baseUrlHttp = 'http://' + address + ':47989';
     this._appListCache = null;
+    this._memCachedBoxArtArray = {};
     _self = this;
 };
 
@@ -142,13 +143,50 @@ NvHTTP.prototype = {
     },
     
     getBoxArt: function (appId) {
-        return sendMessage('openUrl', [
-            _self._baseUrlHttps +
-            '/appasset?'+_self._buildUidStr() +
-            '&appid=' + appId + 
-            '&AssetType=2&AssetIdx=0',
-            true
-        ]);
+        if (chrome.storage) {
+            // This may be bad practice to push/pull this much data through local storage?
+
+            return new Promise(function (resolve, reject) {
+                chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
+                    var cachedBoxArtArray = JSONCachedBoxArtArray.boxArtArray != undefined ? JSON.parse(JSONCachedBoxArtArray.boxArtArray) : Object
+                    var boxArtArray = cachedBoxArtArray.boxArtArray != null ? cachedBoxArtArray.boxArtArray : _self._memCachedBoxArtArray;  // yay associative arrays!
+
+                    // if we already have it, load from cache
+                    if (boxArtArray[appId] != null) {
+                        
+                        resolve(boxArtArray[appId]);
+                        
+                    }
+
+                    // otherwise, put it in our cache, then return it
+                    sendMessage('openUrl', [
+                        _self._baseUrlHttps +
+                        '/appasset?'+_self._buildUidStr() +
+                        '&appid=' + appId + 
+                        '&AssetType=2&AssetIdx=0',
+                        true
+                    ]).then(function(streamedBoxArt) {
+                        // something's going wrong here. the stringified box art renders as "{}"
+                        boxArtArray[appId] = streamedBoxArt;
+                        var obj = {};
+                        obj['boxArtCache'] = JSON.stringify(boxArtArray);  // storage is in JSON format.  JSON does not support binary data.
+                        chrome.storage.local.set(obj, function(onSuccess) {});
+                        resolve(streamedBoxArt);
+                    });
+
+
+                });
+            });
+
+        } else {  // shouldn't run because we always have chrome.storage, but I'm not going to antagonize other browsers
+            return sendMessage('openUrl', [
+                _self._baseUrlHttps +
+                '/appasset?'+_self._buildUidStr() +
+                '&appid=' + appId + 
+                '&AssetType=2&AssetIdx=0',
+                true
+            ]);
+        }
     },
     
     launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
