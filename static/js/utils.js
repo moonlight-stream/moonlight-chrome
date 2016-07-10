@@ -143,19 +143,27 @@ NvHTTP.prototype = {
     },
     
     getBoxArt: function (appId) {
+        // TODO: return a resolved promise to _self._memCachedBoxArtArray[appId] if we have it.
+
         if (chrome.storage) {
             // This may be bad practice to push/pull this much data through local storage?
 
             return new Promise(function (resolve, reject) {
                 chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
-                    var cachedBoxArtArray = JSONCachedBoxArtArray.boxArtArray != undefined ? JSON.parse(JSONCachedBoxArtArray.boxArtArray) : Object
-                    var boxArtArray = cachedBoxArtArray.boxArtArray != null ? cachedBoxArtArray.boxArtArray : _self._memCachedBoxArtArray;  // yay associative arrays!
 
-                    // if we already have it, load from cache
-                    if (boxArtArray[appId] != null) {
-                        
-                        resolve(boxArtArray[appId]);
-                        
+                    var storedBoxArtArray;
+                    if (JSONCachedBoxArtArray.boxArtCache != undefined) {
+                        storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
+                        for (key in storedBoxArtArray) {
+                            storedBoxArtArray[key] = str2ab(storedBoxArtArray[key]);
+                        }
+                    } else {
+                         storedBoxArtArray = {};
+                    }
+
+                    // if we already have it, load it.
+                    if (storedBoxArtArray[appId] !== undefined && Object.keys(storedBoxArtArray[appId]).length !== 0 && storedBoxArtArray[appId].constructor !== Object) {
+                        resolve(_self._memCachedBoxArtArray[appId]);
                     }
 
                     // otherwise, put it in our cache, then return it
@@ -166,10 +174,14 @@ NvHTTP.prototype = {
                         '&AssetType=2&AssetIdx=0',
                         true
                     ]).then(function(streamedBoxArt) {
-                        // something's going wrong here. the stringified box art renders as "{}"
-                        boxArtArray[appId] = streamedBoxArt;
+                        // the memcached data is global to all the async calls we're doing.  This way there's only one array that holds everything properly.
+                        _self._memCachedBoxArtArray[appId] = streamedBoxArt;
                         var obj = {};
-                        obj['boxArtCache'] = JSON.stringify(boxArtArray);  // storage is in JSON format.  JSON does not support binary data.
+                        var arrayToStore = {}
+                        for (key in _self._memCachedBoxArtArray) { // convert the arraybuffer into a string
+                            arrayToStore[key] = ab2str(_self._memCachedBoxArtArray[key]);
+                        }
+                        obj['boxArtCache'] = arrayToStore;  // storage is in JSON format.  JSON does not support binary data.
                         chrome.storage.local.set(obj, function(onSuccess) {});
                         resolve(streamedBoxArt);
                     });
@@ -179,6 +191,7 @@ NvHTTP.prototype = {
             });
 
         } else {  // shouldn't run because we always have chrome.storage, but I'm not going to antagonize other browsers
+            console.log('WARN: Chrome.storage not detected!  Box art will not be saved!');
             return sendMessage('openUrl', [
                 _self._baseUrlHttps +
                 '/appasset?'+_self._buildUidStr() +
