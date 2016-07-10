@@ -14,12 +14,12 @@ function attachListeners() {
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
     $('#hostChosen').on('click', hostChosen);
     $('#addHostCell').on('click', addHost);
-    $('#addHostIcon').on('click', addHost); // duplicate, because clicking the icon inside the button requires a different listener
     $('#cancelAddHost').on('click', cancelAddHost);
     $('#continueAddHost').on('click', continueAddHost);
     $('#forgetHost').on('click', forgetHost);
     $('#cancelPairingDialog').on('click', pairingPopupCanceled);
     $('#cancelQuitApp').on('click', cancelQuitApp);
+    $('#backIcon').on('click', showHostsAndSettingsMode);
     $('#continueQuitApp').on('click', continueQuitApp);
     $('#quitGameButton').on('click', stopGame);
     $(window).resize(fullscreenNaclModule);
@@ -39,7 +39,6 @@ function fullscreenChromeWindow() {
 
 function changeUiModeForNaClLoad() {
     $("#main-content").children().not("#listener, #naclSpinner").hide();
-
     $('#naclSpinnerMessage').text('Loading Moonlight plugin...');
     $('#naclSpinner').css('display', 'inline-block');
 }
@@ -48,6 +47,7 @@ function restoreUiAfterNaClLoad() {
     $("#main-content").children().not("#listener, #naclSpinner, #gameSelection").show();
     $('#naclSpinner').hide();
     $('#loadingSpinner').css('display', 'none');
+    showHostsAndSettingsMode();
 }
 
 function snackbarLog(givenMessage) {
@@ -260,6 +260,18 @@ function showApps() {
     showAppsMode();
 }
 
+// set the layout to the initial mode you see when you open moonlight
+function showHostsAndSettingsMode() {
+    console.log('entering show hosts and settings mode.');
+    $('#backIcon').hide();
+    $(".mdl-layout__header").show();
+    $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
+    $("#game-grid").hide();
+    $("#main-content").removeClass("fullscreen");
+    $("#listener").removeClass("fullscreen");
+    $("body").css('backgroundColor', 'white');
+}
+
 function showAppsMode() {
     console.log("entering show apps mode.");
     $('#backIcon').show();
@@ -270,6 +282,7 @@ function showAppsMode() {
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
+
 }
 
 
@@ -349,7 +362,6 @@ function startGame(sourceEvent) {
 }
 
 function cancelQuitApp() {
-    showAppsMode();
     document.querySelector('#quitAppDialog').close();
     console.log('closing app dialog, and returning');
 }
@@ -480,7 +492,6 @@ function updateDefaultBitrate() {
 function onWindowLoad(){
     // don't show the game selection div
     $('#gameSelection').css('display', 'none');
-    $("#bitrateField").addClass("bitrateField");
 
     if(chrome.storage) {
         // load stored resolution prefs

@@ -52,6 +52,10 @@
     margin:auto;
     display:block;
 }
+#backIcon {
+    height: 32px;
+    width: 32px
+}
 #addHostCell {
     padding-top:3px;
     padding-bottom:3px;
@@ -147,9 +151,9 @@ main {
     margin: 3px;
 }
 #listener {
-	overflow: hidden;
-	margin-top: 0px;
-	height: 0px;
+    overflow: hidden;
+    margin-top: 0px;
+    height: 0px;
 }
 .fullscreen {
     height: 100vh !important;
