@@ -130,15 +130,6 @@ function pairTo(host, onSuccess, onFailure) {
 
             snackbarLog('Pairing successful');
             pairingDialog.close();
-
-            var cell = document.createElement('div');
-            cell.className += 'mdl-cell mdl-cell--3-col';
-            cell.id = 'hostgrid-' + host;
-            cell.innerHTML = host;
-            $('#host-grid').append(cell);
-            cell.onclick = hostChosen;
-
-            saveHosts();
             onSuccess();
 
         }, function (failedPairing) {
@@ -162,17 +153,10 @@ function hostChosen(sourceEvent) {
     api = new NvHTTP(host, myUniqueid);
     api.refreshServerInfo().then(function (ret) {
         if(!api.paired) {
-            pairTo(host);
+            pairTo(host, function(){ showApps(); }, function(){});
+        } else {
+            showApps();
         }
-        if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
-            var cell = document.createElement('div');
-            cell.className += 'mdl-cell mdl-cell--3-col';
-            cell.id = 'hostgrid-' + host;
-            cell.innerHTML = host;
-            $('#host-grid').append(cell);
-            cell.onclick = hostChosen;
-        }
-        showApps();
     }, function (failedRefreshInfo) {
         snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
@@ -190,14 +174,30 @@ function cancelAddHost() {
     document.querySelector('#addHostDialog').close();
 }
 
+function addHostToGrid(host) {
+    if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
+        var cell = document.createElement('div');
+        cell.className += 'mdl-cell mdl-cell--3-col';
+        cell.id = 'hostgrid-' + host;
+        cell.innerHTML = host;
+        $('#host-grid').append(cell);
+        cell.onclick = hostChosen;
+        hosts.push(host);
+        saveHosts();
+    }
+}
+
 function continueAddHost() {
     var inputHost = $('#dialogInputHost').val();
 
     pairTo(inputHost, 
-            function() { document.querySelector('#addHostDialog').close() }, 
-            function() {snackbarLog('pairing to ' + inputHost + ' failed!');} 
-          );
-
+        function() {
+           addHostToGrid(inputHost);
+           document.querySelector('#addHostDialog').close();
+        },
+        function() {
+            snackbarLog('pairing to ' + inputHost + ' failed!');
+        });
 }
 
 // locally remove the hostname/ip from the saved `hosts` array.
@@ -535,12 +535,7 @@ function onWindowLoad(){
             var ips = Object.keys(finder.byService_['_nvstream._tcp']);
             for (var ip in ips) {
                 if (finder.byService_['_nvstream._tcp'][ip]) {
-                    var cell = document.createElement('div');
-                    cell.className += 'mdl-cell mdl-cell--3-col';
-                    cell.id = 'hostgrid-' + ip;
-                    cell.innerHTML = ip;
-                    $('#host-grid').append(cell);
-                    cell.onclick = hostChosen;
+                    addHostToGrid(ip);
                 }
             }
         }
