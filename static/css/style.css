@@ -54,7 +54,9 @@
 }
 #backIcon {
     height: 32px;
-    width: 32px
+    width: 32px;
+    margin-left: -20px;
+    padding-right: 20px;
 }
 #addHostCell {
     padding-top:3px;
