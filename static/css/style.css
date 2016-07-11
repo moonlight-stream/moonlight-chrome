@@ -178,3 +178,7 @@ main {
 .not-current-game {
   border: 1px solid black;
 }
+.game-title {
+    color: #000;
+    font-weight: bold;
+}

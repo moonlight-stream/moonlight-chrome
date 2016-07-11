@@ -235,7 +235,7 @@ function showApps() {
         appList.forEach(function (app) {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
                 var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
-                $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}));
+                $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
                 $('#game-'+app.id).on('click', startGame);
 
                 if (api.currentGame === app.id){ // stylize the currently running game
