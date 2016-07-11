@@ -104,12 +104,14 @@ function pairTo(host, onSuccess, onFailure) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
         onFailure();
+        return;
     }
 
     api = new NvHTTP(host, myUniqueid);
     api.refreshServerInfo().then(function (ret) {
-        if(api.paired) {
+        if (api.paired) {
             onSuccess();
+            return;
         }
 
         var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
@@ -126,12 +128,12 @@ function pairTo(host, onSuccess, onFailure) {
                     $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
                 }
                 onFailure();
+                return;
             }
 
             snackbarLog('Pairing successful');
             pairingDialog.close();
             onSuccess();
-
         }, function (failedPairing) {
             snackbarLog('Failed pairing to: ' + host);
             console.log('pairing failed, and returned ' + failedPairing);
