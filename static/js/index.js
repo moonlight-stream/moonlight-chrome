@@ -222,14 +222,10 @@ function showApps() {
         return;
     }
 
+    // if game grid is populated, empty it
+    $("#game-grid").empty();
+
     api.getAppList().then(function (appList) {
-
-        // if game grid is populated, empty it
-        if($("#game-grid").children().length > 0) {
-            $("#game-grid").empty();
-        }
-        
-
         appList.forEach(function (app) {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
                 var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});

@@ -40,7 +40,6 @@ function NvHTTP(address, clientUid) {
     this.clientUid = clientUid;
     this._baseUrlHttps = 'https://' + address + ':47984';
     this._baseUrlHttp = 'http://' + address + ':47989';
-    this._appListCache = null;
     this._memCachedBoxArtArray = {};
     _self = this;
 };
@@ -133,13 +132,6 @@ NvHTTP.prototype = {
     },
     
     getAppList: function () {
-        if (_self._appListCache) {
-            console.log('Returning app list from cache');
-            return new Promise(function (resolve, reject) {
-                resolve(_self._appListCache);
-            });
-        }
-        
         return sendMessage('openUrl', [_self._baseUrlHttps + '/applist?' + _self._buildUidStr(), false]).then(function (ret) {
             $xml = _self._parseXML(ret);
             
@@ -154,9 +146,6 @@ NvHTTP.prototype = {
                     running: (appElements[i].getElementsByTagName("IsRunning")[0].innerHTML.trim() == 1)
                 });
             }
-            
-            if (appList)
-                _self._appListCache = appList;
             
             return appList;
         });
