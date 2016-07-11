@@ -106,47 +106,49 @@ function pairTo(host, onSuccess, onFailure) {
         onFailure();
     }
 
-    if(!api) {
-        api = new NvHTTP(host, myUniqueid);
-    }
-
-    if(api.paired) {
-        onSuccess();
-    }
-
-    var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
-    var pairingDialog = document.querySelector('#pairingDialog');
-    $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
-    pairingDialog.showModal();
-    console.log('sending pairing request to ' + host + ' with random number ' + randomNumber);
-
-    api.pair(randomNumber).then(function (paired) {
-        if (!paired) {
-            if (api.currentGame != 0) {
-                $('#pairingDialogText').html('Error: ' + host + ' is in app.  Cannot pair until the app is stopped.');
-            } else {
-                $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
-            }
-            onFailure();
+    api = new NvHTTP(host, myUniqueid);
+    api.refreshServerInfo().then(function (ret) {
+        if(api.paired) {
+            onSuccess();
         }
 
-        snackbarLog('Pairing successful');
-        pairingDialog.close();
+        var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
+        var pairingDialog = document.querySelector('#pairingDialog');
+        $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
+        pairingDialog.showModal();
+        console.log('sending pairing request to ' + host + ' with random number ' + randomNumber);
 
-        var cell = document.createElement('div');
-        cell.className += 'mdl-cell mdl-cell--3-col';
-        cell.id = 'hostgrid-' + hosts[i];
-        cell.innerHTML = hosts[i];
-        $('#host-grid').append(cell);
-        cell.onclick = hostChosen;
+        api.pair(randomNumber).then(function (paired) {
+            if (!paired) {
+                if (api.currentGame != 0) {
+                    $('#pairingDialogText').html('Error: ' + host + ' is in app.  Cannot pair until the app is stopped.');
+                } else {
+                    $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
+                }
+                onFailure();
+            }
 
-        saveHosts();
-        onSuccess();
+            snackbarLog('Pairing successful');
+            pairingDialog.close();
 
-    }, function (failedPairing) {
-        snackbarLog('Failed pairing to: ' + host);
-        console.log('pairing failed, and returned ' + failedPairing);
-        onFailure();
+            var cell = document.createElement('div');
+            cell.className += 'mdl-cell mdl-cell--3-col';
+            cell.id = 'hostgrid-' + host;
+            cell.innerHTML = host;
+            $('#host-grid').append(cell);
+            cell.onclick = hostChosen;
+
+            saveHosts();
+            onSuccess();
+
+        }, function (failedPairing) {
+            snackbarLog('Failed pairing to: ' + host);
+            console.log('pairing failed, and returned ' + failedPairing);
+            onFailure();
+        });
+    }, function (failedRefreshInfo) {
+        snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
+        console.log('Returned error was: ' + failedRefreshInfo);
     });
 }
 
@@ -157,11 +159,7 @@ function hostChosen(sourceEvent) {
         host = sourceEvent.srcElement.innerText;
     }
 
-
-    if(!api || api.address != host) {
-        api = new NvHTTP(host, myUniqueid);
-    }
-
+    api = new NvHTTP(host, myUniqueid);
     api.refreshServerInfo().then(function (ret) {
         if(!api.paired) {
             pairTo(host);
@@ -169,8 +167,8 @@ function hostChosen(sourceEvent) {
         if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
             var cell = document.createElement('div');
             cell.className += 'mdl-cell mdl-cell--3-col';
-            cell.id = 'hostgrid-' + hosts[i];
-            cell.innerHTML = hosts[i];
+            cell.id = 'hostgrid-' + host;
+            cell.innerHTML = host;
             $('#host-grid').append(cell);
             cell.onclick = hostChosen;
         }
