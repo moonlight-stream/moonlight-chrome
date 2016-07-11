@@ -3,6 +3,7 @@ var hosts = [];
 var pairingCert;
 var myUniqueid;
 var api;
+var relaunchSourceEvent;
 
 // Called by the common.js module.
 function attachListeners() {
@@ -306,6 +307,10 @@ function startGame(sourceEvent) {
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
             api.getAppById(api.currentGame).then(function (currentApp) {
+                // This event gets saved and passed back to this callback
+                // after the game is quit
+                relaunchSourceEvent = sourceEvent;
+
                 var quitAppDialog = document.querySelector('#quitAppDialog');
                 document.getElementById('quitAppDialogText').innerHTML = 
                     currentApp.title + ' is already running. Would you like to quit ' +
@@ -333,7 +338,7 @@ function startGame(sourceEvent) {
         $('#loadingMessage').text('Starting ' + appName + '...');
         playGameMode();
 
-        if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
+        if(api.currentGame == appID) { // if user wants to launch the already-running app, then we resume it.
             return api.resumeApp(rikey, rikeyid).then(function (ret) {
                 sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,
                         bitrate.toString(), api.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
@@ -342,6 +347,7 @@ function startGame(sourceEvent) {
                 console.log('Returned error was: ' + failedResumeApp);
                 return;
             });
+        }
 
         api.launchApp(appID,
                 streamWidth + "x" + streamHeight + "x" + frameRate,
@@ -361,6 +367,7 @@ function startGame(sourceEvent) {
 }
 
 function cancelQuitApp() {
+    relaunchSourceEvent = null;
     document.querySelector('#quitAppDialog').close();
     console.log('closing app dialog, and returning');
 }
@@ -368,7 +375,18 @@ function cancelQuitApp() {
 function continueQuitApp(sourceEvent) {
     // I want the sourceEvent's sourceEvent
     console.log('stopping game, and closing app dialog, and returning');
-    stopGame();
+    stopGame(
+        function() {
+            if (relaunchSourceEvent != null) {
+                // Save and null relaunchSourceEvent just in case startGame()
+                // wants to set it again.
+                var event = relaunchSourceEvent;
+                relaunchSourceEvent = null;
+
+                startGame(event);
+            }
+        }
+    );
     document.querySelector('#quitAppDialog').close();
 }
 
@@ -404,7 +422,6 @@ function fullscreenNaclModule() {
 }
 
 function stopGame(callbackFunction) {
-
     api.refreshServerInfo().then(function (ret) {
         api.getAppById(api.currentGame).then(function (runningApp) {
             if (!runningApp) {
