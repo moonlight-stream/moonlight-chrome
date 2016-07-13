@@ -510,9 +510,10 @@ function onWindowLoad(){
             hosts = previousValue.hosts != null ? previousValue.hosts : [];
             for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
                 var cell = document.createElement('div');
-                cell.className += 'mdl-cell mdl-cell--3-col';
+                cell.className += 'mdl-cell mdl-cell--3-col host-cell';
                 cell.id = 'hostgrid-' + hosts[i];
                 cell.innerHTML = hosts[i];
+                $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
                 $('#host-grid').append(cell);
                 cell.onclick = hostChosen;
             }
