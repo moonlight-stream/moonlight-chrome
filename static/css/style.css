@@ -164,6 +164,11 @@ main {
 }
 .host-cell:hover {
     cursor: pointer;
+    color: #000 !important;
+}
+.host-cell:hover img {
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
 }
 .host-cell img {
     width: 80px;;
