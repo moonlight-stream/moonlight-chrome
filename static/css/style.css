@@ -158,6 +158,9 @@ main {
     -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
     -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
     box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
 }
 .host-cell:hover {
     cursor: pointer;
