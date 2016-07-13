@@ -134,6 +134,9 @@ main {
     width: 100%;
     height: 100%;
 }
+.box-art:hover {
+    cursor: pointer;
+}
 .current-game {
     border: 3px solid green;
 }
