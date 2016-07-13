@@ -3,6 +3,7 @@ var hosts = [];
 var pairingCert;
 var myUniqueid;
 var api;
+var relaunchSourceEvent;
 
 // Called by the common.js module.
 function attachListeners() {
@@ -104,49 +105,44 @@ function pairTo(host, onSuccess, onFailure) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
         onFailure();
+        return;
     }
 
-    if(!api) {
-        api = new NvHTTP(host, myUniqueid);
-    }
-
-    if(api.paired) {
-        onSuccess();
-    }
-
-    var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
-    var pairingDialog = document.querySelector('#pairingDialog');
-    $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
-    pairingDialog.showModal();
-    console.log('sending pairing request to ' + host + ' with random number ' + randomNumber);
-
-    api.pair(randomNumber).then(function (paired) {
-        if (!paired) {
-            if (api.currentGame != 0) {
-                $('#pairingDialogText').html('Error: ' + host + ' is in app.  Cannot pair until the app is stopped.');
-            } else {
-                $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
-            }
-            onFailure();
+    api = new NvHTTP(host, myUniqueid);
+    api.refreshServerInfo().then(function (ret) {
+        if (api.paired) {
+            onSuccess();
+            return;
         }
 
-        snackbarLog('Pairing successful');
-        pairingDialog.close();
+        var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
+        var pairingDialog = document.querySelector('#pairingDialog');
+        $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
+        pairingDialog.showModal();
+        console.log('sending pairing request to ' + host + ' with random number ' + randomNumber);
 
-        var cell = document.createElement('div');
-        cell.className += 'mdl-cell mdl-cell--3-col';
-        cell.id = 'hostgrid-' + hosts[i];
-        cell.innerHTML = hosts[i];
-        $('#host-grid').append(cell);
-        cell.onclick = hostChosen;
+        api.pair(randomNumber).then(function (paired) {
+            if (!paired) {
+                if (api.currentGame != 0) {
+                    $('#pairingDialogText').html('Error: ' + host + ' is in app.  Cannot pair until the app is stopped.');
+                } else {
+                    $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
+                }
+                onFailure();
+                return;
+            }
 
-        saveHosts();
-        onSuccess();
-
-    }, function (failedPairing) {
-        snackbarLog('Failed pairing to: ' + host);
-        console.log('pairing failed, and returned ' + failedPairing);
-        onFailure();
+            snackbarLog('Pairing successful');
+            pairingDialog.close();
+            onSuccess();
+        }, function (failedPairing) {
+            snackbarLog('Failed pairing to: ' + host);
+            console.log('pairing failed, and returned ' + failedPairing);
+            onFailure();
+        });
+    }, function (failedRefreshInfo) {
+        snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
+        console.log('Returned error was: ' + failedRefreshInfo);
     });
 }
 
@@ -157,24 +153,13 @@ function hostChosen(sourceEvent) {
         host = sourceEvent.srcElement.innerText;
     }
 
-
-    if(!api || api.address != host) {
-        api = new NvHTTP(host, myUniqueid);
-    }
-
+    api = new NvHTTP(host, myUniqueid);
     api.refreshServerInfo().then(function (ret) {
         if(!api.paired) {
-            pairTo(host);
+            pairTo(host, function(){ showApps(); }, function(){});
+        } else {
+            showApps();
         }
-        if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
-            var cell = document.createElement('div');
-            cell.className += 'mdl-cell mdl-cell--3-col';
-            cell.id = 'hostgrid-' + hosts[i];
-            cell.innerHTML = hosts[i];
-            $('#host-grid').append(cell);
-            cell.onclick = hostChosen;
-        }
-        showApps();
     }, function (failedRefreshInfo) {
         snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
@@ -192,14 +177,30 @@ function cancelAddHost() {
     document.querySelector('#addHostDialog').close();
 }
 
+function addHostToGrid(host) {
+    if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
+        var cell = document.createElement('div');
+        cell.className += 'mdl-cell mdl-cell--3-col';
+        cell.id = 'hostgrid-' + host;
+        cell.innerHTML = host;
+        $('#host-grid').append(cell);
+        cell.onclick = hostChosen;
+        hosts.push(host);
+        saveHosts();
+    }
+}
+
 function continueAddHost() {
     var inputHost = $('#dialogInputHost').val();
 
     pairTo(inputHost, 
-            function() { document.querySelector('#addHostDialog').close() }, 
-            function() {snackbarLog('pairing to ' + inputHost + ' failed!');} 
-          );
-
+        function() {
+           addHostToGrid(inputHost);
+           document.querySelector('#addHostDialog').close();
+        },
+        function() {
+            snackbarLog('pairing to ' + inputHost + ' failed!');
+        });
 }
 
 // locally remove the hostname/ip from the saved `hosts` array.
@@ -224,14 +225,10 @@ function showApps() {
         return;
     }
 
+    // if game grid is populated, empty it
+    $("#game-grid").empty();
+
     api.getAppList().then(function (appList) {
-
-        // if game grid is populated, empty it
-        if($("#game-grid").children().length > 0) {
-            $("#game-grid").empty();
-        }
-        
-
         appList.forEach(function (app) {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
                 var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
@@ -310,6 +307,10 @@ function startGame(sourceEvent) {
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
             api.getAppById(api.currentGame).then(function (currentApp) {
+                // This event gets saved and passed back to this callback
+                // after the game is quit
+                relaunchSourceEvent = sourceEvent;
+
                 var quitAppDialog = document.querySelector('#quitAppDialog');
                 document.getElementById('quitAppDialogText').innerHTML = 
                     currentApp.title + ' is already running. Would you like to quit ' +
@@ -337,7 +338,7 @@ function startGame(sourceEvent) {
         $('#loadingMessage').text('Starting ' + appName + '...');
         playGameMode();
 
-        if(api.currentGame == appID) // if user wants to launch the already-running app, then we resume it.
+        if(api.currentGame == appID) { // if user wants to launch the already-running app, then we resume it.
             return api.resumeApp(rikey, rikeyid).then(function (ret) {
                 sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,
                         bitrate.toString(), api.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
@@ -346,6 +347,7 @@ function startGame(sourceEvent) {
                 console.log('Returned error was: ' + failedResumeApp);
                 return;
             });
+        }
 
         api.launchApp(appID,
                 streamWidth + "x" + streamHeight + "x" + frameRate,
@@ -365,6 +367,7 @@ function startGame(sourceEvent) {
 }
 
 function cancelQuitApp() {
+    relaunchSourceEvent = null;
     document.querySelector('#quitAppDialog').close();
     console.log('closing app dialog, and returning');
 }
@@ -372,7 +375,18 @@ function cancelQuitApp() {
 function continueQuitApp(sourceEvent) {
     // I want the sourceEvent's sourceEvent
     console.log('stopping game, and closing app dialog, and returning');
-    stopGame();
+    stopGame(
+        function() {
+            if (relaunchSourceEvent != null) {
+                // Save and null relaunchSourceEvent just in case startGame()
+                // wants to set it again.
+                var event = relaunchSourceEvent;
+                relaunchSourceEvent = null;
+
+                startGame(event);
+            }
+        }
+    );
     document.querySelector('#quitAppDialog').close();
 }
 
@@ -408,7 +422,6 @@ function fullscreenNaclModule() {
 }
 
 function stopGame(callbackFunction) {
-
     api.refreshServerInfo().then(function (ret) {
         api.getAppById(api.currentGame).then(function (runningApp) {
             if (!runningApp) {
@@ -542,12 +555,7 @@ function onWindowLoad(){
             var ips = Object.keys(finder.byService_['_nvstream._tcp']);
             for (var ip in ips) {
                 if (finder.byService_['_nvstream._tcp'][ip]) {
-                    var cell = document.createElement('div');
-                    cell.className += 'mdl-cell mdl-cell--3-col';
-                    cell.id = 'hostgrid-' + ip;
-                    cell.innerHTML = ip;
-                    $('#host-grid').append(cell);
-                    cell.onclick = hostChosen;
+                    addHostToGrid(ip);
                 }
             }
         }

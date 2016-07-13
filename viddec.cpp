@@ -62,6 +62,14 @@ static const char k_FragmentShaderExternal[] =
       "    gl_FragColor = texture2D(s_texture, v_texCoord); \n"
       "}";
 
+void MoonlightInstance::DidChangeFocus(bool got_focus) {
+    // Request an IDR frame to dump the frame queue that may have
+    // built up from the GL pipeline being stalled.
+    if (got_focus) {
+        g_Instance->m_RequestIdrFrame = true;
+    }
+}
+
 void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     if (!glInitializePPAPI(pp::Module::Get()->get_browser_interface())) {
         return;
@@ -230,6 +238,12 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     bool isSps = false;
     bool isPps = false;
     bool isIframe = false;
+
+    // Request an IDR frame if needed
+    if (g_Instance->m_RequestIdrFrame) {
+        g_Instance->m_RequestIdrFrame = false;
+        return DR_NEED_IDR;
+    }
     
     // Look at the NALU type
     if (decodeUnit->bufferList->length > 5) {
