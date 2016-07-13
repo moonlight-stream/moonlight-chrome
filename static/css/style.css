@@ -133,6 +133,9 @@ main {
     margin: 0;
     width: 100%;
     height: 100%;
+    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
 }
 .box-art:hover {
     cursor: pointer;
@@ -152,6 +155,9 @@ main {
     width: 150px !important;
     height: 150px !important;
     background-color: #000;
+    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
 }
 .host-cell:hover {
     cursor: pointer;
