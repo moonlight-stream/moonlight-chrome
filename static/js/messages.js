@@ -22,10 +22,17 @@ function handleMessage(msg) {
         console.log(msg.data);
         if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
             $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.            
-            api.refreshServerInfo().then(function (ret) {
+
+            api.refreshServerInfo().then(function (ret) {  // refresh the serverinfo to acknowledge the currently running app
+                api.getAppList().then(function (appList) {
+                    appList.forEach(function (app) {
+                        stylizeBoxArt(api, app.id);  // and reapply stylization to indicate what's currently running
+                    });
+                });
                 showApps();
                 chrome.app.window.current().restore();
             });
+
         } else if(msg.data === 'Connection Established') {
             $('#loadingSpinner').css('display', 'none');
         } else if(msg.data.indexOf('ProgressMsg: ') === 0) {

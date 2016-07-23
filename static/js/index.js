@@ -218,6 +218,25 @@ function pairingPopupCanceled() {
     document.querySelector('#pairingDialog').close();
 }
 
+// puts the CSS style for current app on the app that's currently running
+// and puts the CSS style for non-current app apps that aren't running
+// this requires a hot-off-the-host `api`, and the appId we're going to stylize
+// the function was made like this so that we can remove duplicated code, but
+// not do N*N stylizations of the box art, or make the code not flow very well 
+function stylizeBoxArt(freshApi, appIdToStylize) {
+    if (freshApi.currentGame === appIdToStylize){ // stylize the currently running game
+        // destylize it, if it has the not-current-game style
+        if ($('#game-'+ appIdToStylize).hasClass("not-current-game")) $('#game-'+ appIdToStylize).removeClass("not-current-game");
+        // add the current-game style
+        $('#game-'+ appIdToStylize).addClass("current-game");
+    } else {
+        // destylize it, if it has the current-game style
+        if ($('#game-'+ appIdToStylize).hasClass("current-game")) $('#game-'+ appIdToStylize).removeClass("current-game");
+        // add the not-current-game style
+        $('#game-'+ appIdToStylize).addClass('not-current-game');
+    }
+}
+
 // show the app list
 function showApps() {
     if(!api || !api.paired) {  // safety checking. shouldn't happen.
@@ -231,21 +250,13 @@ function showApps() {
     api.getAppList().then(function (appList) {
         appList.forEach(function (app) {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
+                // put the box art into the image holder
                 var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
                 $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
                 $('#game-'+app.id).on('click', startGame);
 
-                if (api.currentGame === app.id){ // stylize the currently running game
-                    // destylize it, if it has the not-current-game style
-                    if ($('#game-'+ app.id).hasClass("not-current-game")) $('#game-'+ app.id).removeClass("not-current-game");
-                    // add the current-game style
-                    $('#game-'+ app.id).addClass("current-game");
-                } else {
-                    // destylize it, if it has the current-game style
-                    if ($('#game-'+ app.id).hasClass("current-game")) $('#game-'+ app.id).removeClass("current-game");
-                    // add the not-current-game style
-                    $('#game-'+ app.id).addClass('not-current-game');
-                }
+                // apply CSS stylization to indicate whether the app is active
+                stylizeBoxArt(api, app.id);
 
             }, function (failedPromise) {
                 console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
