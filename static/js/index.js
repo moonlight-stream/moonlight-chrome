@@ -1,4 +1,7 @@
-var host = "";
+// CURRENT ISSUE: host is not being saved.  or it may have not been saved, and my state is screwed up.
+// if (given host not in hosts) hosts.append(given host);
+
+var _host = "";
 var hosts = [];
 var pairingCert;
 var myUniqueid;
@@ -149,14 +152,19 @@ function pairTo(host, onSuccess, onFailure) {
 function hostChosen(sourceEvent) {
 
     if(sourceEvent && sourceEvent.srcElement) {
-        console.log('parsing host from grid element.');
-        host = sourceEvent.srcElement.innerText;
+        if (sourceEvent.srcElement.innerText == "") {
+            console.log('user clicked image. we gotta hack to parse out the host.');
+            host = sourceEvent.currentTarget.childNodes[1].textContent;
+        } else {
+            console.log('parsing host from grid element.');
+            host = sourceEvent.srcElement.innerText;
+        }
     }
 
     api = new NvHTTP(host, myUniqueid);
     api.refreshServerInfo().then(function (ret) {
         if(!api.paired) {
-            pairTo(host, function(){ showApps(); }, function(){});
+            pairTo(host, function(){ showApps(); saveHosts(); }, function(){});
         } else {
             showApps();
         }
@@ -178,15 +186,15 @@ function cancelAddHost() {
 }
 
 function addHostToGrid(host) {
-    if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
-        var cell = document.createElement('div');
-        cell.className += 'mdl-cell mdl-cell--3-col';
-        cell.id = 'hostgrid-' + host;
-        cell.innerHTML = host;
-        $('#host-grid').append(cell);
-        cell.onclick = hostChosen;
+    var cell = document.createElement('div');
+    cell.className += 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect';
+    cell.id = 'hostgrid-' + host;
+    cell.innerHTML = host;
+    $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
+    $('#host-grid').append(cell);
+    cell.onclick = hostChosen;
+    if(hosts.indexOf(host) < 0) {
         hosts.push(host);
-        saveHosts();
     }
 }
 
@@ -196,6 +204,7 @@ function continueAddHost() {
     pairTo(inputHost, 
         function() {
            addHostToGrid(inputHost);
+           saveHosts();
            document.querySelector('#addHostDialog').close();
         },
         function() {
@@ -533,13 +542,7 @@ function onWindowLoad(){
         chrome.storage.sync.get('hosts', function(previousValue) {
             hosts = previousValue.hosts != null ? previousValue.hosts : [];
             for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
-                var cell = document.createElement('div');
-                cell.className += 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect';
-                cell.id = 'hostgrid-' + hosts[i];
-                cell.innerHTML = hosts[i];
-                $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
-                $('#host-grid').append(cell);
-                cell.onclick = hostChosen;
+                addHostToGrid(hosts[i]);
             }
 
         });
