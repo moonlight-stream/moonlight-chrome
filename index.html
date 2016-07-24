@@ -34,8 +34,12 @@
                         <option value="30">30 FPS</option>
                         <option value="60">60 FPS</option>
                     </select>
-                    <output id='bitrateField'>10 Mbps</output>
                 </div>
+                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="remoteAudioEnabledSwitch" id="remoteAudioEnabledSwitchContainer">
+                    <input type="checkbox" id="remoteAudioEnabledSwitch" class="mdl-switch__input" checked>
+                    <span class="mdl-switch__label">Remote audio off/on</span>
+                </label>
+                <output id='bitrateField'>10 Mbps</output>
                 <input id="bitrateSlider" class="mdl-slider mdl-js-slider" type="range" min="0" max="100" step="0.5" value="10">
             </div>
 

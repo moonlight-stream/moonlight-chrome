@@ -16,6 +16,7 @@ function attachListeners() {
     $('#selectFramerate').on('change', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
+    $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
     $('#hostChosen').on('click', hostChosen);
     $('#addHostCell').on('click', addHost);
     $('#cancelAddHost').on('click', cancelAddHost);
@@ -369,6 +370,8 @@ function startGame(sourceEvent) {
             });
         }
 
+        remote_audio_enabled = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
+
         api.launchApp(appID,
                 streamWidth + "x" + streamHeight + "x" + frameRate,
                 1, // Allow GFE to optimize game settings
@@ -497,6 +500,14 @@ function saveBitrate() {
     storeData('bitrate', $('#bitrateSlider').val(), null);
 }
 
+function saveRemoteAudio() {
+    console.log('saving remote audio state');
+    // problem: when off, and the app is just starting, a tick to the switch doesn't always toggle it
+    // second problem: this callback is called immediately after clicking, so the HTML class `is-checked` isn't toggled yet
+    // to solve the second problem, we invert the boolean.  This has worked in all cases I've tried, except for the first case
+    storeData('remoteAudio', !$("#remoteAudioEnabledSwitch").parent().hasClass('is-checked'), null);
+}
+
 function updateDefaultBitrate() {
     var res = $('#selectResolution').val();
     var frameRate = $('#selectFramerate').val();
@@ -533,6 +544,16 @@ function onWindowLoad(){
         // load stored resolution prefs
         chrome.storage.sync.get('resolution', function(previousValue) {
             $('#selectResolution').val(previousValue.resolution != null ? previousValue.resolution : '1280:720');
+        });
+        chrome.storage.sync.get('remoteAudio', function(previousValue) {
+            if(previousValue.remoteAudio == null) {
+                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.off();
+                return;
+            } else if(previousValue.remoteAudio == false) {
+                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.off();
+            }  else {
+                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.on();
+            }
         });
         // load stored framerate prefs
         chrome.storage.sync.get('frameRate', function(previousValue) {
