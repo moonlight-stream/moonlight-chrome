@@ -376,7 +376,7 @@ function startGame(sourceEvent) {
                 streamWidth + "x" + streamHeight + "x" + frameRate,
                 1, // Allow GFE to optimize game settings
                 rikey, rikeyid,
-                0, // Play audio locally too
+                remote_audio_enabled, // Play audio locally too
                 0x030002 // Surround channel mask << 16 | Surround channel count
                 ).then(function (ret) {
             sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,
