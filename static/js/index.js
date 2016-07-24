@@ -1,7 +1,3 @@
-// CURRENT ISSUE: host is not being saved.  or it may have not been saved, and my state is screwed up.
-// if (given host not in hosts) hosts.append(given host);
-
-var _host = "";
 var hosts = [];
 var pairingCert;
 var myUniqueid;
@@ -132,6 +128,8 @@ function pairTo(host, onSuccess, onFailure) {
                 } else {
                     $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
                 }
+                console.log('failed API object: ');
+                console.log(api.toString());
                 onFailure();
                 return;
             }
@@ -142,11 +140,15 @@ function pairTo(host, onSuccess, onFailure) {
         }, function (failedPairing) {
             snackbarLog('Failed pairing to: ' + host);
             console.log('pairing failed, and returned ' + failedPairing);
+            console.log('failed API object: ');
+            console.log(api.toString());
             onFailure();
         });
     }, function (failedRefreshInfo) {
         snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
+        console.log('failed API object: ');
+        console.log(api.toString());
     });
 }
 
@@ -155,10 +157,10 @@ function hostChosen(sourceEvent) {
     if(sourceEvent && sourceEvent.srcElement) {
         if (sourceEvent.srcElement.innerText == "") {
             console.log('user clicked image. we gotta hack to parse out the host.');
-            host = sourceEvent.currentTarget.childNodes[1].textContent;
+            var host = sourceEvent.currentTarget.childNodes[1].textContent;
         } else {
             console.log('parsing host from grid element.');
-            host = sourceEvent.srcElement.innerText;
+            var host = sourceEvent.srcElement.innerText;
         }
     }
 
@@ -172,6 +174,8 @@ function hostChosen(sourceEvent) {
     }, function (failedRefreshInfo) {
         snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
+        console.log('failed API object: ');
+        console.log(api.toString());
     });
 }
 
@@ -218,7 +222,7 @@ function continueAddHost() {
 // this means we can re-add the host, and will still be paired.
 // TODO: use the chrome context menu to add right-click support to remove the host in grid-ui
 // https://github.com/GoogleChrome/chrome-app-samples/blob/master/samples/context-menu/main.js
-function forgetHost() {
+function forgetHost(host) {
     snackbarLog('Feature not yet ported to grid-ui');
     hosts.splice(hosts.indexOf(host), 1); // remove the host from the array;
     saveHosts();
@@ -270,12 +274,16 @@ function showApps() {
 
             }, function (failedPromise) {
                 console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
+                console.log('failed API object: ');
+                console.log(api.toString());
             });
             
         });
 
     }, function (failedAppList) {
         console.log('Failed to get applist from host: ' + api.address);
+        console.log('failed API object: ');
+        console.log(api.toString());
     });
 
     showAppsMode();
@@ -324,6 +332,8 @@ function startGame(sourceEvent) {
         return;
     }
 
+    var host = api.address;
+
     // refresh the server info, because the user might have quit the game.
     api.refreshServerInfo().then(function (ret) {
         if(api.currentGame != 0 && api.currentGame != appID) {
@@ -341,6 +351,8 @@ function startGame(sourceEvent) {
             }, function (failedCurrentApp) {
                 console.log('ERROR: failed to get the current running app from host!');
                 console.log('Returned error was: ' + failedCurrentApp);
+                console.log('failed API object: ');
+                console.log(api.toString());
                 return;
             });
             return;
@@ -376,7 +388,7 @@ function startGame(sourceEvent) {
                 streamWidth + "x" + streamHeight + "x" + frameRate,
                 1, // Allow GFE to optimize game settings
                 rikey, rikeyid,
-                remote_audio_enabled, // Play audio locally too
+                remote_audio_enabled, // Play audio locally too?
                 0x030002 // Surround channel mask << 16 | Surround channel count
                 ).then(function (ret) {
             sendMessage('startRequest', [host, streamWidth, streamHeight, frameRate,

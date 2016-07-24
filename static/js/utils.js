@@ -64,7 +64,7 @@ function _base64ToArrayBuffer(base64) {
     var binary_string =  window.atob(base64);
     var len = binary_string.length;
     var bytes = new Uint8Array( len );
-    for (var i = 0; i < len; i++)        {
+    for (var i = 0; i < len; i++) {
         bytes[i] = binary_string.charCodeAt(i);
     }
     return bytes.buffer;
@@ -72,13 +72,33 @@ function _base64ToArrayBuffer(base64) {
 
 NvHTTP.prototype = {
     refreshServerInfo: function () {
+        // try HTTPS first
         return sendMessage('openUrl', [ _self._baseUrlHttps + '/serverinfo?' + _self._buildUidStr(), false]).then(function(ret) {
-            if (!_self._parseServerInfo(ret)) {
+            if (!_self._parseServerInfo(ret)) {  // if that fails
+                // try HTTP as a failover.  Useful to clients who aren't paired yet
                 return sendMessage('openUrl', [ _self._baseUrlHttp + '/serverinfo?' + _self._buildUidStr(), false]).then(function(retHttp) {
                     _self._parseServerInfo(retHttp);
                 });
             }
         });
+    },
+
+    toString: function() {
+        var string = '';
+        string += 'server address: ' + _self.address + '\r\n';
+        string += 'server UID: ' + _self.serverUid + '\r\n';
+        string += 'is paired: ' + _self.paired + '\r\n';
+        string += 'supports 4K: ' + _self.supports4K + '\r\n';
+        string += 'current game: ' + _self.currentGame + '\r\n';
+        string += 'server major version: ' + _self.serverMajorVersion + '\r\n';
+        string += 'GFE version: ' + _self.GfeVersion + '\r\n';
+        string += 'gpu type: ' + _self.gputype + '\r\n';
+        string += 'number of apps: ' + _self.numofapps + '\r\n';
+        string += 'supported display modes: ' + '\r\n';
+        for(displayMode in _self.supportedDisplayModes) {
+            string += '\t' + displayMode + ': ' + _self.supportedDisplayModes[displayMode] + '\r\n';
+        }
+        return string;
     },
     
     _parseServerInfo: function(xmlStr) {
