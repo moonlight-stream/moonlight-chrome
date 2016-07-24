@@ -122,24 +122,28 @@ NvHTTP.prototype = {
         _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
         _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
         _self.serverUid = $root.find('uniqueid').text().trim();
-        _self.GfeVersion = $root.find('GfeVersion').text().trim();
-        _self.gputype = $root.find('gputype').text().trim();
-        _self.numofapps = $root.find('numofapps').text().trim();
         _self.hostname = $root.find('hostname').text().trim();
         _self.externalIP = $root.find('ExternalIP').text().trim();
-        // now for the hard part: parsing the supported streaming
-        $root.find('DisplayMode').each(function(index, value) {  // for each resolution:FPS object
-            var yres = parseInt($(value).find('Height').text());
-            var xres = parseInt($(value).find('Width').text());
-            var fps = parseInt($(value).find('RefreshRate').text());
-            if(!_self.supportedDisplayModes[yres + ':' + xres]) {
-                _self.supportedDisplayModes[yres + ':' + xres] = [];
-            }
-            if(!_self.supportedDisplayModes[yres + ':' + xres].includes(fps)) {
-                _self.supportedDisplayModes[yres + ':' + xres].push(fps);
-            }
+        try {  //  these aren't critical for functionality, and don't necessarily exist in older GFE versions.
+            _self.GfeVersion = $root.find('GfeVersion').text().trim();
+            _self.gputype = $root.find('gputype').text().trim();
+            _self.numofapps = $root.find('numofapps').text().trim();
+            // now for the hard part: parsing the supported streaming
+            $root.find('DisplayMode').each(function(index, value) {  // for each resolution:FPS object
+                var yres = parseInt($(value).find('Height').text());
+                var xres = parseInt($(value).find('Width').text());
+                var fps = parseInt($(value).find('RefreshRate').text());
+                if(!_self.supportedDisplayModes[yres + ':' + xres]) {
+                    _self.supportedDisplayModes[yres + ':' + xres] = [];
+                }
+                if(!_self.supportedDisplayModes[yres + ':' + xres].includes(fps)) {
+                    _self.supportedDisplayModes[yres + ':' + xres].push(fps);
+                }
+            });
+        } catch (err) {
+            // we don't need this data, so no error handling necessary
+        }
 
-        });
 
         // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
         // has the semantics that its name would indicate. To contain the effects of this change as much
