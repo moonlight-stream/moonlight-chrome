@@ -1,36 +1,3 @@
-@font-face {
-  font-family: 'Material Icons';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Material Icons'),
-       local('MaterialIcons-Regular'),
-       url('../fonts/MaterialIcons-Regular.woff') format('woff'),
-}
-.material-icons {
-  font-family: 'Material Icons';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;  /* Preferred icon size */
-  display: inline-block;
-  line-height: 1;
-  text-transform: none;
-  letter-spacing: normal;
-  word-wrap: normal;
-  white-space: nowrap;
-  direction: ltr;
-
-  /* Support for all WebKit browsers. */
-  -webkit-font-smoothing: antialiased;
-  /* Support for Safari and Chrome. */
-  text-rendering: optimizeLegibility;
-
-  /* Support for Firefox. */
-  -moz-osx-font-smoothing: grayscale;
-
-  /* Support for IE. */
-  font-feature-settings: 'liga';
-}
-
 .mdl-layout__header-row {
     color: #fff;
 }
@@ -46,21 +13,14 @@
     color:#fff;
     padding:25px;
 } 
-#addHostIcon {
-    width:64px;
-    height:64px;
-    margin:auto;
-    display:block;
-}
 #backIcon {
     height: 32px;
     width: 32px;
     margin-left: -20px;
     padding-right: 20px;
 }
-#addHostCell {
-    padding-top:3px;
-    padding-bottom:3px;
+#backIcon:hover {
+    cursor: pointer;
 }
 .mdl-dialog {
   border: none;
@@ -173,6 +133,12 @@ main {
     margin: 0;
     width: 100%;
     height: 100%;
+    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+}
+.box-art:hover {
+    cursor: pointer;
 }
 .current-game {
     border: 3px solid green;
@@ -183,4 +149,28 @@ main {
 .game-title {
     color: #000;
     font-weight: bold;
+}
+.host-cell {
+    display: inline-block;
+    width: 150px !important;
+    height: 150px !important;
+    background-color: #000;
+    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+.host-cell:hover {
+    cursor: pointer;
+    color: #000 !important;
+}
+.host-cell:hover img {
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
+}
+.host-cell img {
+    width: 80px;;
+    margin-bottom: 10px;
 }

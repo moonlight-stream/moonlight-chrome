@@ -41,6 +41,12 @@ function NvHTTP(address, clientUid) {
     this._baseUrlHttps = 'https://' + address + ':47984';
     this._baseUrlHttp = 'http://' + address + ':47989';
     this._memCachedBoxArtArray = {};
+
+    this.serverUid = '';
+    this.GfeVersion = '';
+    this.supportedDisplayModes = {}; // key: y-resolution:x-resolution, value: array of supported framerates (only ever seen 30 or 60, here)
+    this.gputype = '';
+    this.numofapps = 0;
     _self = this;
 };
 
@@ -78,7 +84,7 @@ NvHTTP.prototype = {
     _parseServerInfo: function(xmlStr) {
         $xml = _self._parseXML(xmlStr);
         $root = $xml.find('root');
-        
+
         if($root.attr("status_code") != 200) {
             return false;
         }
@@ -86,7 +92,24 @@ NvHTTP.prototype = {
         _self.paired = $root.find("PairStatus").text().trim() == 1;
         _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
         _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
-        
+        _self.serverUid = $root.find('uniqueid').text().trim();
+        _self.GfeVersion = $root.find('GfeVersion').text().trim();
+        _self.gputype = $root.find('gputype').text().trim();
+        _self.numofapps = $root.find('numofapps').text().trim();
+        // now for the hard part: parsing the supported streaming
+        $root.find('DisplayMode').each(function(index, value) {  // for each resolution:FPS object
+            var yres = parseInt($(value).find('Height').text());
+            var xres = parseInt($(value).find('Width').text());
+            var fps = parseInt($(value).find('RefreshRate').text());
+            if(!_self.supportedDisplayModes[yres + ':' + xres]) {
+                _self.supportedDisplayModes[yres + ':' + xres] = [];
+            }
+            if(!_self.supportedDisplayModes[yres + ':' + xres].includes(fps)) {
+                _self.supportedDisplayModes[yres + ':' + xres].push(fps);
+            }
+
+        });
+
         // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
         // has the semantics that its name would indicate. To contain the effects of this change as much
         // as possible, we'll force the current game to zero if the server isn't in a streaming session.

@@ -1,4 +1,7 @@
-var host = "";
+// CURRENT ISSUE: host is not being saved.  or it may have not been saved, and my state is screwed up.
+// if (given host not in hosts) hosts.append(given host);
+
+var _host = "";
 var hosts = [];
 var pairingCert;
 var myUniqueid;
@@ -13,6 +16,7 @@ function attachListeners() {
     $('#selectFramerate').on('change', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
+    $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
     $('#hostChosen').on('click', hostChosen);
     $('#addHostCell').on('click', addHost);
     $('#cancelAddHost').on('click', cancelAddHost);
@@ -149,14 +153,19 @@ function pairTo(host, onSuccess, onFailure) {
 function hostChosen(sourceEvent) {
 
     if(sourceEvent && sourceEvent.srcElement) {
-        console.log('parsing host from grid element.');
-        host = sourceEvent.srcElement.innerText;
+        if (sourceEvent.srcElement.innerText == "") {
+            console.log('user clicked image. we gotta hack to parse out the host.');
+            host = sourceEvent.currentTarget.childNodes[1].textContent;
+        } else {
+            console.log('parsing host from grid element.');
+            host = sourceEvent.srcElement.innerText;
+        }
     }
 
     api = new NvHTTP(host, myUniqueid);
     api.refreshServerInfo().then(function (ret) {
         if(!api.paired) {
-            pairTo(host, function(){ showApps(); }, function(){});
+            pairTo(host, function(){ showApps(); saveHosts(); }, function(){});
         } else {
             showApps();
         }
@@ -178,15 +187,15 @@ function cancelAddHost() {
 }
 
 function addHostToGrid(host) {
-    if(hosts.indexOf(host) < 0) { // we don't have this host in our list. add it, and save it.
-        var cell = document.createElement('div');
-        cell.className += 'mdl-cell mdl-cell--3-col';
-        cell.id = 'hostgrid-' + host;
-        cell.innerHTML = host;
-        $('#host-grid').append(cell);
-        cell.onclick = hostChosen;
+    var cell = document.createElement('div');
+    cell.className += 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect';
+    cell.id = 'hostgrid-' + host;
+    cell.innerHTML = host;
+    $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
+    $('#host-grid').append(cell);
+    cell.onclick = hostChosen;
+    if(hosts.indexOf(host) < 0) {
         hosts.push(host);
-        saveHosts();
     }
 }
 
@@ -196,6 +205,7 @@ function continueAddHost() {
     pairTo(inputHost, 
         function() {
            addHostToGrid(inputHost);
+           saveHosts();
            document.querySelector('#addHostDialog').close();
         },
         function() {
@@ -218,6 +228,25 @@ function pairingPopupCanceled() {
     document.querySelector('#pairingDialog').close();
 }
 
+// puts the CSS style for current app on the app that's currently running
+// and puts the CSS style for non-current app apps that aren't running
+// this requires a hot-off-the-host `api`, and the appId we're going to stylize
+// the function was made like this so that we can remove duplicated code, but
+// not do N*N stylizations of the box art, or make the code not flow very well 
+function stylizeBoxArt(freshApi, appIdToStylize) {
+    if (freshApi.currentGame === appIdToStylize){ // stylize the currently running game
+        // destylize it, if it has the not-current-game style
+        if ($('#game-'+ appIdToStylize).hasClass("not-current-game")) $('#game-'+ appIdToStylize).removeClass("not-current-game");
+        // add the current-game style
+        $('#game-'+ appIdToStylize).addClass("current-game");
+    } else {
+        // destylize it, if it has the current-game style
+        if ($('#game-'+ appIdToStylize).hasClass("current-game")) $('#game-'+ appIdToStylize).removeClass("current-game");
+        // add the not-current-game style
+        $('#game-'+ appIdToStylize).addClass('not-current-game');
+    }
+}
+
 // show the app list
 function showApps() {
     if(!api || !api.paired) {  // safety checking. shouldn't happen.
@@ -231,21 +260,13 @@ function showApps() {
     api.getAppList().then(function (appList) {
         appList.forEach(function (app) {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
+                // put the box art into the image holder
                 var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
                 $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
                 $('#game-'+app.id).on('click', startGame);
 
-                if (api.currentGame === app.id){ // stylize the currently running game
-                    // destylize it, if it has the not-current-game style
-                    if ($('#game-'+ app.id).hasClass("not-current-game")) $('#game-'+ app.id).removeClass("not-current-game");
-                    // add the current-game style
-                    $('#game-'+ app.id).addClass("current-game");
-                } else {
-                    // destylize it, if it has the current-game style
-                    if ($('#game-'+ app.id).hasClass("current-game")) $('#game-'+ app.id).removeClass("current-game");
-                    // add the not-current-game style
-                    $('#game-'+ app.id).addClass('not-current-game');
-                }
+                // apply CSS stylization to indicate whether the app is active
+                stylizeBoxArt(api, app.id);
 
             }, function (failedPromise) {
                 console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
@@ -348,6 +369,8 @@ function startGame(sourceEvent) {
                 return;
             });
         }
+
+        remote_audio_enabled = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
 
         api.launchApp(appID,
                 streamWidth + "x" + streamHeight + "x" + frameRate,
@@ -477,6 +500,14 @@ function saveBitrate() {
     storeData('bitrate', $('#bitrateSlider').val(), null);
 }
 
+function saveRemoteAudio() {
+    console.log('saving remote audio state');
+    // problem: when off, and the app is just starting, a tick to the switch doesn't always toggle it
+    // second problem: this callback is called immediately after clicking, so the HTML class `is-checked` isn't toggled yet
+    // to solve the second problem, we invert the boolean.  This has worked in all cases I've tried, except for the first case
+    storeData('remoteAudio', !$("#remoteAudioEnabledSwitch").parent().hasClass('is-checked'), null);
+}
+
 function updateDefaultBitrate() {
     var res = $('#selectResolution').val();
     var frameRate = $('#selectFramerate').val();
@@ -514,6 +545,16 @@ function onWindowLoad(){
         chrome.storage.sync.get('resolution', function(previousValue) {
             $('#selectResolution').val(previousValue.resolution != null ? previousValue.resolution : '1280:720');
         });
+        chrome.storage.sync.get('remoteAudio', function(previousValue) {
+            if(previousValue.remoteAudio == null) {
+                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.off();
+                return;
+            } else if(previousValue.remoteAudio == false) {
+                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.off();
+            }  else {
+                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.on();
+            }
+        });
         // load stored framerate prefs
         chrome.storage.sync.get('frameRate', function(previousValue) {
             $('#selectFramerate').val(previousValue.frameRate != null ? previousValue.frameRate : '60');
@@ -522,12 +563,7 @@ function onWindowLoad(){
         chrome.storage.sync.get('hosts', function(previousValue) {
             hosts = previousValue.hosts != null ? previousValue.hosts : [];
             for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
-                var cell = document.createElement('div');
-                cell.className += 'mdl-cell mdl-cell--3-col';
-                cell.id = 'hostgrid-' + hosts[i];
-                cell.innerHTML = hosts[i];
-                $('#host-grid').append(cell);
-                cell.onclick = hostChosen;
+                addHostToGrid(hosts[i]);
             }
 
         });
