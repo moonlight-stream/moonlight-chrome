@@ -47,6 +47,8 @@ function NvHTTP(address, clientUid) {
     this.supportedDisplayModes = {}; // key: y-resolution:x-resolution, value: array of supported framerates (only ever seen 30 or 60, here)
     this.gputype = '';
     this.numofapps = 0;
+    this.hostname = '';
+    this.externalIP = '';
     _self = this;
 };
 
@@ -100,6 +102,10 @@ NvHTTP.prototype = {
         }
         return string;
     },
+
+    _prepareForStorage: function() {
+        _self._memCachedBoxArtArray = {};
+    },
     
     _parseServerInfo: function(xmlStr) {
         $xml = _self._parseXML(xmlStr);
@@ -109,6 +115,9 @@ NvHTTP.prototype = {
             return false;
         }
         
+        console.log('parsing server info: ');
+        console.log($root);
+
         _self.paired = $root.find("PairStatus").text().trim() == 1;
         _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
         _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
@@ -116,6 +125,8 @@ NvHTTP.prototype = {
         _self.GfeVersion = $root.find('GfeVersion').text().trim();
         _self.gputype = $root.find('gputype').text().trim();
         _self.numofapps = $root.find('numofapps').text().trim();
+        _self.hostname = $root.find('hostname').text().trim();
+        _self.externalIP = $root.find('ExternalIP').text().trim();
         // now for the hard part: parsing the supported streaming
         $root.find('DisplayMode').each(function(index, value) {  // for each resolution:FPS object
             var yres = parseInt($(value).find('Height').text());

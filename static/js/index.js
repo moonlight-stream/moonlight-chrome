@@ -1,4 +1,4 @@
-var hosts = [];
+var hosts = {};  // hosts is an associative array of NvHTTP objects, keyed by server UID
 var pairingCert;
 var myUniqueid;
 var api;
@@ -66,7 +66,7 @@ function updateBitrateField() {
 
 function moduleDidLoad() {
     if(!myUniqueid) {
-        console.log("Failed to get uniqueId.  Generating new one");
+        console.log("Failed to get uniqueId.  We should have already generated one.  Regenerating...");
         myUniqueid = uniqueid();
         storeData('uniqueid', myUniqueid, null);
     }
@@ -99,8 +99,8 @@ function moduleDidLoad() {
     }
 }
 
-// pair to the given hostname or IP.  Returns whether pairing was successful.
-function pairTo(host, onSuccess, onFailure) {
+// pair to the given NvHTTP host object.  Returns whether pairing was successful.
+function pairTo(nvhttpHost, onSuccess, onFailure) {
     if(!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
         console.log("User wants to pair, and we still have no cert. Problem = very yes.");
@@ -108,7 +108,7 @@ function pairTo(host, onSuccess, onFailure) {
         return;
     }
 
-    api = new NvHTTP(host, myUniqueid);
+    api = nvhttpHost;
     api.refreshServerInfo().then(function (ret) {
         if (api.paired) {
             onSuccess();
@@ -119,14 +119,14 @@ function pairTo(host, onSuccess, onFailure) {
         var pairingDialog = document.querySelector('#pairingDialog');
         $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
         pairingDialog.showModal();
-        console.log('sending pairing request to ' + host + ' with random number ' + randomNumber);
+        console.log('sending pairing request to ' + nvhttpHost.address + ' with random number ' + randomNumber);
 
         api.pair(randomNumber).then(function (paired) {
             if (!paired) {
                 if (api.currentGame != 0) {
-                    $('#pairingDialogText').html('Error: ' + host + ' is in app.  Cannot pair until the app is stopped.');
+                    $('#pairingDialogText').html('Error: ' + nvhttpHost.address + ' is in app.  Cannot pair until the app is stopped.');
                 } else {
-                    $('#pairingDialogText').html('Error: failed to pair with ' + host + '.  failure reason unknown.');
+                    $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.address + '.  failure reason unknown.');
                 }
                 console.log('failed API object: ');
                 console.log(api.toString());
@@ -138,14 +138,14 @@ function pairTo(host, onSuccess, onFailure) {
             pairingDialog.close();
             onSuccess();
         }, function (failedPairing) {
-            snackbarLog('Failed pairing to: ' + host);
+            snackbarLog('Failed pairing to: ' + nvhttpHost.address);
             console.log('pairing failed, and returned ' + failedPairing);
             console.log('failed API object: ');
             console.log(api.toString());
             onFailure();
         });
     }, function (failedRefreshInfo) {
-        snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
+        snackbarLog('Failed to connect to ' + nvhttpHost.address + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
         console.log('failed API object: ');
         console.log(api.toString());
@@ -157,22 +157,29 @@ function hostChosen(sourceEvent) {
     if(sourceEvent && sourceEvent.srcElement) {
         if (sourceEvent.srcElement.innerText == "") {
             console.log('user clicked image. we gotta hack to parse out the host.');
-            var host = sourceEvent.currentTarget.childNodes[1].textContent;
+            // TODO: parse server UID from the cell ID: 'hostgrid-' + host.serverUid
+            var serverUid = sourceEvent.currentTarget.id.substring("hostgrid-".length);
         } else {
             console.log('parsing host from grid element.');
-            var host = sourceEvent.srcElement.innerText;
+            var serverUid = sourceEvent.srcElement.id.substring("hostgrid-".length);
         }
+    } else {
+        console.log('Failed to find host! This should never happen!');
+        console.log(sourceEvent);
     }
 
-    api = new NvHTTP(host, myUniqueid);
+    api = hosts[serverUid];
+    if(!!api.refreshServerInfo == false) {  // bang bang, you're a bool (cast the function into truthiness to check for existance)
+        console.log('error: revival of object failed!');
+    }
     api.refreshServerInfo().then(function (ret) {
         if(!api.paired) {
-            pairTo(host, function(){ showApps(); saveHosts(); }, function(){});
+            pairTo(api, function(){ showApps(); saveHosts(); }, function(){});
         } else {
             showApps();
         }
     }, function (failedRefreshInfo) {
-        snackbarLog('Failed to connect to ' + host + '! Are you sure the host is on?');
+        snackbarLog('Failed to connect to ' + api.address + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
         console.log('failed API object: ');
         console.log(api.toString());
@@ -190,27 +197,26 @@ function cancelAddHost() {
     document.querySelector('#addHostDialog').close();
 }
 
+// host is an NvHTTP object
 function addHostToGrid(host) {
     var cell = document.createElement('div');
     cell.className += 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect';
-    cell.id = 'hostgrid-' + host;
-    cell.innerHTML = host;
+    cell.id = 'hostgrid-' + host.serverUid;
+    cell.innerHTML = host.hostname;
     $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
     $('#host-grid').append(cell);
     cell.onclick = hostChosen;
-    if(hosts.indexOf(host) < 0) {
-        hosts.push(host);
-    }
+    hosts[host.serverUid] = host;
 }
 
 function continueAddHost() {
     var inputHost = $('#dialogInputHost').val();
-
-    pairTo(inputHost, 
+    var nvhttpHost = new NvHTTP(inputHost, myUniqueid);
+    pairTo(nvhttpHost, 
         function() {
-           addHostToGrid(inputHost);
-           saveHosts();
-           document.querySelector('#addHostDialog').close();
+            addHostToGrid(nvhttpHost);
+            saveHosts();
+            document.querySelector('#addHostDialog').close();
         },
         function() {
             snackbarLog('pairing to ' + inputHost + ' failed!');
@@ -224,7 +230,7 @@ function continueAddHost() {
 // https://github.com/GoogleChrome/chrome-app-samples/blob/master/samples/context-menu/main.js
 function forgetHost(host) {
     snackbarLog('Feature not yet ported to grid-ui');
-    hosts.splice(hosts.indexOf(host), 1); // remove the host from the array;
+    hosts.splice(hosts.indexOf(host.serverUid), 1); // remove the host from the array;
     saveHosts();
 }
 
@@ -504,7 +510,14 @@ function saveFramerate() {
     storeData('frameRate', $('#selectFramerate').val(), null);
 }
 
+// storing data in chrome.storage takes the data as an object, and shoves it into JSON to store
+// unfortunately, objects with function instances (classes) are stripped of their function instances when converted to a raw object
+// so we cannot forget to revive the object after we load it.
 function saveHosts() {
+    for(hostUID in hosts) {
+        // slim the object down to only store the necessary bytes, because we have limited storage
+        hosts[hostUID]._prepareForStorage();
+    }
     storeData('hosts', hosts, null);
 }
 
@@ -571,14 +584,6 @@ function onWindowLoad(){
         chrome.storage.sync.get('frameRate', function(previousValue) {
             $('#selectFramerate').val(previousValue.frameRate != null ? previousValue.frameRate : '60');
         });
-        // load previously connected hosts
-        chrome.storage.sync.get('hosts', function(previousValue) {
-            hosts = previousValue.hosts != null ? previousValue.hosts : [];
-            for(var i = 0; i < hosts.length; i++) { // programmatically add each new host.
-                addHostToGrid(hosts[i]);
-            }
-
-        });
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function(previousValue) {
             $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
@@ -593,6 +598,20 @@ function onWindowLoad(){
         chrome.storage.sync.get('uniqueid', function(savedUniqueid) {
             if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
                 myUniqueid = savedUniqueid.uniqueid;
+            } else {
+                myUniqueid = uniqueid();
+                storeData('uniqueid', myUniqueid, null);
+            }
+        });
+        // load previously connected hosts, and revive them back into a class
+        chrome.storage.sync.get('hosts', function(previousValue) {
+            hosts = previousValue.hosts != null ? previousValue.hosts : {};
+            for(hostUID in hosts) { // programmatically add each new host.
+                var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid);
+                revivedHost.serverUid = hosts[hostUID].serverUid;
+                revivedHost.externalIP = hosts[hostUID].externalIP;
+                revivedHost.hostname = hosts[hostUID].hostname;
+                addHostToGrid(revivedHost);
             }
         });
     }
@@ -602,7 +621,7 @@ function onWindowLoad(){
             var ips = Object.keys(finder.byService_['_nvstream._tcp']);
             for (var ip in ips) {
                 if (finder.byService_['_nvstream._tcp'][ip]) {
-                    addHostToGrid(ip);
+                    addHostToGrid(new NvHTTP(ip, myUniqueid));
                 }
             }
         }
