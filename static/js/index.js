@@ -211,7 +211,7 @@ function addHostToGrid(host) {
 
 function continueAddHost() {
     var inputHost = $('#dialogInputHost').val();
-    var nvhttpHost = new NvHTTP(inputHost, myUniqueid);
+    var nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
     pairTo(nvhttpHost, 
         function() {
             addHostToGrid(nvhttpHost);
@@ -603,11 +603,11 @@ function onWindowLoad(){
                 storeData('uniqueid', myUniqueid, null);
             }
         });
-        // load previously connected hosts, and revive them back into a class
+        // load previously connected hosts, which have been killed into an object, and revive them back into a class
         chrome.storage.sync.get('hosts', function(previousValue) {
             hosts = previousValue.hosts != null ? previousValue.hosts : {};
             for(hostUID in hosts) { // programmatically add each new host.
-                var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid);
+                var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
                 revivedHost.serverUid = hosts[hostUID].serverUid;
                 revivedHost.externalIP = hosts[hostUID].externalIP;
                 revivedHost.hostname = hosts[hostUID].hostname;
@@ -621,7 +621,13 @@ function onWindowLoad(){
             var ips = Object.keys(finder.byService_['_nvstream._tcp']);
             for (var ip in ips) {
                 if (finder.byService_['_nvstream._tcp'][ip]) {
-                    addHostToGrid(new NvHTTP(ip, myUniqueid));
+                    var mDnsDiscoveredHost = new NvHTTP(ip, myUniqueid);
+                    if(hosts[mDnsDiscoveredHost.serverUid] != null) {
+                        // if we're seeing a host we've already seen before, update it for the current local IP.
+                        hosts[mDnsDiscoveredHost.serverUid].localIp = mDnsDiscoveredHost.localIp;
+                    } else {
+                        addHostToGrid(mDnsDiscoveredHost);
+                    }
                 }
             }
         }

@@ -31,10 +31,9 @@ String.prototype.toHex = function() {
 	return hex;
 }
 
-function NvHTTP(address, clientUid) {
+function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this.address = address;
     this.paired = false;
-    this.supports4K = false;
     this.currentGame = 0;
     this.serverMajorVersion = 0;
     this.clientUid = clientUid;
@@ -42,6 +41,7 @@ function NvHTTP(address, clientUid) {
     this._baseUrlHttp = 'http://' + address + ':47989';
     this._memCachedBoxArtArray = {};
 
+    this.userEnteredAddress = userEnteredAddress;  // if the user entered an address, we keep it on hand to try when polling
     this.serverUid = '';
     this.GfeVersion = '';
     this.supportedDisplayModes = {}; // key: y-resolution:x-resolution, value: array of supported framerates (only ever seen 30 or 60, here)
@@ -90,7 +90,6 @@ NvHTTP.prototype = {
         string += 'server address: ' + _self.address + '\r\n';
         string += 'server UID: ' + _self.serverUid + '\r\n';
         string += 'is paired: ' + _self.paired + '\r\n';
-        string += 'supports 4K: ' + _self.supports4K + '\r\n';
         string += 'current game: ' + _self.currentGame + '\r\n';
         string += 'server major version: ' + _self.serverMajorVersion + '\r\n';
         string += 'GFE version: ' + _self.GfeVersion + '\r\n';
