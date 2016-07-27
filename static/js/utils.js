@@ -85,6 +85,40 @@ NvHTTP.prototype = {
         });
     },
 
+    // refreshes the server info using a given address.  This is useful for testing whether we can successfully ping a host at a given address
+    refreshServerInfoAtAddress: function(givenAddress) {
+        // try HTTPS first
+        return sendMessage('openUrl', [ 'https://' + givenAddress + ':47984' + '/serverinfo?' + _self._buildUidStr(), false]).then(function(ret) {
+            if (!_self._parseServerInfo(ret)) {  // if that fails
+                // try HTTP as a failover.  Useful to clients who aren't paired yet
+                return sendMessage('openUrl', [ 'http://' + givenAddress + ':47989' + '/serverinfo?' + _self._buildUidStr(), false]).then(function(retHttp) {
+                    _self._parseServerInfo(retHttp);
+                });
+            }
+        });
+    },
+
+    // initially pings the server to try and figure out if it's routable by any means.
+    initialPing: function(onSuccess, onFailure) {
+        _self.refreshServerInfoAtAddress(_self.hostname + '.local').then(function(successLocal) {
+            _self.address = _self.hostname + '.local';
+            onSuccess();
+        }, function(failureLocal) {
+            _self.refreshServerInfoAtAddress(_self.externalIP).then(function(successExternal) {
+                _self.address = _self.externalIP;
+                onSuccess();
+            }, function(failureExternal) {
+                _self.refreshServerInfoAtAddress(_self.userEnteredAddress).then(function(successUserEntered) {
+                    _self.address = _self.userEnteredAddress;
+                    onSuccess();
+                }, function(failureUserEntered) {
+                    console.log('WARN! Failed to contact host: ' + _self.hostname + '\r\n' + _self.toString());
+                    onFailure();
+                });
+            });
+        });
+    },
+
     toString: function() {
         var string = '';
         string += 'server address: ' + _self.address + '\r\n';
