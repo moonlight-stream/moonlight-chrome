@@ -14,7 +14,7 @@ function attachListeners() {
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
     $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
     $('#hostChosen').on('click', hostChosen);
-    $('#addHostCell').on('click', addHost);
+    $('#add-new-host').on('click', addHost);
     $('#cancelAddHost').on('click', cancelAddHost);
     $('#continueAddHost').on('click', continueAddHost);
     $('#forgetHost').on('click', forgetHost);
@@ -155,14 +155,8 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
 function hostChosen(sourceEvent) {
 
     if(sourceEvent && sourceEvent.srcElement) {
-        if (sourceEvent.srcElement.innerText == "") {
-            console.log('user clicked image. we gotta hack to parse out the host.');
-            // TODO: parse server UID from the cell ID: 'hostgrid-' + host.serverUid
-            var serverUid = sourceEvent.currentTarget.id.substring("hostgrid-".length);
-        } else {
-            console.log('parsing host from grid element.');
+            console.log('parsing host from list element.');
             var serverUid = sourceEvent.srcElement.id.substring("hostgrid-".length);
-        }
     } else {
         console.log('Failed to find host! This should never happen!');
         console.log(sourceEvent);
@@ -199,13 +193,12 @@ function cancelAddHost() {
 
 // host is an NvHTTP object
 function addHostToGrid(host) {
-    var cell = document.createElement('div');
-    cell.className += 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect';
+    var cell = document.createElement('li');
+    cell.className += 'mdl-list__item mdl-list__item--two-line';
     cell.id = 'hostgrid-' + host.serverUid;
-    cell.innerHTML = host.hostname;
-    $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
+    cell.innerHTML =  '<span class="mdl-list__item-primary-content"><span>' + host.hostname + '</span><span class="mdl-list__item-sub-title">' + host.address + '</span></span><span class="mdl-list__item-secondary-content"><button id="hostgrid-' + host.serverUid + '" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">Connect</button></span>'
     $('#host-grid').append(cell);
-    cell.onclick = hostChosen;
+    cell.getElementsByTagName('button')[0].onclick = hostChosen;
     hosts[host.serverUid] = host;
 }
 
@@ -317,6 +310,7 @@ function showAppsMode() {
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
+    $('button#add-new-host').hide();
 
 }
 

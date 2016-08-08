@@ -42,3 +42,6 @@ dir.stamp
 *.pexe
 *.nmf
 *.bc
+
+# OS X
+.DS_Store

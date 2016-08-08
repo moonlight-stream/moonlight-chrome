@@ -44,13 +44,10 @@
             </div>
 
             <div id="hostSettings">
-                <div class="mdl-grid" id='host-grid'>
-                    <div class='mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect' id='addHostCell'>
-                        <img src="static/res/ic_add_circle_white_24px.svg" id='addHostIcon'></img>
-                        Add Host
-                    </div>
-                </div>
+                <ul class="mdl-list" id="host-grid"></ul>
             </div>
+            
+            <button id="add-new-host" class="mdl-button mdl-js-button mdl-button--fab">+</button>
 
             <div id="game-grid" class="mdl-grid">
             </div>
@@ -67,13 +64,13 @@
             </main>
         </div>
         <script defer src="static/js/jquery-2.2.0.min.js"></script>
-        <script defer src="static/js/material.min.js"></script>
         <script type="text/javascript" src="static/js/messages.js"></script>
         <script type="text/javascript" src="static/js/common.js"></script>
         <script type="text/javascript" src="static/js/index.js"></script>
         <script type="text/javascript" src="static/js/utils.js"></script>
         <script type="text/javascript" src="static/js/mdns-browser/dns.js"></script>
         <script type="text/javascript" src="static/js/mdns-browser/main.js"></script>
+        <script type="text/javascript" src="static/js/material.min.js"></script>
 
         <dialog id="pairingDialog" class="mdl-dialog">
             <h3 class="mdl-dialog__title">Pairing</h3>
@@ -103,7 +100,6 @@
         <dialog id="addHostDialog" class="mdl-dialog">
             <h3 class="mdl-dialog__title">Add PC Manually</h3>
             <div class="mdl-dialog__content">
-                <p>IP Address or Hostname of Geforce PC</p>
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                     <input class="mdl-textfield__input" type="text" id="dialogInputHost"/>
                     <label class="mdl-textfield__label" for="dialogInputHost">IP Address or Hostname of Geforce PC</label>
