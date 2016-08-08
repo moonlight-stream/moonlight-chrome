@@ -1,9 +1,6 @@
 .mdl-layout__header-row {
     color: #fff;
 }
-.mdl-button {
-    color: #fff !important;
-}
 .mdl-grid {
     width: 100%;
 }
@@ -78,34 +75,14 @@ main {
 }
 #hostSettings {
     padding: 5px 10px;
-    border: 1px dashed;
     margin: 10px 0;
 }
-#hostSettings p {
-    margin: 0;
+#add-new-host{
+    position: fixed;
+    bottom: 1em;
+    right: 1em;
 }
-#hostSettings .mdl-textfield {
-    width: 200px;
-    margin-right: 20px;
-    margin-bottom: 0px;
-}
-#hostSettings #GFEHostIPField {
-    padding-bottom: 0px;
-}
-#hostSettings #selectHost {
-    padding: 0px;
-    line-height: 20px;
-    height: 20px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    margin-right: 20px;
-    background: none;
-}
-#hostSettings .button-holder {
-    padding: 0px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
+
 #pairButton {
     margin: 3px;
 }
@@ -149,28 +126,4 @@ main {
 .game-title {
     color: #000;
     font-weight: bold;
-}
-.host-cell {
-    display: inline-block;
-    width: 150px !important;
-    height: 150px !important;
-    background-color: #000;
-    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
-}
-.host-cell:hover {
-    cursor: pointer;
-    color: #000 !important;
-}
-.host-cell:hover img {
-    -webkit-filter: invert(100%);
-    filter: invert(100%);
-}
-.host-cell img {
-    width: 80px;;
-    margin-bottom: 10px;
 }
