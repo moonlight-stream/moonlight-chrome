@@ -90,9 +90,10 @@ NvHTTP.prototype = {
         // try HTTPS first
         return sendMessage('openUrl', [ 'https://' + givenAddress + ':47984' + '/serverinfo?' + _self._buildUidStr(), false]).then(function(ret) {
             if (!_self._parseServerInfo(ret)) {  // if that fails
+                console.log('Failed to parse serverinfo from HTTPS, falling back to HTTP');
                 // try HTTP as a failover.  Useful to clients who aren't paired yet
                 return sendMessage('openUrl', [ 'http://' + givenAddress + ':47989' + '/serverinfo?' + _self._buildUidStr(), false]).then(function(retHttp) {
-                    _self._parseServerInfo(retHttp);
+                    return _self._parseServerInfo(retHttp);
                 });
             }
         });
@@ -145,6 +146,11 @@ NvHTTP.prototype = {
         $root = $xml.find('root');
 
         if($root.attr("status_code") != 200) {
+            return false;
+        }
+
+        if(_self.serverUid != $root.find('uniqueid').text().trim() && _self.serverUid != null) {
+            // if we received a UID that isn't the one we expected, fail.
             return false;
         }
         

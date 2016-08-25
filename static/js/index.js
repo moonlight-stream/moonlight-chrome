@@ -49,6 +49,35 @@ function restoreUiAfterNaClLoad() {
     $('#naclSpinner').hide();
     $('#loadingSpinner').css('display', 'none');
     showHostsAndSettingsMode();
+    for(hostUID in hosts) {
+        beginBackgroundPollingOfHost(hosts[hostUID]);
+    }
+}
+
+function beginBackgroundPollingOfHost(host) {
+    $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+    // for each host, first assume it's inactive.
+
+    host.initialPing(function () { // initial attempt was a success
+        $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+        window.setInterval(function() {
+            // every 5 seconds, poll at the address we know it was live at
+            host.refreshServerInfoAtAddress(host.address).then(function (onSuccess){
+                $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+            }, function (onFailure) {
+                $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+            });
+        }, 5000);
+    }, function () { // initial attempt was a failure
+        $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+        window.setInterval(function() {
+            if(host.refreshServerInfoAtAddress(host.address)) {
+                $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+            } else {
+                $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+            }
+        }, 5000);
+    });
 }
 
 function snackbarLog(givenMessage) {

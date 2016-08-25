@@ -162,6 +162,9 @@ main {
     -moz-border-radius: 10px;
     border-radius: 10px;
 }
+.host-cell-inactive {
+    border: 3px solid red;
+}
 .host-cell:hover {
     cursor: pointer;
     color: #000 !important;
