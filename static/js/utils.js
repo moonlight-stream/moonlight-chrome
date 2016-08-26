@@ -359,7 +359,7 @@ NvHTTP.prototype = {
     quitApp: function () {
         return sendMessage('openUrl', [this._baseUrlHttps + '/cancel?' + this._buildUidStr(), false]).then(function () {
             this.currentGame = 0;
-        });
+        }.bind(this));
     },
     
     pair: function(randomNumber) {
