@@ -1,4 +1,5 @@
 var hosts = {};  // hosts is an associative array of NvHTTP objects, keyed by server UID
+var activePolls = {};  // hosts currently being polled.  An associated array of polling IDs, keyed by server UID
 var pairingCert;
 var myUniqueid;
 var api;
@@ -60,7 +61,7 @@ function beginBackgroundPollingOfHost(host) {
 
     host.initialPing(function () { // initial attempt was a success
         $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
-        window.setInterval(function() {
+        activePolls[host.serverUid] = window.setInterval(function() {
             // every 5 seconds, poll at the address we know it was live at
             host.refreshServerInfoAtAddress(host.address).then(function (onSuccess){
                 $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
@@ -70,7 +71,7 @@ function beginBackgroundPollingOfHost(host) {
         }, 5000);
     }, function () { // initial attempt was a failure
         $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
-        window.setInterval(function() {
+        activePolls[host.serverUid] = window.setInterval(function() {
             if(host.refreshServerInfoAtAddress(host.address)) {
                 $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
             } else {
@@ -78,6 +79,12 @@ function beginBackgroundPollingOfHost(host) {
             }
         }, 5000);
     });
+}
+
+function stopBackgroundPollingOfHost(host) {
+    console.log('stopping background polling of server: ' + host.toString());
+    window.clearInterval(activePolls[host.serverUid]);
+    delete activePolls[host.serverUid];
 }
 
 function snackbarLog(givenMessage) {
@@ -137,9 +144,9 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
         return;
     }
 
-    api = nvhttpHost;
-    api.refreshServerInfo().then(function (ret) {
-        if (api.paired) {
+    var _api = nvhttpHost;
+    _api.refreshServerInfo().then(function (ret) {
+        if (_api.paired) {
             onSuccess();
             return;
         }
@@ -150,15 +157,15 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
         pairingDialog.showModal();
         console.log('sending pairing request to ' + nvhttpHost.address + ' with random number ' + randomNumber);
 
-        api.pair(randomNumber).then(function (paired) {
+        _api.pair(randomNumber).then(function (paired) {
             if (!paired) {
-                if (api.currentGame != 0) {
+                if (_api.currentGame != 0) {
                     $('#pairingDialogText').html('Error: ' + nvhttpHost.address + ' is in app.  Cannot pair until the app is stopped.');
                 } else {
                     $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.address + '.  failure reason unknown.');
                 }
                 console.log('failed API object: ');
-                console.log(api.toString());
+                console.log(_api.toString());
                 onFailure();
                 return;
             }
@@ -170,14 +177,15 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             snackbarLog('Failed pairing to: ' + nvhttpHost.address);
             console.log('pairing failed, and returned ' + failedPairing);
             console.log('failed API object: ');
-            console.log(api.toString());
+            console.log(_api.toString());
             onFailure();
         });
     }, function (failedRefreshInfo) {
         snackbarLog('Failed to connect to ' + nvhttpHost.address + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
         console.log('failed API object: ');
-        console.log(api.toString());
+        console.log(_api.toString());
+        onFailure();
     });
 }
 
@@ -186,7 +194,6 @@ function hostChosen(sourceEvent) {
     if(sourceEvent && sourceEvent.srcElement) {
         if (sourceEvent.srcElement.innerText == "") {
             console.log('user clicked image. we gotta hack to parse out the host.');
-            // TODO: parse server UID from the cell ID: 'hostgrid-' + host.serverUid
             var serverUid = sourceEvent.currentTarget.id.substring("hostgrid-".length);
         } else {
             console.log('parsing host from grid element.');
@@ -203,10 +210,11 @@ function hostChosen(sourceEvent) {
     }
     api.refreshServerInfo().then(function (ret) {
         if(!api.paired) {
-            pairTo(api, function(){ showApps(); saveHosts(); }, function(){});
+            pairTo(api, function(){ showApps(api); saveHosts();}, function(){});
         } else {
-            showApps();
+            showApps(api);
         }
+        stopBackgroundPollingOfHost(api);
     }, function (failedRefreshInfo) {
         snackbarLog('Failed to connect to ' + api.address + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
@@ -240,10 +248,10 @@ function addHostToGrid(host) {
 
 function continueAddHost() {
     var inputHost = $('#dialogInputHost').val();
-    var nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
-    pairTo(nvhttpHost, 
+    var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
+    pairTo(_nvhttpHost,
         function() {
-            addHostToGrid(nvhttpHost);
+            addHostToGrid(_nvhttpHost);
             saveHosts();
             document.querySelector('#addHostDialog').close();
         },
@@ -334,6 +342,9 @@ function showHostsAndSettingsMode() {
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
     $("body").css('backgroundColor', 'white');
+    if(api && !activePolls[api.serverUid]) {
+        beginBackgroundPollingOfHost(api);
+    }
 }
 
 function showAppsMode() {
