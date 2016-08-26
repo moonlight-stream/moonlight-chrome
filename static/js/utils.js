@@ -32,6 +32,7 @@ String.prototype.toHex = function() {
 }
 
 function NvHTTP(address, clientUid, userEnteredAddress = '') {
+    console.log(this);
     this.address = address;
     this.paired = false;
     this.currentGame = 0;
@@ -75,81 +76,81 @@ function _base64ToArrayBuffer(base64) {
 NvHTTP.prototype = {
     refreshServerInfo: function () {
         // try HTTPS first
-        return sendMessage('openUrl', [ _self._baseUrlHttps + '/serverinfo?' + _self._buildUidStr(), false]).then(function(ret) {
-            if (!_self._parseServerInfo(ret)) {  // if that fails
+        return sendMessage('openUrl', [ this._baseUrlHttps + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
+            if (!this._parseServerInfo(ret)) {  // if that fails
                 // try HTTP as a failover.  Useful to clients who aren't paired yet
-                return sendMessage('openUrl', [ _self._baseUrlHttp + '/serverinfo?' + _self._buildUidStr(), false]).then(function(retHttp) {
-                    _self._parseServerInfo(retHttp);
-                });
+                return sendMessage('openUrl', [ this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
+                    this._parseServerInfo(retHttp);
+                }.bind(this));
             }
-        });
+        }.bind(this));
     },
 
     // refreshes the server info using a given address.  This is useful for testing whether we can successfully ping a host at a given address
     refreshServerInfoAtAddress: function(givenAddress) {
         // try HTTPS first
-        return sendMessage('openUrl', [ 'https://' + givenAddress + ':47984' + '/serverinfo?' + _self._buildUidStr(), false]).then(function(ret) {
-            if (!_self._parseServerInfo(ret)) {  // if that fails
+        return sendMessage('openUrl', [ 'https://' + givenAddress + ':47984' + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
+            if (!this._parseServerInfo(ret)) {  // if that fails
                 console.log('Failed to parse serverinfo from HTTPS, falling back to HTTP');
                 // try HTTP as a failover.  Useful to clients who aren't paired yet
-                return sendMessage('openUrl', [ 'http://' + givenAddress + ':47989' + '/serverinfo?' + _self._buildUidStr(), false]).then(function(retHttp) {
-                    return _self._parseServerInfo(retHttp);
-                });
+                return sendMessage('openUrl', [ 'http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
+                    return this._parseServerInfo(retHttp);
+                }.bind(this));
             }
-        });
+        }.bind(this));
     },
 
     // initially pings the server to try and figure out if it's routable by any means.
     initialPing: function(onSuccess, onFailure) {
-        _self.refreshServerInfoAtAddress(_self.hostname + '.local').then(function(successLocal) {
-            _self.address = _self.hostname + '.local';
+        this.refreshServerInfoAtAddress(this.hostname + '.local').then(function(successLocal) {
+            this.address = this.hostname + '.local';
             onSuccess();
-        }, function(failureLocal) {
-            _self.refreshServerInfoAtAddress(_self.externalIP).then(function(successExternal) {
-                _self.address = _self.externalIP;
+        }.bind(this), function(failureLocal) {
+            this.refreshServerInfoAtAddress(this.externalIP).then(function(successExternal) {
+                this.address = this.externalIP;
                 onSuccess();
-            }, function(failureExternal) {
-                _self.refreshServerInfoAtAddress(_self.userEnteredAddress).then(function(successUserEntered) {
-                    _self.address = _self.userEnteredAddress;
+            }.bind(this), function(failureExternal) {
+                this.refreshServerInfoAtAddress(this.userEnteredAddress).then(function(successUserEntered) {
+                    this.address = this.userEnteredAddress;
                     onSuccess();
-                }, function(failureUserEntered) {
-                    console.log('WARN! Failed to contact host: ' + _self.hostname + '\r\n' + _self.toString());
+                }.bind(this), function(failureUserEntered) {
+                    console.log('WARN! Failed to contact host: ' + this.hostname + '\r\n' + this.toString());
                     onFailure();
-                });
-            });
-        });
+                }.bind(this));
+            }.bind(this));
+        }.bind(this));
     },
 
     toString: function() {
         var string = '';
-        string += 'server address: ' + _self.address + '\r\n';
-        string += 'server UID: ' + _self.serverUid + '\r\n';
-        string += 'is paired: ' + _self.paired + '\r\n';
-        string += 'current game: ' + _self.currentGame + '\r\n';
-        string += 'server major version: ' + _self.serverMajorVersion + '\r\n';
-        string += 'GFE version: ' + _self.GfeVersion + '\r\n';
-        string += 'gpu type: ' + _self.gputype + '\r\n';
-        string += 'number of apps: ' + _self.numofapps + '\r\n';
+        string += 'server address: ' + this.address + '\r\n';
+        string += 'server UID: ' + this.serverUid + '\r\n';
+        string += 'is paired: ' + this.paired + '\r\n';
+        string += 'current game: ' + this.currentGame + '\r\n';
+        string += 'server major version: ' + this.serverMajorVersion + '\r\n';
+        string += 'GFE version: ' + this.GfeVersion + '\r\n';
+        string += 'gpu type: ' + this.gputype + '\r\n';
+        string += 'number of apps: ' + this.numofapps + '\r\n';
         string += 'supported display modes: ' + '\r\n';
-        for(displayMode in _self.supportedDisplayModes) {
-            string += '\t' + displayMode + ': ' + _self.supportedDisplayModes[displayMode] + '\r\n';
+        for(displayMode in this.supportedDisplayModes) {
+            string += '\t' + displayMode + ': ' + this.supportedDisplayModes[displayMode] + '\r\n';
         }
         return string;
     },
 
     _prepareForStorage: function() {
-        _self._memCachedBoxArtArray = {};
+        this._memCachedBoxArtArray = {};
     },
     
     _parseServerInfo: function(xmlStr) {
-        $xml = _self._parseXML(xmlStr);
+        $xml = this._parseXML(xmlStr);
         $root = $xml.find('root');
 
         if($root.attr("status_code") != 200) {
             return false;
         }
 
-        if(_self.serverUid != $root.find('uniqueid').text().trim() && _self.serverUid != null) {
+        if(this.serverUid != $root.find('uniqueid').text().trim() && this.serverUid != null) {
             // if we received a UID that isn't the one we expected, fail.
             return false;
         }
@@ -157,26 +158,26 @@ NvHTTP.prototype = {
         console.log('parsing server info: ');
         console.log($root);
 
-        _self.paired = $root.find("PairStatus").text().trim() == 1;
-        _self.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
-        _self.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
-        _self.serverUid = $root.find('uniqueid').text().trim();
-        _self.hostname = $root.find('hostname').text().trim();
-        _self.externalIP = $root.find('ExternalIP').text().trim();
+        this.paired = $root.find("PairStatus").text().trim() == 1;
+        this.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
+        this.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
+        this.serverUid = $root.find('uniqueid').text().trim();
+        this.hostname = $root.find('hostname').text().trim();
+        this.externalIP = $root.find('ExternalIP').text().trim();
         try {  //  these aren't critical for functionality, and don't necessarily exist in older GFE versions.
-            _self.GfeVersion = $root.find('GfeVersion').text().trim();
-            _self.gputype = $root.find('gputype').text().trim();
-            _self.numofapps = $root.find('numofapps').text().trim();
+            this.GfeVersion = $root.find('GfeVersion').text().trim();
+            this.gputype = $root.find('gputype').text().trim();
+            this.numofapps = $root.find('numofapps').text().trim();
             // now for the hard part: parsing the supported streaming
             $root.find('DisplayMode').each(function(index, value) {  // for each resolution:FPS object
                 var yres = parseInt($(value).find('Height').text());
                 var xres = parseInt($(value).find('Width').text());
                 var fps = parseInt($(value).find('RefreshRate').text());
-                if(!_self.supportedDisplayModes[yres + ':' + xres]) {
-                    _self.supportedDisplayModes[yres + ':' + xres] = [];
+                if(!this.supportedDisplayModes[yres + ':' + xres]) {
+                    this.supportedDisplayModes[yres + ':' + xres] = [];
                 }
-                if(!_self.supportedDisplayModes[yres + ':' + xres].includes(fps)) {
-                    _self.supportedDisplayModes[yres + ':' + xres].push(fps);
+                if(!this.supportedDisplayModes[yres + ':' + xres].includes(fps)) {
+                    this.supportedDisplayModes[yres + ':' + xres].push(fps);
                 }
             });
         } catch (err) {
@@ -188,14 +189,14 @@ NvHTTP.prototype = {
         // has the semantics that its name would indicate. To contain the effects of this change as much
         // as possible, we'll force the current game to zero if the server isn't in a streaming session.
         if ($root.find("state").text().trim().endsWith("_SERVER_AVAILABLE")) {
-            _self.currentGame = 0;
+            this.currentGame = 0;
         }
         
         return true;
     },
     
     getAppById: function (appId) {
-        return _self.getAppList().then(function (list) {
+        return this.getAppList().then(function (list) {
             var retApp = null;
             
             list.some(function (app) {
@@ -212,7 +213,7 @@ NvHTTP.prototype = {
     },
     
     getAppByName: function (appName) {
-        return _self.getAppList().then(function (list) {
+        return this.getAppList().then(function (list) {
             var retApp = null;
             
             list.some(function (app) {
@@ -229,8 +230,8 @@ NvHTTP.prototype = {
     },
     
     getAppList: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps + '/applist?' + _self._buildUidStr(), false]).then(function (ret) {
-            $xml = _self._parseXML(ret);
+        return sendMessage('openUrl', [this._baseUrlHttps + '/applist?' + this._buildUidStr(), false]).then(function (ret) {
+            $xml = this._parseXML(ret);
             
             var rootElement = $xml.find("root")[0];
             var appElements = rootElement.getElementsByTagName("App");
@@ -245,7 +246,7 @@ NvHTTP.prototype = {
             }
             
             return appList;
-        });
+        }.bind(this));
     },
     
     // returns the box art of the given appID.
@@ -254,12 +255,12 @@ NvHTTP.prototype = {
 
         // TODO: unfortunately we do N  lookups from storage cache, each of them filling up the memory cache.
         // once the first round of calls are all made, each subsequent request hits this and returns from memory cache
-        if (_self._memCachedBoxArtArray[appId] !== undefined) {
+        if (this._memCachedBoxArtArray[appId] !== undefined) {
             return new Promise(function (resolve, reject) {
                 console.log('returning memory cached box art');
-                resolve(_self._memCachedBoxArtArray[appId]);
+                resolve(this._memCachedBoxArtArray[appId]);
                 return;
-            });
+            }.bind(this));
         }
 
         if (chrome.storage) {
@@ -273,7 +274,7 @@ NvHTTP.prototype = {
                         storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
 
                         storedBoxArtArray[appId] = _base64ToArrayBuffer(storedBoxArtArray[appId]);
-                        _self._memCachedBoxArtArray[appId] = storedBoxArtArray[appId];
+                        this._memCachedBoxArtArray[appId] = storedBoxArtArray[appId];
 
                     } else {
                          storedBoxArtArray = {};
@@ -288,19 +289,19 @@ NvHTTP.prototype = {
 
                     // otherwise, put it in our cache, then return it
                     sendMessage('openUrl', [
-                        _self._baseUrlHttps +
-                        '/appasset?'+_self._buildUidStr() +
+                        this._baseUrlHttps +
+                        '/appasset?'+this._buildUidStr() +
                         '&appid=' + appId + 
                         '&AssetType=2&AssetIdx=0',
                         true
                     ]).then(function(streamedBoxArt) {
                         // the memcached data is global to all the async calls we're doing.  This way there's only one array that holds everything properly.
-                        _self._memCachedBoxArtArray[appId] = streamedBoxArt;
+                        this._memCachedBoxArtArray[appId] = streamedBoxArt;
                         var obj = {};
                         var arrayToStore = {}
 
-                        for (key in _self._memCachedBoxArtArray) { // convert the arraybuffer into a string
-                            arrayToStore[key] = _arrayBufferToBase64(_self._memCachedBoxArtArray[key]);
+                        for (key in this._memCachedBoxArtArray) { // convert the arraybuffer into a string
+                            arrayToStore[key] = _arrayBufferToBase64(this._memCachedBoxArtArray[key]);
                         }
 
                         obj['boxArtCache'] = arrayToStore;  // storage is in JSON format.  JSON does not support binary data.
@@ -308,17 +309,17 @@ NvHTTP.prototype = {
                         console.log('returning streamed box art');
                         resolve(streamedBoxArt);
                         return;
-                    });
+                    }.bind(this));
 
 
-                });
-            });
+                }.bind(this));
+            }.bind(this));
 
         } else {  // shouldn't run because we always have chrome.storage, but I'm not going to antagonize other browsers
             console.log('WARN: Chrome.storage not detected!  Box art will not be saved!');
             return sendMessage('openUrl', [
-                _self._baseUrlHttps +
-                '/appasset?'+_self._buildUidStr() +
+                this._baseUrlHttps +
+                '/appasset?'+this._buildUidStr() +
                 '&appid=' + appId + 
                 '&AssetType=2&AssetIdx=0',
                 true
@@ -328,8 +329,8 @@ NvHTTP.prototype = {
     
     launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
         return sendMessage('openUrl', [
-            _self._baseUrlHttps +
-            '/launch?' + _self._buildUidStr() +
+            this._baseUrlHttps +
+            '/launch?' + this._buildUidStr() +
             '&appid=' + appId +
             '&mode=' + mode +
             '&additionalStates=1&sops=' + sops +
@@ -345,8 +346,8 @@ NvHTTP.prototype = {
     
     resumeApp: function (rikey, rikeyid) {
         return sendMessage('openUrl', [
-            _self._baseUrlHttps +
-            '/resume?' + _self._buildUidStr() +
+            this._baseUrlHttps +
+            '/resume?' + this._buildUidStr() +
             '&rikey=' + rikey +
             '&rikeyid=' + rikeyid,
             false
@@ -356,35 +357,35 @@ NvHTTP.prototype = {
     },
     
     quitApp: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps + '/cancel?' + _self._buildUidStr(), false]).then(function () {
-            _self.currentGame = 0;
+        return sendMessage('openUrl', [this._baseUrlHttps + '/cancel?' + this._buildUidStr(), false]).then(function () {
+            this.currentGame = 0;
         });
     },
     
     pair: function(randomNumber) {
-        return _self.refreshServerInfo().then(function () {
-            if (_self.paired)
+        return this.refreshServerInfo().then(function () {
+            if (this.paired)
                 return true;
             
-            if (_self.currentGame != 0)
+            if (this.currentGame != 0)
                 return false;
             
-            return sendMessage('pair', [_self.serverMajorVersion, _self.address, randomNumber]).then(function (pairStatus) {
-                return sendMessage('openUrl', [_self._baseUrlHttps + '/pair?uniqueid=' + _self.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function (ret) {
-                    $xml = _self._parseXML(ret);
-                    _self.paired = $xml.find('paired').html() == "1";
-                    return _self.paired;
-                });
-            });
-        });
+            return sendMessage('pair', [this.serverMajorVersion, this.address, randomNumber]).then(function (pairStatus) {
+                return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function (ret) {
+                    $xml = this._parseXML(ret);
+                    this.paired = $xml.find('paired').html() == "1";
+                    return this.paired;
+                }.bind(this));
+            }.bind(this));
+        }.bind(this));
     },
     
     unpair: function () {
-        return sendMessage('openUrl', [_self._baseUrlHttps + '/unpair?' + _self._buildUidStr(), false]);
+        return sendMessage('openUrl', [this._baseUrlHttps + '/unpair?' + this._buildUidStr(), false]);
     },
     
     _buildUidStr: function () {
-        return 'uniqueid=' + _self.clientUid + '&uuid=' + guuid();
+        return 'uniqueid=' + this.clientUid + '&uuid=' + guuid();
     },
     
     _parseXML: function (xmlData) {
