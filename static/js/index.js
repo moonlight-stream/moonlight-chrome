@@ -62,6 +62,10 @@ function beginBackgroundPollingOfHost(host) {
     host.initialPing(function () { // initial attempt was a success
         $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
         activePolls[host.serverUid] = window.setInterval(function() {
+            if (api && activePolls[api.serverUid] != null) {
+                stopBackgroundPollingOfHost(api);
+                return;
+            }
             // every 5 seconds, poll at the address we know it was live at
             host.refreshServerInfoAtAddress(host.address).then(function (onSuccess){
                 $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
@@ -72,6 +76,10 @@ function beginBackgroundPollingOfHost(host) {
     }, function () { // initial attempt was a failure
         $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
         activePolls[host.serverUid] = window.setInterval(function() {
+            if (api && activePolls[api.serverUid] != null) {
+                stopBackgroundPollingOfHost(api);
+                return;
+            }
             if(host.refreshServerInfoAtAddress(host.address)) {
                 $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
             } else {
@@ -323,6 +331,9 @@ function showApps() {
             
         });
 
+        $("#game-grid").append($("<div>", {html:$("<img src=icons\\icon48.png id=quitCurrentApp\>"), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
+        $('#quitCurrentApp').on('click', function() {api.quitApp(); api.refreshServerInfo(); });
+
     }, function (failedAppList) {
         console.log('Failed to get applist from host: ' + api.address);
         console.log('failed API object: ');
@@ -344,6 +355,7 @@ function showHostsAndSettingsMode() {
     $("body").css('backgroundColor', 'white');
     if(api && !activePolls[api.serverUid]) {
         beginBackgroundPollingOfHost(api);
+        api = null;
     }
 }
 
