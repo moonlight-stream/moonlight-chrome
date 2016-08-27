@@ -229,7 +229,7 @@ NvHTTP.prototype = {
         });
     },
     
-    getAppList: function () {
+    getAppListWithCacheFlush: function () {
         return sendMessage('openUrl', [this._baseUrlHttps + '/applist?' + this._buildUidStr(), false]).then(function (ret) {
             $xml = this._parseXML(ret);
             
@@ -244,9 +244,23 @@ NvHTTP.prototype = {
                     running: (appElements[i].getElementsByTagName("IsRunning")[0].innerHTML.trim() == 1)
                 });
             }
+
+            this._memCachedApplist = appList;
             
             return appList;
         }.bind(this));
+    },
+
+    getAppList: function () {
+        if (this._memCachedApplist) {
+            return new Promise(function (resolve, reject) {
+                console.log('returning memory cached app list');
+                resolve(this._memCachedApplist);
+                return;
+            }.bind(this));
+        }
+
+        return this.getAppListWithCacheFlush();
     },
     
     // returns the box art of the given appID.
