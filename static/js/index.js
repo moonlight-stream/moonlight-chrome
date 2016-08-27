@@ -312,6 +312,7 @@ function showApps() {
         console.log('Moved into showApps, but `api` did not initialize properly! Failing.');
         return;
     }
+    $('#quitCurrentApp').show();
     $("#game-grid").empty();
     api.getAppList().then(function (appList) {
         // if game grid is populated, empty it
@@ -336,11 +337,6 @@ function showApps() {
                 console.log(api.toString());
             });
         });
-        if($('#quitCurrentApp').length === 0) {
-            $(".mdl-layout__header-row").append($("<div>", {html:$("<img src=static\\res\\ic_remove_circle_white_24px.svg\>"), class: 'cancel-current', id: 'quitCurrentApp'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
-            $('#quitCurrentApp').on('click', function() {api.quitApp(); api.refreshServerInfo(); });            
-        }
-
     }, function (failedAppList) {
         console.log('Failed to get applist from host: ' + api.address);
         console.log('failed API object: ');
@@ -354,6 +350,7 @@ function showApps() {
 function showHostsAndSettingsMode() {
     console.log('entering show hosts and settings mode.');
     $('#backIcon').hide();
+    $('#quitCurrentApp').hide();
     $(".mdl-layout__header").show();
     $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
     $("#game-grid").hide();
