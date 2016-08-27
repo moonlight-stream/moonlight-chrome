@@ -213,22 +213,28 @@ function hostChosen(sourceEvent) {
     }
 
     api = hosts[serverUid];
-    if(!!api.refreshServerInfo == false) {  // bang bang, you're a bool (cast the function into truthiness to check for existance)
-        console.log('error: revival of object failed!');
+    stopBackgroundPollingOfHost(api);
+
+    // Use the cached state of this host from the last poll
+    if(!api.paired) {
+        // It doesn't think we're paired. Refresh our serverinfo to make sure.
+        api.refreshServerInfo().then(function (ret) {
+            if (!api.paired) {
+                // Still not paired; go to the pairing flow
+                pairTo(api, function(){ showApps(api); saveHosts();}, function(){});
+            } else {
+                // When we queried again, it was paired, so show apps.
+                showApps(api);
+            }
+        }, function (failedRefreshInfo) {
+            snackbarLog('Failed to connect to ' + api.address + '! Are you sure the host is on?');
+            console.log('Returned error was: ' + failedRefreshInfo);
+            console.log('failed API object: ');
+            console.log(api.toString());
+        });
+    } else {
+        showApps(api);
     }
-    api.refreshServerInfo().then(function (ret) {
-        if(!api.paired) {
-            pairTo(api, function(){ showApps(api); saveHosts();}, function(){});
-        } else {
-            showApps(api);
-        }
-        stopBackgroundPollingOfHost(api);
-    }, function (failedRefreshInfo) {
-        snackbarLog('Failed to connect to ' + api.address + '! Are you sure the host is on?');
-        console.log('Returned error was: ' + failedRefreshInfo);
-        console.log('failed API object: ');
-        console.log(api.toString());
-    });
 }
 
 // the `+` was selected on the host grid.
