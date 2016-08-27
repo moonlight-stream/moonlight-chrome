@@ -327,11 +327,10 @@ function showApps() {
                 console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
                 console.log('failed API object: ');
                 console.log(api.toString());
-            });
-            
+            }); 
         });
 
-        $("#game-grid").append($("<div>", {html:$("<img src=icons\\icon48.png id=quitCurrentApp\>"), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
+        $("#game-grid").append($("<div>", {html:$("<img src=static\\res\\ic_remove_circle_white_24px.svg id=quitCurrentApp\>"), class: 'cancel-cell mdl-cell mdl-cell--3-col'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
         $('#quitCurrentApp').on('click', function() {api.quitApp(); api.refreshServerInfo(); });
 
     }, function (failedAppList) {
