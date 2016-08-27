@@ -38,9 +38,10 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this.currentGame = 0;
     this.serverMajorVersion = 0;
     this.clientUid = clientUid;
-    this._baseUrlHttps = 'https://' + address + ':47984';
-    this._baseUrlHttp = 'http://' + address + ':47989';
     this._memCachedBoxArtArray = {};
+    this._pollCount = 0;
+    this._consecutivePollFailures = 0;
+    this.online = false;
 
     this.userEnteredAddress = userEnteredAddress;  // if the user entered an address, we keep it on hand to try when polling
     this.serverUid = '';
@@ -100,22 +101,52 @@ NvHTTP.prototype = {
         }.bind(this));
     },
 
+    // called every few seconds to poll the server for updated info
+    pollServer: function(onComplete) {
+        this.selectServerAddress(function(successfulAddress) {
+            // Successfully determined server address. Update base URL.
+            this.address = successfulAddress;
+            this._baseUrlHttps = 'https://' + successfulAddress + ':47984';
+            this._baseUrlHttp = 'http://' + successfulAddress + ':47989';
+
+            // Poll for the app list every 10 successful serverinfo polls.
+            // Not including the first one to avoid PCs taking a while to show
+            // as online initially
+            if (++this._pollCount % 10 == 0) {
+                this.getAppListWithCacheFlush();
+            }
+
+            this._consecutivePollFailures = 0;
+            this.online = true;
+
+            onComplete();
+        }.bind(this), function() {
+            if (++this._consecutivePollFailures >= 3) {
+                this.online = false;
+            }
+
+            onComplete();
+        }.bind(this));
+    },
+
     // initially pings the server to try and figure out if it's routable by any means.
-    initialPing: function(onSuccess, onFailure) {
-        this.refreshServerInfoAtAddress(this.hostname + '.local').then(function(successLocal) {
-            this.address = this.hostname + '.local';
-            onSuccess();
-        }.bind(this), function(failureLocal) {
-            this.refreshServerInfoAtAddress(this.externalIP).then(function(successExternal) {
-                this.address = this.externalIP;
-                onSuccess();
-            }.bind(this), function(failureExternal) {
-                this.refreshServerInfoAtAddress(this.userEnteredAddress).then(function(successUserEntered) {
-                    this.address = this.userEnteredAddress;
-                    onSuccess();
-                }.bind(this), function(failureUserEntered) {
-                    console.log('WARN! Failed to contact host: ' + this.hostname + '\r\n' + this.toString());
-                    onFailure();
+    selectServerAddress: function(onSuccess, onFailure) {
+        // TODO: Deduplicate the addresses
+        this.refreshServerInfoAtAddress(this.address).then(function(successPrevAddr) {
+            onSuccess(this.address);
+        }.bind(this), function(successPrevAddr) {
+            this.refreshServerInfoAtAddress(this.hostname + '.local').then(function(successLocal) {
+                onSuccess(this.hostname + '.local');
+            }.bind(this), function(failureLocal) {
+                this.refreshServerInfoAtAddress(this.externalIP).then(function(successExternal) {
+                    onSuccess(this.externalIP);
+                }.bind(this), function(failureExternal) {
+                    this.refreshServerInfoAtAddress(this.userEnteredAddress).then(function(successUserEntered) {
+                        onSuccess(this.userEnteredAddress);
+                    }.bind(this), function(failureUserEntered) {
+                        console.log('WARN! Failed to contact host: ' + this.hostname + '\r\n' + this.toString());
+                        onFailure();
+                    }.bind(this));
                 }.bind(this));
             }.bind(this));
         }.bind(this));

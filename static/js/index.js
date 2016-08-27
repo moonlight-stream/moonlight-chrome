@@ -58,37 +58,52 @@ function restoreUiAfterNaClLoad() {
 }
 
 function beginBackgroundPollingOfHost(host) {
-    $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
-    // for each host, first assume it's inactive.
-
-    host.initialPing(function () { // initial attempt was a success
+    if (host.online) {
         $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+
+        // The host was already online. Just start polling in the background now.
         activePolls[host.serverUid] = window.setInterval(function() {
             if (api && activePolls[api.serverUid] != null) {
                 stopBackgroundPollingOfHost(api);
                 return;
             }
             // every 5 seconds, poll at the address we know it was live at
-            host.refreshServerInfoAtAddress(host.address).then(function (onSuccess){
-                $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
-            }, function (onFailure) {
-                $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+            host.pollServer(function () {
+                if (host.online) {
+                    $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+                } else {
+                    $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+                }
             });
         }, 5000);
-    }, function () { // initial attempt was a failure
+    } else {
         $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
-        activePolls[host.serverUid] = window.setInterval(function() {
-            if (api && activePolls[api.serverUid] != null) {
-                stopBackgroundPollingOfHost(api);
-                return;
-            }
-            if(host.refreshServerInfoAtAddress(host.address)) {
+
+        // The host was offline, so poll immediately.
+        host.pollServer(function () {
+            if (host.online) {
                 $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
             } else {
                 $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
             }
-        }, 5000);
-    });
+
+            // Now start background polling
+            activePolls[host.serverUid] = window.setInterval(function() {
+                if (api && activePolls[api.serverUid] != null) {
+                    stopBackgroundPollingOfHost(api);
+                    return;
+                }
+                // every 5 seconds, poll at the address we know it was live at
+                host.pollServer(function () {
+                    if (host.online) {
+                        $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+                    } else {
+                        $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+                    }
+                });
+            }, 5000);
+        });
+    }
 }
 
 function stopBackgroundPollingOfHost(host) {
@@ -221,26 +236,17 @@ function hostChosen(sourceEvent) {
     }
 
     api = hosts[serverUid];
+    if (!api.online) {
+        return;
+    }
+
     stopBackgroundPollingOfHost(api);
 
-    // Use the cached state of this host from the last poll
-    if(!api.paired) {
-        // It doesn't think we're paired. Refresh our serverinfo to make sure.
-        api.refreshServerInfo().then(function (ret) {
-            if (!api.paired) {
-                // Still not paired; go to the pairing flow
-                pairTo(api, function(){ showApps(api); saveHosts();}, function(){});
-            } else {
-                // When we queried again, it was paired, so show apps.
-                showApps(api);
-            }
-        }, function (failedRefreshInfo) {
-            snackbarLog('Failed to connect to ' + api.address + '! Are you sure the host is on?');
-            console.log('Returned error was: ' + failedRefreshInfo);
-            console.log('failed API object: ');
-            console.log(api.toString());
-        });
+    if (!api.paired) {
+        // Still not paired; go to the pairing flow
+        pairTo(api, function(){ showApps(api); saveHosts();}, function(){});
     } else {
+        // When we queried again, it was paired, so show apps.
         showApps(api);
     }
 }
@@ -743,7 +749,7 @@ function onWindowLoad(){
                     var mDnsDiscoveredHost = new NvHTTP(ip, myUniqueid);
                     if(hosts[mDnsDiscoveredHost.serverUid] != null) {
                         // if we're seeing a host we've already seen before, update it for the current local IP.
-                        hosts[mDnsDiscoveredHost.serverUid].localIp = mDnsDiscoveredHost.localIp;
+                        hosts[mDnsDiscoveredHost.serverUid].address = mDnsDiscoveredHost.address;
                     } else {
                         addHostToGrid(mDnsDiscoveredHost);
                     }
