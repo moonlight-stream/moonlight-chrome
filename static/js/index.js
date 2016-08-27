@@ -163,14 +163,14 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
         var pairingDialog = document.querySelector('#pairingDialog');
         $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
         pairingDialog.showModal();
-        console.log('sending pairing request to ' + nvhttpHost.address + ' with random number ' + randomNumber);
+        console.log('sending pairing request to ' + _api.address + ' with random number ' + randomNumber);
 
         _api.pair(randomNumber).then(function (paired) {
             if (!paired) {
                 if (_api.currentGame != 0) {
-                    $('#pairingDialogText').html('Error: ' + nvhttpHost.address + ' is in app.  Cannot pair until the app is stopped.');
+                    $('#pairingDialogText').html('Error: ' + _api.address + ' is in app.  Cannot pair until the app is stopped.');
                 } else {
-                    $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.address + '.  failure reason unknown.');
+                    $('#pairingDialogText').html('Error: failed to pair with ' + _api.address + '.  failure reason unknown.');
                 }
                 console.log('failed API object: ');
                 console.log(_api.toString());
@@ -182,14 +182,14 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             pairingDialog.close();
             onSuccess();
         }, function (failedPairing) {
-            snackbarLog('Failed pairing to: ' + nvhttpHost.address);
+            snackbarLog('Failed pairing to: ' + _api.address);
             console.log('pairing failed, and returned ' + failedPairing);
             console.log('failed API object: ');
             console.log(_api.toString());
             onFailure();
         });
     }, function (failedRefreshInfo) {
-        snackbarLog('Failed to connect to ' + nvhttpHost.address + '! Are you sure the host is on?');
+        snackbarLog('Failed to connect to ' + _api.address + '! Are you sure the host is on?');
         console.log('Returned error was: ' + failedRefreshInfo);
         console.log('failed API object: ');
         console.log(_api.toString());
@@ -259,9 +259,13 @@ function continueAddHost() {
     var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
     pairTo(_nvhttpHost,
         function() {
-            addHostToGrid(_nvhttpHost);
-            saveHosts();
-            document.querySelector('#addHostDialog').close();
+            _nvhttpHost.refreshServerInfo().then(function (onSuccess) {
+                addHostToGrid(_nvhttpHost);
+                saveHosts();
+                document.querySelector('#addHostDialog').close();
+            }, function (onFailure) {
+                console.log('FAILURE!');
+            });
         },
         function() {
             snackbarLog('pairing to ' + inputHost + ' failed!');

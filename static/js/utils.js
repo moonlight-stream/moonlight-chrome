@@ -150,7 +150,7 @@ NvHTTP.prototype = {
             return false;
         }
 
-        if(this.serverUid != $root.find('uniqueid').text().trim() && this.serverUid != null) {
+        if(this.serverUid != $root.find('uniqueid').text().trim() && this.serverUid != "") {
             // if we received a UID that isn't the one we expected, fail.
             return false;
         }
