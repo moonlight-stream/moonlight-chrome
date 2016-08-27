@@ -4,6 +4,7 @@ var pairingCert;
 var myUniqueid;
 var api;
 var relaunchSourceEvent;
+var unpairHostSourceEvent;
 
 // Called by the common.js module.
 function attachListeners() {
@@ -18,7 +19,8 @@ function attachListeners() {
     $('#addHostCell').on('click', addHost);
     $('#cancelAddHost').on('click', cancelAddHost);
     $('#continueAddHost').on('click', continueAddHost);
-    $('#forgetHost').on('click', forgetHost);
+    $('#continueUnpairHost').on('click', unpairHost);
+    $('#cancelUnpairHost').on('click', cancelUnpairHost);
     $('#cancelPairingDialog').on('click', pairingPopupCanceled);
     $('#cancelQuitApp').on('click', cancelQuitApp);
     $('#backIcon').on('click', showHostsAndSettingsMode);
@@ -199,14 +201,20 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
 
 function hostChosen(sourceEvent) {
 
-    if(sourceEvent && sourceEvent.srcElement) {
-        if (sourceEvent.srcElement.innerText == "") {
-            console.log('user clicked image. we gotta hack to parse out the host.');
-            var serverUid = sourceEvent.currentTarget.id.substring("hostgrid-".length);
-        } else {
-            console.log('parsing host from grid element.');
-            var serverUid = sourceEvent.srcElement.id.substring("hostgrid-".length);
-        }
+    // if(sourceEvent && sourceEvent.srcElement) {
+    //     if (sourceEvent.srcElement.innerText == "") {
+    //         console.log('user clicked image. we gotta hack to parse out the host.');
+    //         var serverUid = sourceEvent.currentTarget.id.substring("hostgrid-".length);
+    //     } else {
+    //         console.log('parsing host from grid element.');
+    //         var serverUid = sourceEvent.srcElement.id.substring("hostgrid-".length);
+    //     }
+    // } else
+    if (sourceEvent && sourceEvent.target && sourceEvent.target.id ) {
+        console.log('hacking out the host');
+        var serverUid = sourceEvent.target.id.substring("hostgrid-".length);
+    } else if (sourceEvent.target.parentElement && sourceEvent.target.parentElement.id) {
+        var serverUid = sourceEvent.target.parentElement.id.substring("hostgrid-".length);
     } else {
         console.log('Failed to find host! This should never happen!');
         console.log(sourceEvent);
@@ -250,13 +258,15 @@ function cancelAddHost() {
 
 // host is an NvHTTP object
 function addHostToGrid(host) {
-    var cell = document.createElement('div');
-    cell.className += 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect';
-    cell.id = 'hostgrid-' + host.serverUid;
-    cell.innerHTML = host.hostname;
+    var outerDiv = $("<div>", {class: 'host-container mdl-cell--3-col', id: 'host-container-' + host.serverUid });
+    var cell = $("<div>", {class: 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect', id: 'hostgrid-' + host.serverUid, html:host.hostname });
     $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
-    $('#host-grid').append(cell);
-    cell.onclick = hostChosen;
+    var removalButton = $("<div>", {class: "remove-host", id: "removeHostButton-" + host.serverUid});
+    removalButton.click(confirmUnpairHost);
+    cell.click(hostChosen);
+    $(outerDiv).append(cell);
+    $(outerDiv).append(removalButton);
+    $('#host-grid').append(outerDiv);
     hosts[host.serverUid] = host;
 }
 
@@ -278,15 +288,37 @@ function continueAddHost() {
         });
 }
 
+function confirmUnpairHost(sourceEvent) {
+    snackbarLog('Need to parse host from event: ' + sourceEvent);
+    var unpairHostDialog = document.querySelector('#unpairHostDialog');
+    document.getElementById('unpairHostDialogText').innerHTML =
+    ' Are you sure you want like to unpair from ' + hosts[sourceEvent.target.id.substring("removeHostButton-".length)].hostname + '?';
+    unpairHostDialog.showModal();
+    unpairHostSourceEvent = sourceEvent;
+}
+
+function cancelUnpairHost() {
+    var unpairHostDialog = document.querySelector('#unpairHostDialog');
+    unpairHostDialog.close();
+}
+
 // locally remove the hostname/ip from the saved `hosts` array.
 // note: this does not make the host forget the pairing to us.
 // this means we can re-add the host, and will still be paired.
-// TODO: use the chrome context menu to add right-click support to remove the host in grid-ui
-// https://github.com/GoogleChrome/chrome-app-samples/blob/master/samples/context-menu/main.js
-function forgetHost(host) {
-    snackbarLog('Feature not yet ported to grid-ui');
-    hosts.splice(hosts.indexOf(host.serverUid), 1); // remove the host from the array;
-    saveHosts();
+function unpairHost() {
+    var sourceEvent = unpairHostSourceEvent;
+    unpairHostSourceEvent = null;
+    host = hosts[sourceEvent.target.id.substring("removeHostButton-".length)];
+    host.unpair().then(function (onSuccess) {
+        var unpairHostDialog = document.querySelector('#unpairHostDialog');
+        unpairHostDialog.close();
+        $('#host-container-' + host.serverUid).remove();
+        snackbarLog('Successfully unpaired from host');
+        delete hosts[host.serverUid]; // remove the host from the array;
+        saveHosts();
+    }, function (onFailure) {
+        snackbarLog('Failed to unpair from host!');
+    });
 }
 
 function pairingPopupCanceled() {
