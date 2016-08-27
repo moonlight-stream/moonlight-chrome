@@ -320,7 +320,14 @@ function showApps() {
     }
     $('#quitCurrentApp').show();
     $("#game-grid").empty();
+
+    // Show a spinner while the applist loads
+    $('#naclSpinnerMessage').text('Loading apps...');
+    $('#naclSpinner').css('display', 'inline-block');
+
     api.getAppList().then(function (appList) {
+        $('#naclSpinner').hide();
+
         // if game grid is populated, empty it
         appList.forEach(function (app) {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
@@ -344,6 +351,8 @@ function showApps() {
             });
         });
     }, function (failedAppList) {
+        $('#naclSpinner').hide();
+
         console.log('Failed to get applist from host: ' + api.address);
         console.log('failed API object: ');
         console.log(api.toString());
