@@ -334,7 +334,7 @@ function showApps() {
             }); 
         });
 
-        $("#game-grid").append($("<div>", {html:$("<img src=static\\res\\ic_remove_circle_white_24px.svg id=quitCurrentApp\>"), class: 'cancel-cell mdl-cell mdl-cell--3-col'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
+        $(".mdl-layout__header-row").append($("<div>", {html:$("<img src=static\\res\\ic_remove_circle_white_24px.svg id=quitCurrentApp\>"), class: 'cancel-current'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
         $('#quitCurrentApp').on('click', function() {api.quitApp(); api.refreshServerInfo(); });
 
     }, function (failedAppList) {
