@@ -611,6 +611,8 @@ function updateDefaultBitrate() {
         } else { // 2160p, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('80');
         }
+    } else {  // unrecognized option. In case someone screws with the JS to add custom resolutions
+        $('#bitrateSlider')[0].MaterialSlider.change('10');
     }
 
     updateBitrateField();
