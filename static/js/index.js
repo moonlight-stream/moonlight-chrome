@@ -336,10 +336,8 @@ function showApps() {
                 console.log(api.toString());
             });
         });
-        if ($('quitCurrentApp').length === 0) {  // also prevent duplicate quit buttons from showing up
-            $("#game-grid").append($("<div>", {html:$("<img src=static\\res\\ic_remove_circle_white_24px.svg id=quitCurrentApp\>"), class: 'cancel-cell mdl-cell mdl-cell--3-col'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
-            $('#quitCurrentApp').on('click', function() {api.quitApp(); api.refreshServerInfo(); });
-        }
+        $(".mdl-layout__header-row").append($("<div>", {html:$("<img src=static\\res\\ic_remove_circle_white_24px.svg\>"), class: 'cancel-current', id: 'quitCurrentApp'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
+        $('#quitCurrentApp').on('click', function() {api.quitApp(); api.refreshServerInfo(); });
 
     }, function (failedAppList) {
         console.log('Failed to get applist from host: ' + api.address);
