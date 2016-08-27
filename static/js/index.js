@@ -23,7 +23,7 @@ function attachListeners() {
     $('#cancelQuitApp').on('click', cancelQuitApp);
     $('#backIcon').on('click', showHostsAndSettingsMode);
     $('#continueQuitApp').on('click', continueQuitApp);
-    $('#quitGameButton').on('click', stopGame);
+    $('#quitCurrentApp').on('click', stopGameWithConfirmation);
     $(window).resize(fullscreenNaclModule);
     chrome.app.window.current().onMaximized.addListener(fullscreenChromeWindow);
 }
@@ -470,7 +470,6 @@ function cancelQuitApp() {
 }
 
 function continueQuitApp(sourceEvent) {
-    // I want the sourceEvent's sourceEvent
     console.log('stopping game, and closing app dialog, and returning');
     stopGame(
         function() {
@@ -479,7 +478,6 @@ function continueQuitApp(sourceEvent) {
                 // wants to set it again.
                 var event = relaunchSourceEvent;
                 relaunchSourceEvent = null;
-
                 startGame(event);
             }
         }
@@ -518,6 +516,20 @@ function fullscreenNaclModule() {
     module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
 }
 
+function stopGameWithConfirmation() {
+    if (api.currentGame === 0) {
+        snackbarLog('Nothing was running');
+    } else {
+        api.getAppById(api.currentGame).then(function (currentGame) {
+            var quitAppDialog = document.querySelector('#quitAppDialog');
+            document.getElementById('quitAppDialogText').innerHTML =
+            ' Are you sure you would like to quit ' +
+            currentGame.title + '?  Unsaved progress will be lost.';
+            quitAppDialog.showModal();
+        });
+    }
+}
+
 function stopGame(callbackFunction) {
     api.refreshServerInfo().then(function (ret) {
         api.getAppById(api.currentGame).then(function (runningApp) {
@@ -530,10 +542,12 @@ function stopGame(callbackFunction) {
             api.quitApp().then(function (ret2) { 
                 api.refreshServerInfo().then(function (ret3) { // refresh to show no app is currently running.
                     showAppsMode();
+                    stylizeBoxArt(api, runningApp.id);
                     if (typeof(callbackFunction) === "function") callbackFunction();
                 }, function (failedRefreshInfo2) {
                     console.log('ERROR: failed to refresh server info!');
                     console.log('Returned error was: ' + failedRefreshInfo2);
+                    console.log('failed server was: ' + api.toString());
                 });
             }, function (failedQuitApp) {
                 console.log('ERROR: failed to quit app!');
