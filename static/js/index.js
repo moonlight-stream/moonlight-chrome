@@ -312,30 +312,34 @@ function showApps() {
         console.log('Moved into showApps, but `api` did not initialize properly! Failing.');
         return;
     }
-
-    // if game grid is populated, empty it
     $("#game-grid").empty();
-
     api.getAppList().then(function (appList) {
+        // if game grid is populated, empty it
         appList.forEach(function (app) {
             api.getBoxArt(app.id).then(function (resolvedPromise) {
                 // put the box art into the image holder
-                var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
-                $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
-                $('#game-'+app.id).on('click', startGame);
+                if ($('#game-' + app.id).length === 0) {
+                    // double clicking the button will cause multiple box arts to appear.
+                    // to mitigate this we ensure we don't add a duplicate.
+                    // This isn't perfect: there's lots of RTTs before the logic prevents anything
+                    var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
+                    $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
+                    $('#game-'+app.id).on('click', startGame);
 
-                // apply CSS stylization to indicate whether the app is active
-                stylizeBoxArt(api, app.id);
+                    // apply CSS stylization to indicate whether the app is active
+                    stylizeBoxArt(api, app.id);
+                }
 
             }, function (failedPromise) {
                 console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
                 console.log('failed API object: ');
                 console.log(api.toString());
-            }); 
+            });
         });
-
-        $("#game-grid").append($("<div>", {html:$("<img src=static\\res\\ic_remove_circle_white_24px.svg id=quitCurrentApp\>"), class: 'cancel-cell mdl-cell mdl-cell--3-col'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
-        $('#quitCurrentApp').on('click', function() {api.quitApp(); api.refreshServerInfo(); });
+        if ($('quitCurrentApp').length === 0) {  // also prevent duplicate quit buttons from showing up
+            $("#game-grid").append($("<div>", {html:$("<img src=static\\res\\ic_remove_circle_white_24px.svg id=quitCurrentApp\>"), class: 'cancel-cell mdl-cell mdl-cell--3-col'}).append($("<span>", {html: 'Quit Current App', class:"game-title"})));
+            $('#quitCurrentApp').on('click', function() {api.quitApp(); api.refreshServerInfo(); });
+        }
 
     }, function (failedAppList) {
         console.log('Failed to get applist from host: ' + api.address);
