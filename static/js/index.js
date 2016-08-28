@@ -170,7 +170,14 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
     }
 
     var _api = nvhttpHost;
-    _api.refreshServerInfo().then(function (ret) {
+    _api.pollServer(function (ret) {
+        if (!_api.online) {
+            snackbarLog('Failed to connect to ' + _api.address + '! Are you sure the host is on?');
+            console.log(_api.toString());
+            onFailure();
+            return;
+        }
+
         if (_api.paired) {
             onSuccess();
             return;
@@ -205,12 +212,6 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             console.log(_api.toString());
             onFailure();
         });
-    }, function (failedRefreshInfo) {
-        snackbarLog('Failed to connect to ' + _api.address + '! Are you sure the host is on?');
-        console.log('Returned error was: ' + failedRefreshInfo);
-        console.log('failed API object: ');
-        console.log(_api.toString());
-        onFailure();
     });
 }
 
@@ -279,19 +280,17 @@ function addHostToGrid(host) {
 function continueAddHost() {
     var inputHost = $('#dialogInputHost').val();
     var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
+
     pairTo(_nvhttpHost,
         function() {
-            _nvhttpHost.refreshServerInfo().then(function (onSuccess) {
-                addHostToGrid(_nvhttpHost);
-                saveHosts();
-                document.querySelector('#addHostDialog').close();
-            }, function (onFailure) {
-                console.log('FAILURE!');
-            });
+            beginBackgroundPollingOfHost(_nvhttpHost);
+            addHostToGrid(_nvhttpHost);
+            saveHosts();
+            document.querySelector('#addHostDialog').close();
         },
         function() {
             snackbarLog('pairing to ' + inputHost + ' failed!');
-        });
+    });
 }
 
 function confirmUnpairHost(sourceEvent) {
@@ -584,6 +583,10 @@ function stopGameWithConfirmation() {
 }
 
 function stopGame(callbackFunction) {
+    if (!api.paired) {
+        return;
+    }
+
     api.refreshServerInfo().then(function (ret) {
         api.getAppById(api.currentGame).then(function (runningApp) {
             if (!runningApp) {
