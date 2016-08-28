@@ -55,6 +55,32 @@ function restoreUiAfterNaClLoad() {
     for(hostUID in hosts) {
         beginBackgroundPollingOfHost(hosts[hostUID]);
     }
+
+    findNvService(function (finder, opt_error) {
+        if (finder.byService_['_nvstream._tcp']) {
+            var ips = Object.keys(finder.byService_['_nvstream._tcp']);
+            for (var i in ips) {
+                var ip = ips[i];
+                if (finder.byService_['_nvstream._tcp'][ip]) {
+                    var mDnsDiscoveredHost = new NvHTTP(ip, myUniqueid);
+                    mDnsDiscoveredHost.pollServer(function() {
+                        // Just drop this if the host doesn't respond
+                        if (!mDnsDiscoveredHost.online) {
+                            return;
+                        }
+
+                        if (hosts[mDnsDiscoveredHost.serverUid] != null) {
+                            // if we're seeing a host we've already seen before, update it for the current local IP.
+                            hosts[mDnsDiscoveredHost.serverUid].address = mDnsDiscoveredHost.address;
+                        } else {
+                            beginBackgroundPollingOfHost(mDnsDiscoveredHost);
+                            addHostToGrid(mDnsDiscoveredHost);
+                        }
+                    });
+                }
+            }
+        }
+    });
 }
 
 function beginBackgroundPollingOfHost(host) {
@@ -743,32 +769,6 @@ function onWindowLoad(){
             }
         });
     }
-
-    findNvService(function (finder, opt_error) {
-        if (finder.byService_['_nvstream._tcp']) {
-            var ips = Object.keys(finder.byService_['_nvstream._tcp']);
-            for (var i in ips) {
-                var ip = ips[i];
-                if (finder.byService_['_nvstream._tcp'][ip]) {
-                    var mDnsDiscoveredHost = new NvHTTP(ip, myUniqueid);
-                    mDnsDiscoveredHost.pollServer(function() {
-                        // Just drop this if the host doesn't respond
-                        if (!mDnsDiscoveredHost.online) {
-                            return;
-                        }
-
-                        if (hosts[mDnsDiscoveredHost.serverUid] != null) {
-                            // if we're seeing a host we've already seen before, update it for the current local IP.
-                            hosts[mDnsDiscoveredHost.serverUid].address = mDnsDiscoveredHost.address;
-                        } else {
-                            beginBackgroundPollingOfHost(mDnsDiscoveredHost);
-                            addHostToGrid(mDnsDiscoveredHost);
-                        }
-                    });
-                }
-            }
-        }
-    });
 }
 
 
