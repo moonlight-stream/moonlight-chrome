@@ -74,7 +74,7 @@ function restoreUiAfterNaClLoad() {
                             hosts[mDnsDiscoveredHost.serverUid].address = mDnsDiscoveredHost.address;
                         } else {
                             beginBackgroundPollingOfHost(mDnsDiscoveredHost);
-                            addHostToGrid(mDnsDiscoveredHost);
+                            addHostToGrid(mDnsDiscoveredHost, true);
                         }
                     });
                 }
@@ -290,7 +290,7 @@ function cancelAddHost() {
 }
 
 // host is an NvHTTP object
-function addHostToGrid(host) {
+function addHostToGrid(host, ismDNSDiscovered=false) {
     var outerDiv = $("<div>", {class: 'host-container mdl-cell--3-col', id: 'host-container-' + host.serverUid });
     var cell = $("<div>", {class: 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect', id: 'hostgrid-' + host.serverUid, html:host.hostname });
     $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
@@ -298,7 +298,10 @@ function addHostToGrid(host) {
     removalButton.click(confirmUnpairHost);
     cell.click(hostChosen);
     $(outerDiv).append(cell);
-    $(outerDiv).append(removalButton);
+    if (!ismDNSDiscovered) {
+        // we don't have the option to unpair from mDNS hosts.  So don't show it to the user.
+        $(outerDiv).append(removalButton);        
+    }
     $('#host-grid').append(outerDiv);
     hosts[host.serverUid] = host;
 }
