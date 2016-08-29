@@ -119,13 +119,13 @@ NvHTTP.prototype = {
             this._consecutivePollFailures = 0;
             this.online = true;
 
-            onComplete();
+            onComplete(this);
         }.bind(this), function() {
             if (++this._consecutivePollFailures >= 3) {
                 this.online = false;
             }
 
-            onComplete();
+            onComplete(this);
         }.bind(this));
     },
 

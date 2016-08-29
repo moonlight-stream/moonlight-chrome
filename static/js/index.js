@@ -63,18 +63,18 @@ function restoreUiAfterNaClLoad() {
                 var ip = ips[i];
                 if (finder.byService_['_nvstream._tcp'][ip]) {
                     var mDnsDiscoveredHost = new NvHTTP(ip, myUniqueid);
-                    mDnsDiscoveredHost.pollServer(function() {
+                    mDnsDiscoveredHost.pollServer(function(returneMdnsDiscoveredHost) {
                         // Just drop this if the host doesn't respond
-                        if (!mDnsDiscoveredHost.online) {
+                        if (!returneMdnsDiscoveredHost.online) {
                             return;
                         }
 
-                        if (hosts[mDnsDiscoveredHost.serverUid] != null) {
+                        if (hosts[returneMdnsDiscoveredHost.serverUid] != null) {
                             // if we're seeing a host we've already seen before, update it for the current local IP.
-                            hosts[mDnsDiscoveredHost.serverUid].address = mDnsDiscoveredHost.address;
+                            hosts[returneMdnsDiscoveredHost.serverUid].address = returneMdnsDiscoveredHost.address;
                         } else {
-                            beginBackgroundPollingOfHost(mDnsDiscoveredHost);
-                            addHostToGrid(mDnsDiscoveredHost, true);
+                            beginBackgroundPollingOfHost(returneMdnsDiscoveredHost);
+                            addHostToGrid(returneMdnsDiscoveredHost, true);
                         }
                     });
                 }
