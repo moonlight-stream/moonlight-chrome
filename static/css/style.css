@@ -18,6 +18,8 @@
     cursor: pointer;
     width: 150px !important;
     height: 150px !important;
+    margin-right: 16px;
+    margin-bottom: 16px;
 }
 #backIcon {
     height: 32px;
