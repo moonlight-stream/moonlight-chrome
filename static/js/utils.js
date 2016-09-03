@@ -293,12 +293,35 @@ NvHTTP.prototype = {
 
         return this.getAppListWithCacheFlush();
     },
+
+    warmBoxArtCache: function () {
+        if (Object.keys(this._memCachedBoxArtArray).length != 0) {
+            console.log('box art cache already warmed.');
+            return;
+        }
+        if (chrome.storage) {
+            chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
+
+                var storedBoxArtArray;  // load cached data if it exists
+                if (JSONCachedBoxArtArray.boxArtCache != undefined) {
+                    storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
+                    for (var key in storedBoxArtArray) {
+                        this._memCachedBoxArtArray[key] = _base64ToArrayBuffer(storedBoxArtArray[key]);
+                    }
+                    console.log('box art cache warmed.');
+                } else {
+                     console.log('WARN: no box art found in storage. Cannot warm cache!');
+                     return;
+                }
+            }.bind(this));
+        }
+    },
     
     // returns the box art of the given appID.
     // three layers of response time are possible: memory cached (in javascript), storage cached (in chrome.storage.local), and streamed (host sends binary over the network)
     getBoxArt: function (appId) {
 
-        // TODO: unfortunately we do N  lookups from storage cache, each of them filling up the memory cache.
+        // TODO: unfortunately we do N lookups from storage cache, each of them filling up the memory cache.
         // once the first round of calls are all made, each subsequent request hits this and returns from memory cache
         if (this._memCachedBoxArtArray[appId] !== undefined) {
             return new Promise(function (resolve, reject) {
