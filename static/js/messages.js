@@ -29,7 +29,7 @@ function handleMessage(msg) {
                         stylizeBoxArt(api, app.id);  // and reapply stylization to indicate what's currently running
                     });
                 });
-                showApps();
+                showApps(api);
                 chrome.app.window.current().restore();
             });
 
