@@ -294,7 +294,13 @@ NvHTTP.prototype = {
         return this.getAppListWithCacheFlush();
     },
 
+    // warms `this` _memCachedBoxArtArray with ALL box art from ALL servers
+    // this is inefficient, but works well.
     warmBoxArtCache: function () {
+        if (!this.paired) {
+            console.log('not warming box art cache from unpaired host.');
+            return;
+        }
         if (Object.keys(this._memCachedBoxArtArray).length != 0) {
             console.log('box art cache already warmed.');
             return;

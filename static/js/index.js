@@ -319,7 +319,6 @@ function unpairClicked(host) {
     $('#continueUnpairHost').on('click', function () {
         host.unpair().then(function (onSuccess) {
             var unpairHostDialog = document.querySelector('#unpairHostDialog');
-            unpairHostDialog.close();
             $('#host-container-' + host.serverUid).remove();
             snackbarLog('Successfully unpaired from host');
             delete hosts[host.serverUid]; // remove the host from the array;
