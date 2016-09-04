@@ -19,24 +19,24 @@ function handleMessage(msg) {
         callbacks[msg.data.callbackId][msg.data.type](msg.data.ret);
         delete callbacks[msg.data.callbackId]
     }
-	else {  // else, it's just info, or an event
+    else {  // else, it's just info, or an event
         console.log(msg.data);
         if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
             $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.            
-			chrome.app.window.current().restore();
-			uiShowAppsList();
+            chrome.app.window.current().restore();
+            uiShowAppsList();
         } 
-		else if(msg.data === 'Connection Established') {
+        else if(msg.data === 'Connection Established') {
             $('#loadingSpinner').css('display', 'none');
         }
-		else if(msg.data.indexOf('ProgressMsg: ') === 0) {
+        else if(msg.data.indexOf('ProgressMsg: ') === 0) {
             $('#loadingMessage').text(msg.data.replace('ProgressMsg: ', ''));
         }
-		else if(msg.data.indexOf('TransientMsg: ') === 0) {
+        else if(msg.data.indexOf('TransientMsg: ') === 0) {
             snackbarLog(msg.data.replace('TransientMsg: ', ''));
         }
-		else if(msg.data === 'displayVideo') {
-            $("#listener").addClass("fullscreen");
+        else if(msg.data === 'displayVideo') {
+            $('#listener').addClass('fullscreen');
         }
     }
 }
