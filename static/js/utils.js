@@ -1,15 +1,15 @@
 function guuid() {
-	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-	    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-	    return v.toString(16);
-	});
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
 }
 
 function uniqueid() {
     return 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, function(c) {
-	    var r = Math.random()*16|0;
-	    return r.toString(16);
-	});
+        var r = Math.random()*16|0;
+        return r.toString(16);
+    });
 }
 
 function generateRemoteInputKey() {
@@ -24,11 +24,11 @@ function generateRemoteInputKeyId() {
 }
 
 String.prototype.toHex = function() {
-	var hex = '';
-	for(var i = 0; i < this.length; i++) {
-		hex += '' + this.charCodeAt(i).toString(16);
-	}
-	return hex;
+    var hex = '';
+    for(var i = 0; i < this.length; i++) {
+        hex += '' + this.charCodeAt(i).toString(16);
+    }
+    return hex;
 }
 
 function _arrayBufferToBase64( buffer ) {
@@ -73,7 +73,7 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this.hostname = '';
     this.externalIP = '';
     this._baseUrlHttps = 'https://' + address + ':47984';
-	this._baseUrlHttp = 'http://' + address + ':47989';
+    this._baseUrlHttp = 'http://' + address + ':47989';
 };
 
 NvHTTP.prototype = {
@@ -114,11 +114,11 @@ NvHTTP.prototype = {
         $xml = this._parseXML(xmlStr);
         $root = $xml.find('root');
 
-        if($root.attr("status_code") != 200) {
+        if($root.attr('status_code') != 200) {
             return false;
         }
 
-        if(this.serverUid != $root.find('uniqueid').text().trim() && this.serverUid != "") {
+        if(this.serverUid != $root.find('uniqueid').text().trim() && this.serverUid != '') {
             // if we received a UID that isn't the one we expected, fail.
             return false;
         }
@@ -126,9 +126,9 @@ NvHTTP.prototype = {
         console.log('parsing server info: ');
         console.log($root);
 
-        this.paired = $root.find("PairStatus").text().trim() == 1;
-        this.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
-        this.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
+        this.paired = $root.find('PairStatus').text().trim() == 1;
+        this.currentGame = parseInt($root.find('currentgame').text().trim(), 10);
+        this.serverMajorVersion = parseInt($root.find('appversion').text().trim().substring(0, 1), 10);
         this.serverUid = $root.find('uniqueid').text().trim();
         this.hostname = $root.find('hostname').text().trim();
         this.externalIP = $root.find('ExternalIP').text().trim();
@@ -156,7 +156,7 @@ NvHTTP.prototype = {
         // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
         // has the semantics that its name would indicate. To contain the effects of this change as much
         // as possible, we'll force the current game to zero if the server isn't in a streaming session.
-        if ($root.find("state").text().trim().endsWith("_SERVER_AVAILABLE")) {
+        if ($root.find('state').text().trim().endsWith('_SERVER_AVAILABLE')) {
             this.currentGame = 0;
         }
         
@@ -201,15 +201,15 @@ NvHTTP.prototype = {
         return sendMessage('openUrl', [this._baseUrlHttps + '/applist?' + this._buildUidStr(), false]).then(function (ret) {
             $xml = this._parseXML(ret);
             
-            var rootElement = $xml.find("root")[0];
-            var appElements = rootElement.getElementsByTagName("App");
+            var rootElement = $xml.find('root')[0];
+            var appElements = rootElement.getElementsByTagName('App');
             var appList = [];
             
             for (var i = 0, len = appElements.length; i < len; i++) {
                 appList.push({
-                    title: appElements[i].getElementsByTagName("AppTitle")[0].innerHTML.trim(),
-                    id: parseInt(appElements[i].getElementsByTagName("ID")[0].innerHTML.trim(), 10),
-                    running: (appElements[i].getElementsByTagName("IsRunning")[0].innerHTML.trim() == 1)
+                    title: appElements[i].getElementsByTagName('AppTitle')[0].innerHTML.trim(),
+                    id: parseInt(appElements[i].getElementsByTagName('ID')[0].innerHTML.trim(), 10),
+                    running: (appElements[i].getElementsByTagName('IsRunning')[0].innerHTML.trim() == 1)
                 });
             }
 
@@ -232,13 +232,13 @@ NvHTTP.prototype = {
     },
     
     getBoxArt: function (appId) {
-		return sendMessage('openUrl', [
-			this._baseUrlHttps +
-			'/appasset?'+this._buildUidStr() +
-			'&appid=' + appId + 
-			'&AssetType=2&AssetIdx=0',
-			true
-		]);
+        return sendMessage('openUrl', [
+            this._baseUrlHttps +
+            '/appasset?'+this._buildUidStr() +
+            '&appid=' + appId + 
+            '&AssetType=2&AssetIdx=0',
+            true
+        ]);
     },
     
     launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
@@ -287,7 +287,7 @@ NvHTTP.prototype = {
             return sendMessage('pair', [this.serverMajorVersion, this.address, randomNumber]).then(function (pairStatus) {
                 return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function (ret) {
                     $xml = this._parseXML(ret);
-                    this.paired = $xml.find('paired').html() == "1";
+                    this.paired = $xml.find('paired').html() == '1';
                     return this.paired;
                 }.bind(this));
             }.bind(this));
