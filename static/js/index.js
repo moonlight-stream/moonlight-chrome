@@ -10,6 +10,7 @@ function startUpdateHosts() {
     
     findNvService(function (finder, opt_error) {
         alreadyUpdated = [];
+        waitHosts = [];
         
         if (finder.byService_['_nvstream._tcp']) {
             var ips = Object.keys(finder.byService_['_nvstream._tcp']);
@@ -19,7 +20,14 @@ function startUpdateHosts() {
                 
                 if (finder.byService_['_nvstream._tcp'][ip]) {
                     var host = new NvHTTP(ip, myUniqueid);
-                    host.refreshServerInfo().then(function () {
+                    
+                    for (var uid in hosts) {
+                        if (hosts[uid].address == ip) {
+                            host = hosts[uid];
+                        }
+                    }
+                    
+                    var p = host.refreshServerInfo().then(function () {
                         if (host.serverUid) {
                             host.online = true;
                             
@@ -30,30 +38,34 @@ function startUpdateHosts() {
                             alreadyUpdated.push(host.serverUid);
                         }
                     }, function () { /* do nothing */ });
+                    
+                    waitHosts.push(p);
                 }
             }
         }
         
-        for (var uid in hosts) {
-            if (!(uid in alreadyUpdated)) {
-                var host = hosts[uid];
-                
-                if (host) {
-                    host.refreshServerInfo().then(function () {
-                        if (host.serverUid) {
-                            host.online = true;
-                        }
-                        else {
+        Promise.all(waitHosts).then(function () {
+            for (var uid in hosts) {
+                if (alreadyUpdated.indexOf(uid) == -1) {
+                    var host = hosts[uid];
+                    
+                    if (host) {
+                        host.refreshServerInfo().then(function () {
+                            if (host.serverUid) {
+                                host.online = true;
+                            }
+                            else {
+                                host.online = false;
+                                removeHostFromGrid(host);
+                            }
+                        }, function () {
                             host.online = false;
                             removeHostFromGrid(host);
-                        }
-                    }, function () {
-                        host.online = false;
-                        removeHostFromGrid(host);
-                    });
+                        });
+                    }
                 }
             }
-        }
+        });
     });
     
     updateHostsTimer = setTimeout(startUpdateHosts, 5000);
@@ -159,7 +171,6 @@ function onWindowLoad() {
                 revivedHost.serverUid = hosts[hostUID].serverUid;
                 revivedHost.externalIP = hosts[hostUID].externalIP;
                 revivedHost.hostname = hosts[hostUID].hostname;
-                
                 addHostToGrid(revivedHost);
             }
         });
@@ -232,14 +243,14 @@ function storeData(key, data) {
     var obj = {};
     obj[key] = data;
     
-    console.log('Saving ' + key + ': ' + data);
+    console.log('Saving ' + key + ': ', data);
     
     if(chrome.storage)
         chrome.storage.sync.set(obj, null);
 }
 
 function moduleLoading() {
-    uiHostsMode();
+    uiHostsMode(false);
     uiLoadingMode('Loading Moonlight plugin...');
 }
 
@@ -302,7 +313,7 @@ function uiLoadingMode(txt = '') {
     }
 }
 
-function uiHostsMode() {
+function uiHostsMode(startTimer = true) {
     $('#backIcon').hide();
     $('#quitCurrentApp').hide();
     $('.mdl-layout__header').show();
@@ -313,7 +324,9 @@ function uiHostsMode() {
     $('body').css('backgroundColor', 'white');
     
     selectedHost = null;
-    startUpdateHosts();
+    
+    if (startTimer)
+        startUpdateHosts();
 }
 
 function uiAppsMode() {
@@ -636,6 +649,7 @@ function removeHostFromGrid(host) {
 
 function onClickSelectHost(host) {
     if (!host.online) {
+        snackbarLog('Host offline!');
         return;
     }
     

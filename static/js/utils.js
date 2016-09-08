@@ -53,7 +53,6 @@ function _base64ToArrayBuffer(base64) {
 
 
 function NvHTTP(address, clientUid, userEnteredAddress = '') {
-    console.log(this);
     this.address = address;
     this.paired = false;
     this.currentGame = 0;
@@ -78,14 +77,24 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
 
 NvHTTP.prototype = {
     refreshServerInfo: function () {
-        // try HTTPS first
-        return sendMessage('openUrl', [ this._baseUrlHttps + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
-            if (!this._parseServerInfo(ret)) {  // if that fails
-                // try HTTP as a failover.  Useful to clients who aren't paired yet
-                return sendMessage('openUrl', [ this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
-                    this._parseServerInfo(retHttp);
-                }.bind(this));
-            }
+        console.log(this.address + ' refreshServerInfo');
+        
+        return new Promise(function (resolve, reject) {
+            
+            sendMessage('openUrl', [ this._baseUrlHttps + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
+                if (!this._parseServerInfo(ret)) {
+                    sendMessage('openUrl', [ this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
+                        resolve(this._parseServerInfo(retHttp));
+                    }.bind(this), function () {
+                        resolve(false);
+                    });
+                }
+                else {
+                    resolve(true);
+                }
+            }.bind(this), function () {
+                resolve(false);
+            });
         }.bind(this));
     },
 
@@ -123,8 +132,8 @@ NvHTTP.prototype = {
             return false;
         }
         
-        console.log('parsing server info: ');
-        console.log($root);
+        //console.log('parsing server info: ');
+        //console.log($root);
 
         this.paired = $root.find('PairStatus').text().trim() == 1;
         this.currentGame = parseInt($root.find('currentgame').text().trim(), 10);
@@ -132,10 +141,13 @@ NvHTTP.prototype = {
         this.serverUid = $root.find('uniqueid').text().trim();
         this.hostname = $root.find('hostname').text().trim();
         this.externalIP = $root.find('ExternalIP').text().trim();
-        try {  //  these aren't critical for functionality, and don't necessarily exist in older GFE versions.
+        
+        //  these aren't critical for functionality, and don't necessarily exist in older GFE versions.
+        try {  
             this.GfeVersion = $root.find('GfeVersion').text().trim();
             this.gputype = $root.find('gputype').text().trim();
             this.numofapps = $root.find('numofapps').text().trim();
+            
             // now for the hard part: parsing the supported streaming
             $root.find('DisplayMode').each(function(index, value) {  // for each resolution:FPS object
                 var yres = parseInt($(value).find('Height').text());
@@ -148,11 +160,11 @@ NvHTTP.prototype = {
                     this.supportedDisplayModes[yres + ':' + xres].push(fps);
                 }
             });
-        } catch (err) {
+        }
+        catch (err) {
             // we don't need this data, so no error handling necessary
         }
-
-
+        
         // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
         // has the semantics that its name would indicate. To contain the effects of this change as much
         // as possible, we'll force the current game to zero if the server isn't in a streaming session.
@@ -164,6 +176,8 @@ NvHTTP.prototype = {
     },
     
     getAppById: function (appId) {
+        console.log(this.address + ' getAppById ' + appId);
+        
         return this.getAppList().then(function (list) {
             var retApp = null;
             
@@ -181,6 +195,8 @@ NvHTTP.prototype = {
     },
     
     getAppByName: function (appName) {
+        console.log(this.address + ' getAppByName ' + appName);
+        
         return this.getAppList().then(function (list) {
             var retApp = null;
             
@@ -220,9 +236,11 @@ NvHTTP.prototype = {
     },
 
     getAppList: function () {
+        console.log(this.address + ' getAppList');
+        
         if (this._memCachedApplist) {
             return new Promise(function (resolve, reject) {
-                console.log('returning memory cached app list');
+                console.log(this.address + ' getAppList Returning memory cached app list');
                 resolve(this._memCachedApplist);
                 return;
             }.bind(this));
@@ -232,6 +250,8 @@ NvHTTP.prototype = {
     },
     
     getBoxArt: function (appId) {
+        console.log(this.address + ' getBoxArt ' + appId);
+        
         return sendMessage('openUrl', [
             this._baseUrlHttps +
             '/appasset?'+this._buildUidStr() +
@@ -242,6 +262,8 @@ NvHTTP.prototype = {
     },
     
     launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
+        console.log(this.address + ' launchApp ' + appId);
+        
         return sendMessage('openUrl', [
             this._baseUrlHttps +
             '/launch?' + this._buildUidStr() +
@@ -259,6 +281,8 @@ NvHTTP.prototype = {
     },
     
     resumeApp: function (rikey, rikeyid) {
+        console.log(this.address + ' resumeApp');
+        
         return sendMessage('openUrl', [
             this._baseUrlHttps +
             '/resume?' + this._buildUidStr() +
@@ -271,12 +295,16 @@ NvHTTP.prototype = {
     },
     
     quitApp: function () {
+        console.log(this.address + ' quitApp');
+        
         return sendMessage('openUrl', [this._baseUrlHttps + '/cancel?' + this._buildUidStr(), false]).then(function () {
             this.currentGame = 0;
         }.bind(this));
     },
     
     pair: function(randomNumber) {
+        console.log(this.address + ' pair');
+        
         return this.refreshServerInfo().then(function () {
             if (this.paired)
                 return true;
@@ -295,6 +323,8 @@ NvHTTP.prototype = {
     },
     
     unpair: function () {
+        console.log(this.address + ' unpair');
+        
         return sendMessage('openUrl', [this._baseUrlHttps + '/unpair?' + this._buildUidStr(), false]);
     },
     
