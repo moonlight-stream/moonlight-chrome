@@ -80,7 +80,6 @@ NvHTTP.prototype = {
         console.log(this.address + ' refreshServerInfo');
         
         return new Promise(function (resolve, reject) {
-            
             sendMessage('openUrl', [ this._baseUrlHttps + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
                 if (!this._parseServerInfo(ret)) {
                     sendMessage('openUrl', [ this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {

@@ -4,44 +4,64 @@ var pairingCert = null;
 var hosts = null;
 var updateHostsTimer = null;
 
-function startUpdateHosts() {
+function updateHosts() {
     if (!hosts)
         hosts = {};
     
-    findNvService(function (finder, opt_error) {
+    console.log(new Date().toLocaleString() + ' Update hosts...');
+    
+    function mDNSDiscovery(timeout = 100) {
+        return new Promise(function (resolve, reject) {
+            foundIps = [];
+            
+            findNvService(function (finder, opt_error) {
+                if (finder.byService_['_nvstream._tcp']) {
+                    var ips = Object.keys(finder.byService_['_nvstream._tcp']);
+                    for (var i in ips) {
+                        var ip = ips[i];
+                        if (finder.byService_['_nvstream._tcp'][ip]) {
+                            if (foundIps.indexOf(ip) == -1) {
+                                foundIps.push(ip);
+                            }
+                        }
+                    }
+                }
+            });
+            
+            setTimeout(function () {
+                resolve(foundIps);
+            }, timeout);
+        });
+    }
+    
+    
+    mDNSDiscovery().then(function (ips) {
         alreadyUpdated = [];
         waitHosts = [];
         
-        if (finder.byService_['_nvstream._tcp']) {
-            var ips = Object.keys(finder.byService_['_nvstream._tcp']);
+        for (var i in ips) {
+            var ip = ips[i];
+            var host = new NvHTTP(ip, myUniqueid);
             
-            for (var i in ips) {
-                var ip = ips[i];
-                
-                if (finder.byService_['_nvstream._tcp'][ip]) {
-                    var host = new NvHTTP(ip, myUniqueid);
-                    
-                    for (var uid in hosts) {
-                        if (hosts[uid].address == ip) {
-                            host = hosts[uid];
-                        }
-                    }
-                    
-                    var p = host.refreshServerInfo().then(function () {
-                        if (host.serverUid) {
-                            host.online = true;
-                            
-                            if (!hosts[host.serverUid]) {
-                                addHostToGrid(host, true);
-                            }
-                            
-                            alreadyUpdated.push(host.serverUid);
-                        }
-                    }, function () { /* do nothing */ });
-                    
-                    waitHosts.push(p);
+            for (var uid in hosts) {
+                if (hosts[uid].address == ip) {
+                    host = hosts[uid];
                 }
             }
+            
+            var p = host.refreshServerInfo().then(function (online) {
+                if (online) {
+                    host.online = true;
+                    
+                    if (!hosts[host.serverUid]) {
+                        addHostToGrid(host, true);
+                    }
+                    
+                    alreadyUpdated.push(host.serverUid);
+                }
+            });
+            
+            waitHosts.push(p);
         }
         
         Promise.all(waitHosts).then(function () {
@@ -50,17 +70,11 @@ function startUpdateHosts() {
                     var host = hosts[uid];
                     
                     if (host) {
-                        host.refreshServerInfo().then(function () {
-                            if (host.serverUid) {
-                                host.online = true;
-                            }
-                            else {
-                                host.online = false;
+                        host.refreshServerInfo().then(function (online) {
+                            host.online = online;
+                            
+                            if (!online)
                                 removeHostFromGrid(host);
-                            }
-                        }, function () {
-                            host.online = false;
-                            removeHostFromGrid(host);
                         });
                     }
                 }
@@ -68,12 +82,19 @@ function startUpdateHosts() {
         });
     });
     
-    updateHostsTimer = setTimeout(startUpdateHosts, 5000);
+    if (updateHostsTimer) {
+        updateHostsTimer = setTimeout(updateHosts, 5000);
+    }
+}
+
+function startUpdateHosts() {
+    updateHostsTimer = setTimeout(updateHosts, 1);
 }
 
 function stopUpdateHosts() {
     if (updateHostsTimer) {
         clearTimeout(updateHostsTimer);
+        updateHostsTimer = null;
     }
 }
 
