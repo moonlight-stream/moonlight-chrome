@@ -112,7 +112,7 @@ NvHTTP.prototype = {
             // Poll for the app list every 10 successful serverinfo polls.
             // Not including the first one to avoid PCs taking a while to show
             // as online initially
-            if (++this._pollCount % 10 == 0) {
+            if (this._pollCount++ % 10 == 1) {
                 this.getAppListWithCacheFlush();
             }
 
