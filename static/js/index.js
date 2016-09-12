@@ -32,12 +32,14 @@ function fullscreenChromeWindow() {
 }
 
 function changeUiModeForNaClLoad() {
+    $('.mdl-layout__header').children().hide();
     $("#main-content").children().not("#listener, #naclSpinner").hide();
     $('#naclSpinnerMessage').text('Loading Moonlight plugin...');
     $('#naclSpinner').css('display', 'inline-block');
 }
 
 function restoreUiAfterNaClLoad() {
+    $('.mdl-layout__header').children().not("#quitCurrentApp").show();
     $("#main-content").children().not("#listener, #naclSpinner, #gameSelection").show();
     $('#naclSpinner').hide();
     $('#loadingSpinner').css('display', 'none');
