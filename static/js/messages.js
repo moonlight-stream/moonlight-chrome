@@ -22,9 +22,8 @@ function handleMessage(msg) {
     else {  // else, it's just info, or an event
         //console.log(msg.data);
         if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
-            $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.            
-            chrome.app.window.current().restore();
-            uiShowAppsList();
+            $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.
+            onStreamTerminated();
         } 
         else if(msg.data === 'Connection Established') {
             $('#loadingSpinner').css('display', 'none');

@@ -187,11 +187,3 @@ ServiceFinder.prototype.shutdown = function() {
     });
   });
 }
-
-var finder = null;
-function findNvService(callback) {
-    finder && finder.shutdown();
-    finder = new ServiceFinder(function (opt_error) {
-        callback(finder, opt_error);
-    });
-}

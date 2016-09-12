@@ -1,41 +1,37 @@
 var selectedHost = null; //should only be set if we're in a host-specific screen. on the initial screen it should always be null.
 var myUniqueid = null;
 var pairingCert = null;
-var hosts = null;
+var hosts = {};
 var updateHostsTimer = null;
 
 function updateHosts() {
-    if (!hosts)
-        hosts = {};
-    
     console.log(new Date().toLocaleString() + ' Update hosts...');
     
-    function mDNSDiscovery(timeout = 100) {
+    function mDNSDiscovery(service, timeout = 100) {
         return new Promise(function (resolve, reject) {
-            foundIps = [];
+            var foundIps = [];
             
-            findNvService(function (finder, opt_error) {
-                if (finder.byService_['_nvstream._tcp']) {
-                    var ips = Object.keys(finder.byService_['_nvstream._tcp']);
+            var finder = new ServiceFinder(function (opt_error) {
+                if (this.byService_[service]) {
+                    var ips = Object.keys(this.byService_[service]);
                     for (var i in ips) {
                         var ip = ips[i];
-                        if (finder.byService_['_nvstream._tcp'][ip]) {
-                            if (foundIps.indexOf(ip) == -1) {
-                                foundIps.push(ip);
-                            }
+                        
+                        if (foundIps.indexOf(ip) == -1) {
+                            foundIps.push(ip);
                         }
                     }
                 }
             });
             
             setTimeout(function () {
+                finder.shutdown();
                 resolve(foundIps);
             }, timeout);
         });
     }
     
-    
-    mDNSDiscovery().then(function (ips) {
+    mDNSDiscovery('_nvstream._tcp', 100).then(function (ips) {
         alreadyUpdated = [];
         waitHosts = [];
         
@@ -53,7 +49,7 @@ function updateHosts() {
                 if (online) {
                     host.online = true;
                     
-                    if (!hosts[host.serverUid]) {
+                    if (host.serverUid && (!hosts[host.serverUid] || hosts[host.serverUid].address != ip)) {
                         addHostToGrid(host, true);
                     }
                     
@@ -185,13 +181,13 @@ function onWindowLoad() {
         });
         
         chrome.storage.sync.get('hosts', function(value) {
-            hosts = value.hosts != null ? value.hosts : {};
+            var loadhosts = value.hosts != null ? value.hosts : {};
             
-            for(hostUID in hosts) {
-                var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
-                revivedHost.serverUid = hosts[hostUID].serverUid;
-                revivedHost.externalIP = hosts[hostUID].externalIP;
-                revivedHost.hostname = hosts[hostUID].hostname;
+            for(var hostUID in loadhosts) {
+                var revivedHost = new NvHTTP(loadhosts[hostUID].address, myUniqueid, loadhosts[hostUID].userEnteredAddress);
+                revivedHost.serverUid = loadhosts[hostUID].serverUid;
+                revivedHost.externalIP = loadhosts[hostUID].externalIP;
+                revivedHost.hostname = loadhosts[hostUID].hostname;
                 addHostToGrid(revivedHost);
             }
         });
@@ -634,6 +630,11 @@ function unpairDialog(host) {
 }
 
 function addHostToGrid(host, ismDNSDiscovered = false) {
+    if ($('#host-container-' + host.serverUid).length !== 0) {
+        console.log('Removing old...');
+        $('#host-container-' + host.serverUid).remove();
+    }
+    
     // ugly
     var outerDiv = $('<div>', {class: 'host-container mdl-cell--3-col', id: 'host-container-' + host.serverUid });
     var cell = $('<div>', {class: 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect', id: 'hostgrid-' + host.serverUid, html: host.hostname });
@@ -784,6 +785,18 @@ function onClickStartApp(host, appId) {
         });
     }, function (err) {
         console.error('Failed to refresh the host info. Returned error: ' + err);
+    });
+}
+
+function onStreamTerminated() {
+    if (!selectedHost) {
+        uiHostsMode();
+        return;
+    }
+    
+    selectedHost.refreshServerInfo().then(function () {
+        chrome.app.window.current().restore();
+        uiShowAppsList();
     });
 }
 
