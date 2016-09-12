@@ -58,10 +58,6 @@ void MoonlightInstance::OnConnectionStopped(uint32_t error) {
     // Unlock the mouse
     UnlockMouse();
     
-    // Join threads
-    pthread_join(m_ConnectionThread, NULL);
-    pthread_join(m_GamepadThread, NULL);
-    
     // Notify the JS code that the stream has ended
     pp::Var response(MSG_STREAM_TERMINATED);
     PostMessage(response);
@@ -80,6 +76,17 @@ void MoonlightInstance::StopConnection() {
 }
 
 void* MoonlightInstance::StopThreadFunc(void* context) {
+    // We must join the connection thread first, because LiStopConnection must
+    // not be invoked during LiStartConnection.
+    pthread_join(g_Instance->m_ConnectionThread, NULL);
+
+    // Not running anymore
+    g_Instance->m_Running = false;
+
+    // We also need to stop this thread after the connection thread, because it depends
+    // on being initialized there.
+    pthread_join(g_Instance->m_GamepadThread, NULL);
+
     // Stop the connection
     LiStopConnection();
     return NULL;
