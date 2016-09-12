@@ -217,15 +217,18 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     hexStringToBytes(rikey.c_str(), m_StreamConfig.remoteInputAesKey);
     int rikeyiv = htonl(stoi(rikeyid));
     memcpy(m_StreamConfig.remoteInputAesIv, &rikeyiv, sizeof(rikeyiv));
-    
-    // Initialize the rendering surface before starting the connection
-    InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height);
 
     // Store the host from the start message
     m_Host = host;
     
-    // Start the worker thread to establish the connection
-    pthread_create(&m_ConnectionThread, NULL, MoonlightInstance::ConnectionThreadFunc, this);
+    // Initialize the rendering surface before starting the connection
+    if (InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height)) {
+        // Start the worker thread to establish the connection
+        pthread_create(&m_ConnectionThread, NULL, MoonlightInstance::ConnectionThreadFunc, this);
+    } else {
+        // Failed to initialize renderer
+        OnConnectionStopped(0);
+    }
     
     pp::VarDictionary ret;
     ret.Set("callbackId", pp::Var(callbackId));
