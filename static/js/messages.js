@@ -41,7 +41,7 @@ function handleMessage(msg) {
             snackbarLog(msg.data.replace('TransientMsg: ', ''));
         } else if(msg.data.indexOf('DialogMsg: ') === 0) {
             // FIXME: Really use a dialog
-            snackbarLog(msg.data.replace('DialogMsg: ', ''));
+            snackbarLogLong(msg.data.replace('DialogMsg: ', ''));
         } else if(msg.data === 'displayVideo') {
             $("#listener").addClass("fullscreen");
         }

@@ -130,6 +130,15 @@ function snackbarLog(givenMessage) {
     document.querySelector('#snackbar').MaterialSnackbar.showSnackbar(data);
 }
 
+function snackbarLogLong(givenMessage) {
+    console.log(givenMessage);
+    var data = {
+        message: givenMessage,
+        timeout: 5000
+    };
+    document.querySelector('#snackbar').MaterialSnackbar.showSnackbar(data);
+}
+
 function updateBitrateField() {
     $('#bitrateField').html($('#bitrateSlider').val() + " Mbps");
 }
