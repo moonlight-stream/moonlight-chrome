@@ -37,5 +37,9 @@ function handleMessage(msg) {
         else if(msg.data === 'displayVideo') {
             $('#listener').addClass('fullscreen');
         }
+        else if(msg.data.indexOf('DialogMsg: ') === 0) {
+            // FIXME: Really use a dialog
+            snackbarLog(msg.data.replace('DialogMsg: ', ''), 5000);
+        }
     }
 }

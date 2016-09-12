@@ -800,9 +800,9 @@ function onStreamTerminated() {
     });
 }
 
-function snackbarLog(givenMessage) {
+function snackbarLog(givenMessage, timeout = 2000) {
     console.log('Snackbar Log: ' + givenMessage);
-    document.querySelector('#snackbar').MaterialSnackbar.showSnackbar({message: givenMessage, timeout: 2000});
+    document.querySelector('#snackbar').MaterialSnackbar.showSnackbar({message: givenMessage, timeout: timeout});
 }
 
 window.onload = onWindowLoad;

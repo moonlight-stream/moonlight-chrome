@@ -51,7 +51,6 @@ function _base64ToArrayBuffer(base64) {
     return bytes.buffer;
 }
 
-
 function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this.address = address;
     this.paired = false;
@@ -62,7 +61,6 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this._pollCount = 0;
     this._consecutivePollFailures = 0;
     this.online = false;
-
     this.userEnteredAddress = userEnteredAddress;  // if the user entered an address, we keep it on hand to try when polling
     this.serverUid = '';
     this.GfeVersion = '';

@@ -122,7 +122,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void DispatchGetPicture(uint32_t unused);
         void PictureReady(int32_t result, PP_VideoPicture picture);
         void PaintPicture(void);
-        void InitializeRenderingSurface(int width, int height);
+        bool InitializeRenderingSurface(int width, int height);
         void DidChangeFocus(bool got_focus);
         
         static void VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags);

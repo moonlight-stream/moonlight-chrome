@@ -70,9 +70,9 @@ void MoonlightInstance::DidChangeFocus(bool got_focus) {
     }
 }
 
-void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
+bool MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     if (!glInitializePPAPI(pp::Module::Get()->get_browser_interface())) {
-        return;
+        return false;
     }
     
     int32_t contextAttributes[] = {
@@ -89,6 +89,10 @@ void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
         PP_GRAPHICS3DATTRIB_NONE
     };
     g_Instance->m_Graphics3D = pp::Graphics3D(this, contextAttributes);
+    if (g_Instance->m_Graphics3D.is_null()) {
+        ClDisplayMessage("Unable to create OpenGL context");
+        return false;
+    }
     
     int32_t swapBehaviorAttribute[] = {
         PP_GRAPHICS3DATTRIB_SWAP_BEHAVIOR, PP_GRAPHICS3DATTRIB_BUFFER_DESTROYED,
@@ -97,10 +101,10 @@ void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     g_Instance->m_Graphics3D.SetAttribs(swapBehaviorAttribute);
     
     if (!BindGraphics(m_Graphics3D)) {
-      fprintf(stderr, "Unable to bind 3d context!\n");
+      ClDisplayMessage("Unable to bind OpenGL context");
       m_Graphics3D = pp::Graphics3D();
       glSetCurrentContextPPAPI(0);
-      return;
+      return false;
     }
     
     glSetCurrentContextPPAPI(m_Graphics3D.pp_resource());
@@ -130,6 +134,7 @@ void MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     assertNoGLError();
     
     g_Instance->m_Graphics3D.SwapBuffers(pp::BlockUntilComplete());
+    return true;
 }
 
 void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
@@ -167,7 +172,13 @@ void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int 
            0,
            pp::BlockUntilComplete());
 
-        if (!(drFlags & DR_FLAG_FORCE_SW_DECODE)) {
+        if (err == PP_ERROR_NOTSUPPORTED) {
+            // No decoders available at all. We can't continue.
+            ClDisplayMessage("No hardware or software H.264 decoders available!");
+            g_Instance->StopConnection();
+            return;
+        }
+        else if (!(drFlags & DR_FLAG_FORCE_SW_DECODE)) {
             // Tell the user we had to fall back
             ClDisplayTransientMessage("Hardware decoding is unavailable. Falling back to CPU decoding");
         }
