@@ -263,6 +263,13 @@ NvHTTP.prototype = {
     getAppListWithCacheFlush: function () {
         return sendMessage('openUrl', [this._baseUrlHttps + '/applist?' + this._buildUidStr(), false]).then(function (ret) {
             $xml = this._parseXML(ret);
+            $root = $xml.find("root");
+
+            if ($root.attr("status_code") != 200) {
+                // TODO: Bubble up an error here
+                console.log('applist request failed: ' + $root.attr("status_code"));
+                return [];
+            }
             
             var rootElement = $xml.find("root")[0];
             var appElements = rootElement.getElementsByTagName("App");
