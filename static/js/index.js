@@ -189,7 +189,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
 
     nvhttpHost.pollServer(function (ret) {
         if (!nvhttpHost.online) {
-            snackbarLog('Failed to connect to ' + nvhttpHost.address + '! Are you sure the host is on?');
+            snackbarLog('Failed to connect to ' + nvhttpHost.hostname + '! Are you sure the host is on?');
             console.log(nvhttpHost.toString());
             onFailure();
             return;
@@ -210,13 +210,13 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             pairingDialog.close();
         });
 
-        console.log('sending pairing request to ' + nvhttpHost.address + ' with random number ' + randomNumber);
+        console.log('sending pairing request to ' + nvhttpHost.hostname + ' with random number ' + randomNumber);
         nvhttpHost.pair(randomNumber).then(function (paired) {
             if (!paired) {
                 if (nvhttpHost.currentGame != 0) {
-                    $('#pairingDialogText').html('Error: ' + nvhttpHost.address + ' is in app.  Cannot pair until the app is stopped.');
+                    $('#pairingDialogText').html('Error: ' + nvhttpHost.hostname + ' is busy.  Stop streaming to pair.');
                 } else {
-                    $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.address + '.  failure reason unknown.');
+                    $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.hostname + '.');
                 }
                 console.log('failed API object: ');
                 console.log(nvhttpHost.toString());
@@ -228,7 +228,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             pairingDialog.close();
             onSuccess();
         }, function (failedPairing) {
-            snackbarLog('Failed pairing to: ' + nvhttpHost.address);
+            snackbarLog('Failed pairing to: ' + nvhttpHost.hostname);
             console.log('pairing failed, and returned ' + failedPairing);
             console.log('failed API object: ');
             console.log(nvhttpHost.toString());
@@ -404,7 +404,7 @@ function showApps(host) {
     }, function (failedAppList) {
         $('#naclSpinner').hide();
 
-        console.log('Failed to get applist from host: ' + host.address);
+        console.log('Failed to get applist from host: ' + host.hostname);
         console.log('failed host object: ');
         console.log(host.toString());
     });
