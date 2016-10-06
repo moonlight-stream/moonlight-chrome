@@ -504,7 +504,7 @@ function startGame(host, appID) {
             if(host.currentGame == appID) { // if user wants to launch the already-running app, then we resume it.
                 return host.resumeApp(rikey, rikeyid).then(function (ret) {
                     sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-                            bitrate.toString(), host.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
+                            bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
                 }, function (failedResumeApp) {
                     console.log('ERROR: failed to resume the app!');
                     console.log('Returned error was: ' + failedResumeApp);
@@ -522,7 +522,7 @@ function startGame(host, appID) {
                     0x030002 // Surround channel mask << 16 | Surround channel count
                     ).then(function (ret) {
                 sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-                        bitrate.toString(), host.serverMajorVersion.toString(), rikey, rikeyid.toString()]);
+                        bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
             }, function (failedLaunchApp) {
                 console.log('ERROR: failed to launch app with appID: ' + appID);
                 console.log('Returned error was: ' + failedLaunchApp);

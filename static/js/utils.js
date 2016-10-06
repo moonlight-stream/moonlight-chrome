@@ -37,6 +37,7 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this.paired = false;
     this.currentGame = 0;
     this.serverMajorVersion = 0;
+    this.appVersion = '';
     this.clientUid = clientUid;
     this._memCachedBoxArtArray = {};
     this._pollCount = 0;
@@ -159,6 +160,7 @@ NvHTTP.prototype = {
         string += 'is paired: ' + this.paired + '\r\n';
         string += 'current game: ' + this.currentGame + '\r\n';
         string += 'server major version: ' + this.serverMajorVersion + '\r\n';
+        string += 'appversion: ' + this.appVersion + '\r\n';
         string += 'GFE version: ' + this.GfeVersion + '\r\n';
         string += 'gpu type: ' + this.gputype + '\r\n';
         string += 'number of apps: ' + this.numofapps + '\r\n';
@@ -191,7 +193,8 @@ NvHTTP.prototype = {
 
         this.paired = $root.find("PairStatus").text().trim() == 1;
         this.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
-        this.serverMajorVersion = parseInt($root.find("appversion").text().trim().substring(0, 1), 10);
+        this.appVersion = $root.find("appversion").text().trim();
+        this.serverMajorVersion = parseInt(this.appVersion.substring(0, 1), 10);
         this.serverUid = $root.find('uniqueid').text().trim();
         this.hostname = $root.find('hostname').text().trim();
         this.externalIP = $root.find('ExternalIP').text().trim();

@@ -145,8 +145,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static AUDIO_RENDERER_CALLBACKS s_ArCallbacks;
         
         std::string m_Host;
+        std::string m_AppVersion;
         STREAM_CONFIGURATION m_StreamConfig;
-        int m_ServerMajorVersion;
         bool m_Running;
         
         pthread_t m_ConnectionThread;

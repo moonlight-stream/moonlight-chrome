@@ -108,18 +108,22 @@ void* MoonlightInstance::GamepadThreadFunc(void* context) {
 void* MoonlightInstance::ConnectionThreadFunc(void* context) {
     MoonlightInstance* me = (MoonlightInstance*)context;
     int err;
+    SERVER_INFORMATION serverInfo;
     
     // Post a status update before we begin
     pp::Var response("Starting connection to " + me->m_Host);
     me->PostMessage(response);
     
-    err = LiStartConnection(me->m_Host.c_str(),
+    LiInitializeServerInformation(&serverInfo);
+    serverInfo.address = me->m_Host.c_str();
+    serverInfo.serverInfoAppVersion = me->m_AppVersion.c_str();
+    
+    err = LiStartConnection(&serverInfo,
                             &me->m_StreamConfig,
                             &MoonlightInstance::s_ClCallbacks,
                             &MoonlightInstance::s_DrCallbacks,
                             &MoonlightInstance::s_ArCallbacks,
-                            NULL, 0,
-                            me->m_ServerMajorVersion);
+                            NULL, 0);
     if (err != 0) {
         // Notify the JS code that the stream has ended
         pp::Var response(MSG_STREAM_TERMINATED);
@@ -176,9 +180,9 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     std::string height = args.Get(2).AsString();
     std::string fps = args.Get(3).AsString();
     std::string bitrate = args.Get(4).AsString();
-    std::string serverMajorVersion = args.Get(5).AsString();
-    std::string rikey = args.Get(6).AsString();
-    std::string rikeyid = args.Get(7).AsString();
+    std::string rikey = args.Get(5).AsString();
+    std::string rikeyid = args.Get(6).AsString();
+    std::string appversion = args.Get(7).AsString();
     
     pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
@@ -190,11 +194,11 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     PostMessage(response);
     response = ("Setting stream bitrate to: " + bitrate);
     PostMessage(response);
-    response = ("Setting server major version to: " + serverMajorVersion);
-    PostMessage(response);
     response = ("Setting rikey to: " + rikey);
     PostMessage(response);
     response = ("Setting rikeyid to: " + rikeyid);
+    PostMessage(response);
+    response = ("Setting appversion to: " + appversion);
     PostMessage(response);
     
     // Populate the stream configuration
@@ -205,7 +209,6 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_StreamConfig.bitrate = stoi(bitrate); // kilobits per second
     m_StreamConfig.streamingRemotely = 0;
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
-    m_ServerMajorVersion = stoi(serverMajorVersion);
     
     // The overhead of receiving a packet is much higher in NaCl because we must
     // pass through various layers of abstraction on each recv() call. We're using a
@@ -218,8 +221,9 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     int rikeyiv = htonl(stoi(rikeyid));
     memcpy(m_StreamConfig.remoteInputAesIv, &rikeyiv, sizeof(rikeyiv));
 
-    // Store the host from the start message
+    // Store the parameters from the start message
     m_Host = host;
+    m_AppVersion = appversion;
     
     // Initialize the rendering surface before starting the connection
     if (InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height)) {
