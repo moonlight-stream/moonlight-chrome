@@ -281,8 +281,7 @@ NvHTTP.prototype = {
             for (var i = 0, len = appElements.length; i < len; i++) {
                 appList.push({
                     title: appElements[i].getElementsByTagName("AppTitle")[0].innerHTML.trim(),
-                    id: parseInt(appElements[i].getElementsByTagName("ID")[0].innerHTML.trim(), 10),
-                    running: (appElements[i].getElementsByTagName("IsRunning")[0].innerHTML.trim() == 1)
+                    id: parseInt(appElements[i].getElementsByTagName("ID")[0].innerHTML.trim(), 10)
                 });
             }
 
