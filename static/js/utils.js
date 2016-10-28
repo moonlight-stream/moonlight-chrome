@@ -444,7 +444,7 @@ NvHTTP.prototype = {
             // Refresh server info after quitting because it may silently fail if the
             // session belongs to a different client.
             // TODO: We should probably bubble this up to our caller.
-            .then(refreshServerInfo().bind(this));
+            .then(this.refreshServerInfo());
     },
     
     pair: function(randomNumber) {
