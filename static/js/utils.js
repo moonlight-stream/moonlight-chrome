@@ -465,10 +465,6 @@ NvHTTP.prototype = {
         }.bind(this));
     },
     
-    unpair: function () {
-        return sendMessage('openUrl', [this._baseUrlHttps + '/unpair?' + this._buildUidStr(), false]);
-    },
-    
     _buildUidStr: function () {
         return 'uniqueid=' + this.clientUid + '&uuid=' + guuid();
     },

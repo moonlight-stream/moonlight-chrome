@@ -297,7 +297,7 @@ function addHostToGrid(host, ismDNSDiscovered=false) {
     var removalButton = $("<div>", {class: "remove-host", id: "removeHostButton-" + host.serverUid});
     removalButton.off('click');
     removalButton.click(function () {
-        unpairClicked(host);
+        removeClicked(host);
     });
     cell.off('click');
     cell.click(function () {
@@ -305,41 +305,35 @@ function addHostToGrid(host, ismDNSDiscovered=false) {
     });
     $(outerDiv).append(cell);
     if (!ismDNSDiscovered) {
-        // we don't have the option to unpair from mDNS hosts.  So don't show it to the user.
+        // we don't have the option to delete mDNS hosts.  So don't show it to the user.
         $(outerDiv).append(removalButton);        
     }
     $('#host-grid').append(outerDiv);
     hosts[host.serverUid] = host;
 }
 
-function unpairClicked(host) {
-    var unpairHostDialog = document.querySelector('#unpairHostDialog');
-    document.getElementById('unpairHostDialogText').innerHTML =
-    ' Are you sure you want like to unpair from ' + host.hostname + '?';
-    unpairHostDialog.showModal();
+function removeClicked(host) {
+    var deleteHostDialog = document.querySelector('#deleteHostDialog');
+    document.getElementById('deleteHostDialogText').innerHTML =
+    ' Are you sure you want like to delete ' + host.hostname + '?';
+    deleteHostDialog.showModal();
 
-    $('#cancelUnpairHost').off('click');
-    $('#cancelUnpairHost').on('click', function () {
-        unpairHostDialog.close();
+    $('#cancelDeleteHost').off('click');
+    $('#cancelDeleteHost').on('click', function () {
+        deleteHostDialog.close();
     });
 
     // locally remove the hostname/ip from the saved `hosts` array.
     // note: this does not make the host forget the pairing to us.
     // this means we can re-add the host, and will still be paired.
-    $('#continueUnpairHost').off('click');
-    $('#continueUnpairHost').on('click', function () {
-        host.unpair().then(function (onSuccess) {
-            var unpairHostDialog = document.querySelector('#unpairHostDialog');
-            $('#host-container-' + host.serverUid).remove();
-            snackbarLog('Successfully unpaired from host');
-            delete hosts[host.serverUid]; // remove the host from the array;
-            saveHosts();
-        }, function (onFailure) {
-            snackbarLog('Failed to unpair from host!');
-        });
-        unpairHostDialog.close();
+    $('#continueDeleteHost').off('click');
+    $('#continueDeleteHost').on('click', function () {
+        var deleteHostDialog = document.querySelector('#deleteHostDialog');
+        $('#host-container-' + host.serverUid).remove();
+        delete hosts[host.serverUid]; // remove the host from the array;
+        saveHosts();
+        deleteHostDialog.close();
     });
-
 }
 
 // puts the CSS style for current app on the app that's currently running
