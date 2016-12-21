@@ -30,7 +30,6 @@ function handleMessage(msg) {
                     });
                 });
                 showApps(api);
-                chrome.app.window.current().restore();
             });
 
         } else if(msg.data === 'Connection Established') {
