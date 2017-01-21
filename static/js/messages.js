@@ -30,6 +30,11 @@ function handleMessage(msg) {
                     });
                 });
                 showApps(api);
+
+                isInGame = false;
+
+                // restore main window from 'fullscreen' to 'normal' mode (if required)
+                (windowState == 'normal') && chrome.app.window.current().restore();
             });
 
         } else if(msg.data === 'Connection Established') {
