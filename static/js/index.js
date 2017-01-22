@@ -3,6 +3,9 @@ var activePolls = {};  // hosts currently being polled.  An associated array of 
 var pairingCert;
 var myUniqueid;
 var api;  // `api` should only be set if we're in a host-specific screen. on the initial screen it should always be null.
+var isInGame = false; // flag indicating whether the game stream started
+var windowState = 'normal'; // chrome's windowState, possible values: 'normal' or 'fullscreen'
+
 
 // Called by the common.js module.
 function attachListeners() {
@@ -29,6 +32,35 @@ function fullscreenChromeWindow() {
     // instead of "maximized", which would immediately go to fullscreen
     chrome.app.window.current().restore();
     chrome.app.window.current().fullscreen();
+}
+
+function loadWindowState() {
+    if (!chrome.storage) { return; }
+
+    chrome.storage.sync.get('windowState', function(item) {
+        // load stored window state
+        windowState = (item && item.windowState)
+            ? item.windowState
+            : windowState;
+
+        // subscribe to chrome's windowState events
+        chrome.app.window.current().onFullscreened.addListener(onFullscreened);
+        chrome.app.window.current().onBoundsChanged.addListener(onBoundsChanged);
+    });
+}
+
+function onFullscreened() {
+    if (!isInGame && windowState == 'normal') {
+        storeData('windowState', 'fullscreen', null);
+        windowState = 'fullscreen';
+    }
+}
+
+function onBoundsChanged() {
+    if (!isInGame && windowState == 'fullscreen') {
+        storeData('windowState', 'normal', null);
+        windowState = 'normal';
+    }
 }
 
 function changeUiModeForNaClLoad() {
@@ -529,6 +561,8 @@ function startGame(host, appID) {
 
 function playGameMode() {
     console.log("entering play game mode");
+    isInGame = true;
+
     $(".mdl-layout__header").hide();
     $("#main-content").children().not("#listener, #loadingSpinner").hide();
     $("#main-content").addClass("fullscreen");
@@ -585,6 +619,8 @@ function stopGameWithConfirmation() {
 }
 
 function stopGame(host, callbackFunction) {
+    isInGame = false;
+
     if (!host.paired) {
         return;
     }
@@ -694,6 +730,8 @@ function updateDefaultBitrate() {
 function onWindowLoad(){
     // don't show the game selection div
     $('#gameSelection').css('display', 'none');
+
+    loadWindowState();
 
     if(chrome.storage) {
         // load stored resolution prefs
