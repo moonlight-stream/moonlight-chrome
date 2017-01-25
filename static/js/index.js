@@ -425,6 +425,19 @@ function showApps(host) {
                 console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
                 console.log('failed host object: ');
                 console.log(host.toString());
+
+                if ($('#game-' + app.id).length === 0) {
+                    // double clicking the button will cause multiple box arts to appear.
+                    // to mitigate this we ensure we don't add a duplicate.
+                    // This isn't perfect: there's lots of RTTs before the logic prevents anything
+                    $("#game-grid").append($("<div>", {html:$("<img \>", {src: "static/res/no_app_image.png", id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
+                    $('#game-'+app.id).on('click', function () {
+                        startGame(host, app.id);
+                    });
+
+                    // apply CSS stylization to indicate whether the app is active
+                    stylizeBoxArt(host, app.id);
+                }
             });
         });
     }, function (failedAppList) {

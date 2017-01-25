@@ -338,7 +338,14 @@ NvHTTP.prototype = {
 
         // TODO: unfortunately we do N lookups from storage cache, each of them filling up the memory cache.
         // once the first round of calls are all made, each subsequent request hits this and returns from memory cache
-        if (this._memCachedBoxArtArray[appId] !== undefined) {
+        if (this._memCachedBoxArtArray[appId] === null) {
+            // This means a previous box art request failed, don't try again
+            return new Promise(function (resolve, reject) {
+                console.log('returning cached box art failure result');
+                reject(null);
+                return;
+            }.bind(this));
+        } else if (this._memCachedBoxArtArray[appId] !== undefined) {
             return new Promise(function (resolve, reject) {
                 console.log('returning memory cached box art');
                 resolve(this._memCachedBoxArtArray[appId]);
@@ -392,9 +399,13 @@ NvHTTP.prototype = {
                         console.log('returning streamed box art');
                         resolve(streamedBoxArt);
                         return;
+                    }.bind(this), function(error) {
+                        // Cache the failure but not persistently
+                        this._memCachedBoxArtArray[appId] = null;
+                        console.log('box art request failed');
+                        reject(error);
+                        return;
                     }.bind(this));
-
-
                 }.bind(this));
             }.bind(this));
 
