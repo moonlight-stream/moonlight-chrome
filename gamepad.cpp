@@ -18,12 +18,44 @@ static const unsigned int k_StandardGamepadTriggerButtonIndexes[] = {
     6, 7
 };
 
+static short GetActiveGamepadMask(PP_GamepadsSampleData& gamepadData) {
+    short controllerIndex = 0;
+    short activeGamepadMask = 0;
+
+    for (unsigned int p = 0; p < gamepadData.length; p++) {
+        PP_GamepadSampleData& padData = gamepadData.items[p];
+        
+        if (!padData.connected) {
+            // Not connected
+            continue;
+        }
+        
+        if (padData.timestamp == 0) {
+            // On some platforms, Chrome returns "connected" pads that
+            // really aren't, so timestamp stays at zero. To work around this,
+            // we'll only count gamepads that have a non-zero timestamp in our
+            // controller index.
+            continue;
+        }
+
+        activeGamepadMask |= (1 << controllerIndex);
+        controllerIndex++;
+    }
+
+    return activeGamepadMask;
+}
+
 void MoonlightInstance::PollGamepads() {
     PP_GamepadsSampleData gamepadData;
     short controllerIndex = 0;
+    short activeGamepadMask;
     
     m_GamepadApi->Sample(pp_instance(), &gamepadData);
-    
+
+    // We must determine which gamepads are connected before reporting
+    // any events.
+    activeGamepadMask = GetActiveGamepadMask(gamepadData);
+
     for (unsigned int p = 0; p < gamepadData.length; p++) {
         PP_GamepadSampleData& padData = gamepadData.items[p];
         
@@ -86,7 +118,8 @@ void MoonlightInstance::PollGamepads() {
             rightStickY = -padData.axes[3] * 0x7FFF;
         }
         
-        LiSendMultiControllerEvent(controllerIndex, buttonFlags, leftTrigger, rightTrigger,
+        LiSendMultiControllerEvent(controllerIndex, activeGamepadMask,
+                                   buttonFlags, leftTrigger, rightTrigger,
                                    leftStickX, leftStickY, rightStickX, rightStickY);
         controllerIndex++;
     }
