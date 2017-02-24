@@ -466,7 +466,7 @@ NvHTTP.prototype = {
             if (this.currentGame != 0)
                 return false;
             
-            return sendMessage('pair', [this.serverMajorVersion, this.address, randomNumber]).then(function (pairStatus) {
+            return sendMessage('pair', [this.serverMajorVersion.toString(), this.address, randomNumber]).then(function (pairStatus) {
                 return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function (ret) {
                     $xml = this._parseXML(ret);
                     this.paired = $xml.find('paired').html() == "1";
