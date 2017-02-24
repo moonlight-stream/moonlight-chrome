@@ -213,7 +213,7 @@ NvHTTP.prototype = {
                 if(!this.supportedDisplayModes[yres + ':' + xres].includes(fps)) {
                     this.supportedDisplayModes[yres + ':' + xres].push(fps);
                 }
-            });
+            }.bind(this));
         } catch (err) {
             // we don't need this data, so no error handling necessary
         }
