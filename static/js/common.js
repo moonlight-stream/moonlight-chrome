@@ -2,10 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Set to true when the Document is loaded IFF "test=true" is in the query
-// string.
-var isTest = false;
-
 // Set to true when loading a "Release" NaCl module, false when loading a
 // "Debug" NaCl module.
 var isRelease = true;
@@ -32,13 +28,9 @@ var common = (function() {
   function mimeTypeForTool(tool) {
     // For NaCl modules use application/x-nacl.
     var mimetype = 'application/x-nacl';
+
     if (isHostToolchain(tool)) {
-      // For non-NaCl PPAPI plugins use the x-ppapi-debug/release
-      // mime type.
-      if (isRelease)
-        mimetype = 'application/x-ppapi-release';
-      else
-        mimetype = 'application/x-ppapi-debug';
+      mimetype = 'application/x-ppapi-release';
     } else if (tool == 'pnacl') {
       mimetype = 'application/x-pnacl';
     }
@@ -61,52 +53,6 @@ var common = (function() {
     }
     var mimetype = mimeTypeForTool(tool);
     return navigator.mimeTypes[mimetype] !== undefined;
-  }
-
-  /**
-   * Inject a script into the DOM, and call a callback when it is loaded.
-   *
-   * @param {string} url The url of the script to load.
-   * @param {Function} onload The callback to call when the script is loaded.
-   * @param {Function} onerror The callback to call if the script fails to load.
-   */
-  function injectScript(url, onload, onerror) {
-    var scriptEl = document.createElement('script');
-    scriptEl.type = 'text/javascript';
-    scriptEl.src = url;
-    scriptEl.onload = onload;
-    if (onerror) {
-      scriptEl.addEventListener('error', onerror, false);
-    }
-    document.head.appendChild(scriptEl);
-  }
-
-  /**
-   * Run all tests for this example.
-   *
-   * @param {Object} moduleEl The module DOM element.
-   */
-  function runTests(moduleEl) {
-    console.log('runTests()');
-    common.tester = new Tester();
-
-    // All NaCl SDK examples are OK if the example exits cleanly; (i.e. the
-    // NaCl module returns 0 or calls exit(0)).
-    //
-    // Without this exception, the browser_tester thinks that the module
-    // has crashed.
-    common.tester.exitCleanlyIsOK();
-
-    common.tester.addAsyncTest('loaded', function(test) {
-      test.pass();
-    });
-
-    if (typeof window.addTests !== 'undefined') {
-      window.addTests();
-    }
-
-    common.tester.waitFor(moduleEl);
-    common.tester.run();
   }
 
   /**
@@ -162,19 +108,6 @@ var common = (function() {
         moduleEl.dispatchEvent(new CustomEvent('load'));
         moduleEl.dispatchEvent(new CustomEvent('loadend'));
       }, 100);  // 100 ms
-    }
-
-    // This is code that is only used to test the SDK.
-    if (isTest) {
-      var loadNaClTest = function() {
-        injectScript('nacltest.js', function() {
-          runTests(moduleEl);
-        });
-      };
-
-      // Try to load test.js for the example. Whether or not it exists, load
-      // nacltest.js.
-      injectScript('test.js', loadNaClTest, loadNaClTest);
     }
   }
 
@@ -350,9 +283,9 @@ var common = (function() {
     // do not change the status message.
     updateStatus('Page loaded.');
     if (!browserSupportsNaCl(tool)) {
-      updateStatus(
-          'Browser does not support NaCl (' + tool + '), or NaCl is disabled');
+      updateStatus('Browser does not support NaCl (' + tool + '), or NaCl is disabled');
     } else if (common.naclModule == null) {
+      updateStatus('Browser supports NaCl (' + tool + ')');
       updateStatus('Creating embed: ' + tool);
 
       // We use a non-zero sized embed to give Chrome space to place the bad
@@ -384,6 +317,7 @@ var common = (function() {
   function updateStatus(opt_message) {
     if (opt_message) {
       statusText = opt_message;
+      console.log('common.js: ' + statusText);
     }
     var statusField = document.getElementById('statusField');
     if (statusField) {
@@ -463,7 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
       var pathFormat = body.dataset.path;
       var path = pathFormat.replace('{tc}', tc).replace('{config}', config);
 
-      isTest = searchVars.test === 'true';
       isRelease = path.toLowerCase().indexOf('release') != -1;
 
       loadFunction(body.dataset.name, tc, path, body.dataset.width,
