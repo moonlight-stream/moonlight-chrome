@@ -76,7 +76,7 @@ function restoreUiAfterNaClLoad() {
     $('#naclSpinner').hide();
     $('#loadingSpinner').css('display', 'none');
     showHostsAndSettingsMode();
-    for(hostUID in hosts) {
+    for(var hostUID in hosts) {
         beginBackgroundPollingOfHost(hosts[hostUID]);
     }
 
@@ -579,10 +579,10 @@ function playGameMode() {
     $(".mdl-layout__header").hide();
     $("#main-content").children().not("#listener, #loadingSpinner").hide();
     $("#main-content").addClass("fullscreen");
-    fullscreenNaclModule();
     $("body").css('backgroundColor', 'black');
 
     chrome.app.window.current().fullscreen();
+    fullscreenNaclModule();
     $('#loadingSpinner').css('display', 'inline-block');
 
 }
@@ -691,7 +691,7 @@ function saveFramerate() {
 // unfortunately, objects with function instances (classes) are stripped of their function instances when converted to a raw object
 // so we cannot forget to revive the object after we load it.
 function saveHosts() {
-    for(hostUID in hosts) {
+    for(var hostUID in hosts) {
         // slim the object down to only store the necessary bytes, because we have limited storage
         hosts[hostUID]._prepareForStorage();
     }
@@ -741,6 +741,7 @@ function updateDefaultBitrate() {
 }
 
 function onWindowLoad(){
+    console.log('Window loaded.');
     // don't show the game selection div
     $('#gameSelection').css('display', 'none');
 
@@ -787,13 +788,14 @@ function onWindowLoad(){
         // load previously connected hosts, which have been killed into an object, and revive them back into a class
         chrome.storage.sync.get('hosts', function(previousValue) {
             hosts = previousValue.hosts != null ? previousValue.hosts : {};
-            for(hostUID in hosts) { // programmatically add each new host.
+            for(var hostUID in hosts) { // programmatically add each new host.
                 var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
                 revivedHost.serverUid = hosts[hostUID].serverUid;
                 revivedHost.externalIP = hosts[hostUID].externalIP;
                 revivedHost.hostname = hosts[hostUID].hostname;
                 addHostToGrid(revivedHost);
             }
+            console.log('Loaded previously connected hosts.');
         });
     }
 }

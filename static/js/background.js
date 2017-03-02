@@ -16,6 +16,7 @@ function createWindow(state) {
 }
 
 chrome.app.runtime.onLaunched.addListener(function() {
+    console.log('Chrome app runtime launched.');
     var windowState = 'normal';
 
     if (chrome.storage) {

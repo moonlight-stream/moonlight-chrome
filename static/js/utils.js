@@ -165,7 +165,7 @@ NvHTTP.prototype = {
         string += 'gpu type: ' + this.gputype + '\r\n';
         string += 'number of apps: ' + this.numofapps + '\r\n';
         string += 'supported display modes: ' + '\r\n';
-        for(displayMode in this.supportedDisplayModes) {
+        for(var displayMode in this.supportedDisplayModes) {
             string += '\t' + displayMode + ': ' + this.supportedDisplayModes[displayMode] + '\r\n';
         }
         return string;
