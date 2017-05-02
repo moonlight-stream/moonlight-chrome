@@ -1,141 +1,174 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Pragma" content="no-cache">
-        <meta http-equiv="Expires" content="-1">
-        <title>Moonlight</title>
-        <link rel="stylesheet" href="static/css/material.min.css">
-        <link rel="stylesheet" href="static/css/style.css">
-    </head>
-    <body data-name="moonlight-chrome" data-tools="pnacl" data-configs="Debug Release" data-path="{tc}/{config}">
-        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-            <header class="mdl-layout__header">
-                <div class="mdl-layout__header-row">
-                    <!-- Navigation on the right -->
-                    <img src="static/res/ic_arrow_back_white_24px.svg" id='backIcon'></img>
-                    <!-- Title -->
-                    <span class="mdl-layout-title">Moonlight</span>
-                    <!-- Add spacer, to align navigation to the right -->
-                    <div class="mdl-layout-spacer"></div>
-                    <div class="cancel-current" id="quitCurrentApp">
-                        <img src="static\res\ic_remove_circle_white_24px.svg">
-                        <span class="game-title">Quit Current App</span>
+<head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moonlight</title>
+    <link rel="stylesheet" href="static/css/roboto.css">
+    <link rel="stylesheet" href="static/css/material.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/material-icons.css">
+</head>
+<body data-name="moonlight-chrome" data-tools="pnacl" data-configs="Debug Release" data-path="{tc}/{config}">
+<div class="mdl-layout mdl-js-layout">
+    <header id="main-navigation" class="mdl-layout__header mdl-layout__header--transparent">
+        <div class="mdl-layout__header-row">
+            <span id='backIcon'><i class="material-icons">keyboard_arrow_left</i></span>
+            <!-- Title -->
+            <span class="mdl-layout-title">MOON<span>LIGHT</span></span>
+            <!-- Add spacer, to align navigation to the right -->
+            <div class="mdl-layout-spacer"></div>
+            <!-- Navigation -->
+            <nav class="mdl-navigation">
+
+                    <div class="nav-menu-parent">
+                        <div id="resolutionMenu">
+                            <button id="selectResolution" data-value="1920:1080" class="mdl-button mdl-js-button">
+                                1080p
+                            </button>
+                        </div>
+
+                        <ul class="resolutionMenu mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+                            for="selectResolution">
+                            <li class="mdl-menu__item" data-value="1280:720">720p</li>
+                            <li class="mdl-menu__item" data-value="1920:1080">1080p</li>
+                            <li class="mdl-menu__item" data-value="3840:2160">4K</li>
+                        </ul>
+
+                        <div id="resolutionTooltip" class="mdl-tooltip" for="resolutionMenu">
+                            Resolution
+                        </div>
+                    </div>
+
+                    <div class="nav-menu-parent">
+                        <div id="framerateMenu">
+                            <button id="selectFramerate" data-value="60" class="mdl-button mdl-js-button">
+                                60 FPS
+                            </button>
+                        </div>
+
+                        <ul class="framerateMenu mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+                            for="selectFramerate">
+                            <li class="mdl-menu__item" data-value="30">30 FPS</li>
+                            <li class="mdl-menu__item" data-value="60">60 FPS</li>
+                        </ul>
+
+                        <div id="framerateTooltip" class="mdl-tooltip" for="framerateMenu">
+                            Framerate
+                        </div>
+                    </div>
+
+                    <div class="nav-menu-parent">
+                        <div id="bandwidthMenu">
+                            <button id='bitrateField' class="mdl-button">10 Mbps</button>
+                        </div>
+
+                        <div class="bitrateMenu mdl-menu mdl-js-menu mdl-js-ripple-effect" for="bandwidthMenu">
+                            <input id="bitrateSlider" class="mdl-slider mdl-js-slider" type="range" min="0" max="100" step="0.5" value="10">
+                        </div>
+
+                        <div id="bandwidthTooltip" class="mdl-tooltip" for="bandwidthMenu">
+                            Bandwidth
+                        </div>
+                    </div>
+
+                    <label id="externalAudioBtn" class="mdl-icon-toggle mdl-js-icon-toggle mdl-js-ripple-effect" for="remoteAudioEnabledSwitch">
+                        <input type="checkbox" id="remoteAudioEnabledSwitch" class="mdl-icon-toggle__input" checked>
+                        <i class="mdl-icon-toggle__label material-icons">volume_up</i>
+                    </label>
+                    <div id="externalAudioTooltip" class="mdl-tooltip" for="externalAudioBtn">
+                        Remote audio is ON
+                    </div>
+
+                    <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="quitCurrentApp">
+                        <i class="material-icons">remove_circle_outline</i>
+                        Quit Current App
+                    </button>
+            </nav>
+        </div>
+    </header>
+    <main id="main-content" class="mdl-layout__content">
+            <div id="host-grid">
+                <div class="page-title">MoonLight Hosts</div>
+                <div class="add-host-card mdl-card mdl-shadow--4dp" id='addHostCell'>
+                    <div class="mdl-card__title mdl-card--expand" id="addHostIcon">
+                        <h2 class="mdl-card__title-text" >Add Host</h2>
                     </div>
                 </div>
-            </header>
-            <main id="main-content" class="mdl-layout__content">
-
-            <div id="streamSettings">
-                <div class="mdl-select">
-                    <select id="selectResolution">
-                        <option value="1280:720">720p</option>
-                        <option value="1920:1080">1080p</option>
-                        <option value="3840:2160">4K</option>
-                    </select>
-                </div>
-                <div class="mdl-select"> 
-                    <select id="selectFramerate">
-                        <option value="30">30 FPS</option>
-                        <option value="60">60 FPS</option>
-                    </select>
-                </div>
-                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="remoteAudioEnabledSwitch" id="remoteAudioEnabledSwitchContainer">
-                    <input type="checkbox" id="remoteAudioEnabledSwitch" class="mdl-switch__input" checked>
-                    <span class="mdl-switch__label">Remote audio off/on</span>
-                </label>
-                <output id='bitrateField'>10 Mbps</output>
-                <input id="bitrateSlider" class="mdl-slider mdl-js-slider" type="range" min="0" max="100" step="0.5" value="10">
             </div>
-
-            <div id="hostSettings">
-                <div class="mdl-grid" id='host-grid'>
-                    <div class='mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect' id='addHostCell'>
-                        <img src="static/res/ic_add_circle_white_24px.svg" id='addHostIcon'></img>
-                        Add Host
-                    </div>
-                </div>
+            <div id="game-grid">
+                <div class="page-title">Your Games</div>
             </div>
-
-            <div id="game-grid" class="mdl-grid">
-            </div>
-
-            <div id="listener"></div> <!-- NaCl module placeholder.  NaCl gets thrown into here -->
-
+            <div id="listener"></div>
+            <!-- NaCl module placeholder.  NaCl gets thrown into here -->
             <div id="loadingSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate">
                 <h5 id="loadingMessage"></h5>
             </div>
-
             <div id="naclSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate">
                 <h5 id="naclSpinnerMessage"></h5>
             </div>
-            </main>
+    </main>
+</div>
+<script defer src="static/js/jquery-2.2.0.min.js"></script>
+<script defer src="static/js/material.min.js"></script>
+<script type="text/javascript" src="static/js/messages.js"></script>
+<script type="text/javascript" src="static/js/common.js"></script>
+<script type="text/javascript" src="static/js/index.js"></script>
+<script type="text/javascript" src="static/js/utils.js"></script>
+<script type="text/javascript" src="static/js/mdns-browser/dns.js"></script>
+<script type="text/javascript" src="static/js/mdns-browser/main.js"></script>
+<dialog id="pairingDialog" class="mdl-dialog">
+    <h3 class="mdl-dialog__title">Pairing</h3>
+    <div class="mdl-dialog__content">
+        <p id="pairingDialogText">
+            Please enter the number XXXX on the GFE dialog on the computer.  This dialog will be dismissed once complete
+        </p>
+    </div>
+    <div class="mdl-dialog__actions">
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelPairingDialog">Cancel</button>
+    </div>
+</dialog>
+<dialog id="quitAppDialog" class="mdl-dialog">
+    <h3 class="mdl-dialog__title">Quit Running App?</h3>
+    <div class="mdl-dialog__content">
+        <p id="quitAppDialogText">
+            Y is already running. Would you like to quit Y?
+        </p>
+    </div>
+    <div class="mdl-dialog__actions">
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelQuitApp">No</button>
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueQuitApp">Yes</button>
+    </div>
+</dialog>
+<dialog id="deleteHostDialog" class="mdl-dialog">
+    <h3 class="mdl-dialog__title">Delete PC</h3>
+    <div class="mdl-dialog__content">
+        <p id="deleteHostDialogText">
+            Are you sure you want to delete this host?
+        </p>
+    </div>
+    <div class="mdl-dialog__actions">
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelDeleteHost">No</button>
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueDeleteHost">Yes</button>
+    </div>
+</dialog>
+<dialog id="addHostDialog" class="mdl-dialog">
+    <h3 class="mdl-dialog__title">Add Host Manually</h3>
+    <div class="mdl-dialog__content">
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" id="dialogInputHost"/>
+            <label class="mdl-textfield__label" for="dialogInputHost">IP Address or Hostname of Geforce PC</label>
         </div>
-        <script defer src="static/js/jquery-2.2.0.min.js"></script>
-        <script defer src="static/js/material.min.js"></script>
-        <script type="text/javascript" src="static/js/messages.js"></script>
-        <script type="text/javascript" src="static/js/common.js"></script>
-        <script type="text/javascript" src="static/js/index.js"></script>
-        <script type="text/javascript" src="static/js/utils.js"></script>
-        <script type="text/javascript" src="static/js/mdns-browser/dns.js"></script>
-        <script type="text/javascript" src="static/js/mdns-browser/main.js"></script>
-
-        <dialog id="pairingDialog" class="mdl-dialog">
-            <h3 class="mdl-dialog__title">Pairing</h3>
-            <div class="mdl-dialog__content">
-                <p id="pairingDialogText">
-                Please enter the number XXXX on the GFE dialog on the computer.  This dialog will be dismissed once complete
-                </p>
-            </div>
-            <div class="mdl-dialog__actions">
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelPairingDialog">Cancel</button>
-            </div>
-        </dialog>
-
-        <dialog id="quitAppDialog" class="mdl-dialog">
-            <h3 class="mdl-dialog__title">Quit Running App?</h3>
-            <div class="mdl-dialog__content">
-                <p id="quitAppDialogText">
-                Y is already running. Would you like to quit Y?
-                </p>
-            </div>
-            <div class="mdl-dialog__actions">
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelQuitApp">No</button>
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="continueQuitApp">Yes</button>
-            </div>
-        </dialog>
-
-        <dialog id="deleteHostDialog" class="mdl-dialog">
-            <h3 class="mdl-dialog__title">Delete PC</h3>
-            <div class="mdl-dialog__content">
-                <p id="deleteHostDialogText">
-                Are you sure you want to delete this host?
-                </p>
-            </div>
-            <div class="mdl-dialog__actions">
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelDeleteHost">No</button>
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="continueDeleteHost">Yes</button>
-            </div>
-        </dialog>
-
-        <dialog id="addHostDialog" class="mdl-dialog">
-            <h3 class="mdl-dialog__title">Add PC Manually</h3>
-            <div class="mdl-dialog__content">
-                <p>IP Address or Hostname of Geforce PC</p>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="dialogInputHost"/>
-                    <label class="mdl-textfield__label" for="dialogInputHost">IP Address or Hostname of Geforce PC</label>
-                </div>
-
-            </div>
-            <div class="mdl-dialog__actions">
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="cancelAddHost">Cancel</button>
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="continueAddHost">Continue</button>
-            </div>
-        </dialog>
-
-        <div id="snackbar" class="mdl-snackbar mdl-js-snackbar">
-            <div class="mdl-snackbar__text"></div>
-            <button id='snackButton' class="mdl-snackbar__action" type="button"></button> <!-- this button exists to suppress the snackbar warning. we're really using a toast. -->
-        </div>
-    </body>
+    </div>
+    <div class="mdl-dialog__actions">
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelAddHost">Cancel</button>
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueAddHost">Continue</button>
+    </div>
+</dialog>
+<div id="snackbar" class="mdl-snackbar mdl-js-snackbar">
+    <div class="mdl-snackbar__text"></div>
+    <button id='snackButton' class="mdl-snackbar__action" type="button"></button> <!-- this button exists to suppress the snackbar warning. we're really using a toast. -->
+</div>
+</body>
 </html>

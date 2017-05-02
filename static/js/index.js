@@ -11,8 +11,8 @@ var windowState = 'normal'; // chrome's windowState, possible values: 'normal' o
 function attachListeners() {
     changeUiModeForNaClLoad();
 
-    $('#selectResolution').on('change', saveResolution);
-    $('#selectFramerate').on('change', saveFramerate);
+    $('.resolutionMenu li').on('click', saveResolution);
+    $('.framerateMenu li').on('click', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
     $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
@@ -64,15 +64,15 @@ function onBoundsChanged() {
 }
 
 function changeUiModeForNaClLoad() {
-    $('.mdl-layout__header').children().hide();
+    $('#main-navigation').children().hide();
     $("#main-content").children().not("#listener, #naclSpinner").hide();
     $('#naclSpinnerMessage').text('Loading Moonlight plugin...');
     $('#naclSpinner').css('display', 'inline-block');
 }
 
 function restoreUiAfterNaClLoad() {
-    $('.mdl-layout__header').children().not("#quitCurrentApp").show();
-    $("#main-content").children().not("#listener, #naclSpinner, #gameSelection").show();
+    $('#main-navigation').children().not("#quitCurrentApp").show();
+    $("#main-content").children().not("#listener, #naclSpinner, #game-grid").show();
     $('#naclSpinner').hide();
     $('#loadingSpinner').css('display', 'none');
     showHostsAndSettingsMode();
@@ -322,10 +322,11 @@ function addHost() {
 
 
 // host is an NvHTTP object
-function addHostToGrid(host, ismDNSDiscovered=false) {
-    var outerDiv = $("<div>", {class: 'host-container mdl-cell--3-col', id: 'host-container-' + host.serverUid });
-    var cell = $("<div>", {class: 'mdl-cell mdl-cell--3-col host-cell mdl-button mdl-js-button mdl-js-ripple-effect', id: 'hostgrid-' + host.serverUid, html:host.hostname });
-    $(cell).prepend($("<img>", {src: "static/res/ic_desktop_windows_white_24px.svg"}));
+function addHostToGrid(host, ismDNSDiscovered) {
+
+    var outerDiv = $("<div>", {class: 'host-container mdl-card mdl-shadow--4dp', id: 'host-container-' + host.serverUid });
+    var cell = $("<div>", {class: 'mdl-card__title mdl-card--expand', id: 'hostgrid-' + host.serverUid });
+    $(cell).prepend($("<h2>", {class: "mdl-card__title-text", html: host.hostname}));
     var removalButton = $("<div>", {class: "remove-host", id: "removeHostButton-" + host.serverUid});
     removalButton.off('click');
     removalButton.click(function () {
@@ -347,7 +348,7 @@ function addHostToGrid(host, ismDNSDiscovered=false) {
 function removeClicked(host) {
     var deleteHostDialog = document.querySelector('#deleteHostDialog');
     document.getElementById('deleteHostDialogText').innerHTML =
-    ' Are you sure you want like to delete ' + host.hostname + '?';
+    ' Are you sure you want to delete ' + host.hostname + '?';
     deleteHostDialog.showModal();
 
     $('#cancelDeleteHost').off('click');
@@ -393,8 +394,9 @@ function showApps(host) {
         console.log('Moved into showApps, but `host` did not initialize properly! Failing.');
         return;
     }
+    console.log(host);
     $('#quitCurrentApp').show();
-    $("#game-grid").empty();
+    $("#gameList .game-container").remove();
 
     // Show a spinner while the applist loads
     $('#naclSpinnerMessage').text('Loading apps...');
@@ -402,6 +404,8 @@ function showApps(host) {
 
     host.getAppList().then(function (appList) {
         $('#naclSpinner').hide();
+
+        $("#game-grid").show();
 
         // if game grid is populated, empty it
         appList.forEach(function (app) {
@@ -412,7 +416,13 @@ function showApps(host) {
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
                     var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
-                    $("#game-grid").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
+                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: URL.createObjectURL(imageBlob) });
+                    $(outerDiv).append($("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }));
+                    $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
+                    $("#game-grid").append(outerDiv);
+
+
+                    // $("#gameList").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
                     $('#game-'+app.id).on('click', function () {
                         startGame(host, app.id);
                     });
@@ -430,7 +440,11 @@ function showApps(host) {
                     // double clicking the button will cause multiple box arts to appear.
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
-                    $("#game-grid").append($("<div>", {html:$("<img \>", {src: "static/res/no_app_image.png", id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
+                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: URL.createObjectURL(imageBlob) });
+                    $(outerDiv).append($("<img \>", {src: "static/res/no_app_image.png", id: 'game-'+app.id, name: app.title }));
+                    $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
+                    $("#game-grid").append(outerDiv);
+
                     $('#game-'+app.id).on('click', function () {
                         startGame(host, app.id);
                     });
@@ -454,14 +468,15 @@ function showApps(host) {
 // set the layout to the initial mode you see when you open moonlight
 function showHostsAndSettingsMode() {
     console.log('entering show hosts and settings mode.');
+    $("#main-navigation").show();
+    $(".nav-menu-parent").show();
+    $("#externalAudioBtn").show();
+    $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
+    $('#game-grid').hide();
     $('#backIcon').hide();
     $('#quitCurrentApp').hide();
-    $(".mdl-layout__header").show();
-    $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
-    $("#game-grid").hide();
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
-    $("body").css('backgroundColor', 'white');
     // We're no longer in a host-specific screen.  Null host, and add it back to the polling list
     if(api) {
         beginBackgroundPollingOfHost(api);
@@ -472,13 +487,15 @@ function showHostsAndSettingsMode() {
 function showAppsMode() {
     console.log("entering show apps mode.");
     $('#backIcon').show();
-    $(".mdl-layout__header").show();
+    $("#main-navigation").show();
     $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
     $("#streamSettings").hide();
-    $("#hostSettings").hide();
+    $(".nav-menu-parent").hide();
+    $("#externalAudioBtn").hide();
+    $("#host-grid").hide();
+    $("#settings").hide();
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
-    $("body").css('backgroundColor', 'white');
 }
 
 
@@ -527,9 +544,9 @@ function startGame(host, appID) {
                 return;
             }
 
-            var frameRate = $("#selectFramerate").val();
-            var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
-            var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
+            var frameRate = $('#selectFramerate').data('value').toString();
+            var streamWidth = $('#selectResolution').data('value').split(':')[0];
+            var streamHeight = $('#selectResolution').data('value').split(':')[1];
             // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
             var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
             console.log('startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
@@ -551,7 +568,7 @@ function startGame(host, appID) {
                 });
             }
 
-            remote_audio_enabled = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
+            var remote_audio_enabled = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
 
             host.launchApp(appID,
                     streamWidth + "x" + streamHeight + "x" + frameRate,
@@ -576,10 +593,9 @@ function playGameMode() {
     console.log("entering play game mode");
     isInGame = true;
 
-    $(".mdl-layout__header").hide();
+    $("#main-navigation").hide();
     $("#main-content").children().not("#listener, #loadingSpinner").hide();
     $("#main-content").addClass("fullscreen");
-    $("body").css('backgroundColor', 'black');
 
     chrome.app.window.current().fullscreen();
     fullscreenNaclModule();
@@ -589,8 +605,8 @@ function playGameMode() {
 
 // Maximize the size of the nacl module by scaling and resizing appropriately
 function fullscreenNaclModule() {
-    var streamWidth = $('#selectResolution option:selected').val().split(':')[0];
-    var streamHeight = $('#selectResolution option:selected').val().split(':')[1];
+    var streamWidth = $('#selectResolution').data('value').split(':')[0];
+    var streamHeight = $('#selectResolution').data('value').split(':')[1];
     var screenWidth = window.innerWidth;
     var screenHeight = window.innerHeight;
 
@@ -678,13 +694,17 @@ function storeData(key, data, callbackFunction) {
 }
 
 function saveResolution() {
+    var chosenResolution = $(this).data('value');
+    $('#selectResolution').text($(this).text()).data('value', chosenResolution);
+    storeData('resolution', chosenResolution, null);
     updateDefaultBitrate();
-    storeData('resolution', $('#selectResolution').val(), null);
 }
 
 function saveFramerate() {
+    var chosenFramerate = $(this).data('value');
+    $('#selectFramerate').text($(this).text()).data('value', chosenFramerate);
+    storeData('frameRate', chosenFramerate, null);
     updateDefaultBitrate();
-    storeData('frameRate', $('#selectFramerate').val(), null);
 }
 
 // storing data in chrome.storage takes the data as an object, and shoves it into JSON to store
@@ -703,31 +723,33 @@ function saveBitrate() {
 }
 
 function saveRemoteAudio() {
-    console.log('saving remote audio state');
-    // problem: when off, and the app is just starting, a tick to the switch doesn't always toggle it
-    // second problem: this callback is called immediately after clicking, so the HTML class `is-checked` isn't toggled yet
-    // to solve the second problem, we invert the boolean.  This has worked in all cases I've tried, except for the first case
-    storeData('remoteAudio', !$("#remoteAudioEnabledSwitch").parent().hasClass('is-checked'), null);
+    // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
+    // checking the new state
+    setTimeout(function() {
+        var remoteAudioState = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked');
+        console.log('saving remote audio state : ' + remoteAudioState);
+        storeData('remoteAudio', remoteAudioState, null);
+    }, 100);
 }
 
 function updateDefaultBitrate() {
-    var res = $('#selectResolution').val();
-    var frameRate = $('#selectFramerate').val();
+    var res = $('#selectResolution').data('value');
+    var frameRate = $('#selectFramerate').data('value').toString();
 
-    if (res.lastIndexOf("1920:1080", 0) === 0) {
-        if (frameRate.lastIndexOf("30", 0) === 0) { // 1080p, 30fps
+    if (res ==="1920:1080") {
+        if (frameRate === "30") { // 1080p, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         } else { // 1080p, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('20');
         }
-    } else if (res.lastIndexOf("1280:720") === 0) {
-        if (frameRate.lastIndexOf("30", 0) === 0) { // 720, 30fps
+    } else if (res === "1280:720") {
+        if (frameRate === "30") { // 720, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('5');
         } else { // 720, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         }
-    } else if (res.lastIndexOf("3840:2160", 0) === 0) {
-        if (frameRate.lastIndexOf("30", 0) === 0) { // 2160p, 30fps
+    } else if (res === "3840:2160") {
+        if (frameRate === "30") { // 2160p, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('40');
         } else { // 2160p, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('80');
@@ -750,33 +772,51 @@ function onWindowLoad(){
     if(chrome.storage) {
         // load stored resolution prefs
         chrome.storage.sync.get('resolution', function(previousValue) {
-            $('#selectResolution').val(previousValue.resolution != null ? previousValue.resolution : '1280:720');
-        });
-        chrome.storage.sync.get('remoteAudio', function(previousValue) {
-            if(previousValue.remoteAudio == null) {
-                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.off();
-                return;
-            } else if(previousValue.remoteAudio == false) {
-                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.off();
-            }  else {
-                document.querySelector('#remoteAudioEnabledSwitchContainer').MaterialSwitch.on();
+            if(previousValue.resolution != null) {
+                $('.resolutionMenu li').each(function () {
+                    if ($(this).data('value') === previousValue.resolution) {
+                        $('#selectResolution').text($(this).text()).data('value', previousValue.resolution);
+                    }
+                });
             }
         });
+
+        // Load stored remote audio prefs
+        chrome.storage.sync.get('remoteAudio', function(previousValue) {
+            if(previousValue.remoteAudio == null) {
+                document.querySelector('#externalAudioBtn').MaterialIconToggle.check();
+                return;
+            } else if(previousValue.remoteAudio == false) {
+                document.querySelector('#externalAudioBtn').MaterialIconToggle.uncheck();
+            }  else {
+                document.querySelector('#externalAudioBtn').MaterialIconToggle.check();
+            }
+        });
+
         // load stored framerate prefs
         chrome.storage.sync.get('frameRate', function(previousValue) {
-            $('#selectFramerate').val(previousValue.frameRate != null ? previousValue.frameRate : '60');
+            if(previousValue.frameRate != null) {
+                $('.framerateMenu li').each(function () {
+                    if ($(this).data('value') === previousValue.frameRate) {
+                        $('#selectFramerate').text($(this).text()).data('value', previousValue.frameRate);
+                    }
+                });
+            }
         });
+
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function(previousValue) {
             $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
             updateBitrateField();
         });
+
         // load the HTTP cert if we have one.
         chrome.storage.sync.get('cert', function(savedCert) {
             if (savedCert.cert != null) { // we have a saved cert
                 pairingCert = savedCert.cert;
             }
         });
+
         chrome.storage.sync.get('uniqueid', function(savedUniqueid) {
             if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
                 myUniqueid = savedUniqueid.uniqueid;
@@ -785,6 +825,7 @@ function onWindowLoad(){
                 storeData('uniqueid', myUniqueid, null);
             }
         });
+
         // load previously connected hosts, which have been killed into an object, and revive them back into a class
         chrome.storage.sync.get('hosts', function(previousValue) {
             hosts = previousValue.hosts != null ? previousValue.hosts : {};
