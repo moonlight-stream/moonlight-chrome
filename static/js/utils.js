@@ -50,7 +50,7 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this.supportedDisplayModes = {}; // key: y-resolution:x-resolution, value: array of supported framerates (only ever seen 30 or 60, here)
     this.gputype = '';
     this.numofapps = 0;
-    this.hostname = '';
+    this.hostname = address;
     this.externalIP = '';
     _self = this;
 };
