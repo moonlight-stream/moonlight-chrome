@@ -440,7 +440,7 @@ function showApps(host) {
                     // double clicking the button will cause multiple box arts to appear.
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
-                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: URL.createObjectURL(imageBlob) });
+                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: "static/res/no_app_image.png" });
                     $(outerDiv).append($("<img \>", {src: "static/res/no_app_image.png", id: 'game-'+app.id, name: app.title }));
                     $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
                     $("#game-grid").append(outerDiv);
