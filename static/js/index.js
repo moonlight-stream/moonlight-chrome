@@ -403,11 +403,12 @@ function showApps(host) {
     $('#naclSpinner').css('display', 'inline-block');
 
     host.getAppList().then(function (appList) {
-        $('#naclSpinner').hide();
+        // if game grid is populated, empty it
+        $("div.game-container").remove();
 
+        $('#naclSpinner').hide();
         $("#game-grid").show();
 
-        // if game grid is populated, empty it
         appList.forEach(function (app) {
             host.getBoxArt(app.id).then(function (resolvedPromise) {
                 // put the box art into the image holder
