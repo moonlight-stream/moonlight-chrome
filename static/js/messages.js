@@ -22,6 +22,7 @@ function handleMessage(msg) {
         console.log(msg.data);
         if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
             $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.            
+            $('body').css('backgroundColor', '#282C38');
 
             api.refreshServerInfo().then(function (ret) {  // refresh the serverinfo to acknowledge the currently running app
                 api.getAppList().then(function (appList) {
@@ -39,6 +40,7 @@ function handleMessage(msg) {
 
         } else if(msg.data === 'Connection Established') {
             $('#loadingSpinner').css('display', 'none');
+            $('body').css('backgroundColor', 'black');
         } else if(msg.data.indexOf('ProgressMsg: ') === 0) {
             $('#loadingMessage').text(msg.data.replace('ProgressMsg: ', ''));
         } else if(msg.data.indexOf('TransientMsg: ') === 0) {

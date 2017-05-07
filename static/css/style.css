@@ -1,7 +1,98 @@
-.mdl-layout__header-row {
+body {
+    background-color: #282C38;
     color: #fff;
-    margin: 0 72px;
+    font-family: 'Roboto', sans-serif;
 }
+.page-title {
+    font-weight: 300;
+    font-size: 26px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    width: 100%;
+    text-align: center;
+}
+span.mdl-layout-title {
+    font-weight: 300;
+}
+span.mdl-layout-title > span {
+    font-weight: 900;
+    color: #00A3C6;
+}
+
+.mdl-layout__header-row {
+    padding: 0 80px 0 80px;
+}
+
+main {
+    padding: 0 80px 0 80px;
+}
+
+@media screen and (max-width: 600px) {
+    #host-grid .mdl-card {
+        flex-basis: 50% !important;
+    }
+    #game-grid .mdl-card {
+        height: 100px !important;
+        width: 75px !important;
+    }
+}
+
+@media screen and (min-width: 600px) and (max-width: 800px) {
+    #host-grid .mdl-card {
+        flex-basis: 33% !important;
+    }
+    #game-grid .mdl-card {
+        height: 150px !important;
+        width: 112.5px !important;
+    }
+}
+
+@media screen and (min-width: 800px) and (max-width: 1024px) {
+    main {
+        padding: 0 72px 0 72px !important;
+    }
+    .mdl-layout__header-row {
+        padding: 0 72px 0 72px !important;
+    }
+    #host-grid .mdl-card {
+        flex-basis: 25% !important;
+    }
+    #game-grid .mdl-card {
+        height: 200px !important;
+        width: 150px !important;
+    }
+}
+
+@media screen and (min-width: 1024px) {
+    #game-grid .mdl-card {
+        height: 300px !important;
+        width: 225px !important;
+    }
+}
+
+.nav-menu-parent {
+    position: relative;
+}
+.mdl-menu__outline {
+    background-color: #333846;
+    color: white;
+}
+.mdl-menu__item {
+    color: white;
+}
+.mdl-menu__item:hover {
+    background-color: #00A3C6;
+}
+#bitrateField {
+    width: 100px;
+    height: 36px;
+    overflow: hidden;
+    text-transform: none;
+}
+.bitrateMenu {
+    width: 170px;
+}
+
 .mdl-button {
     color: #fff !important;
 }
@@ -13,27 +104,20 @@
     color:#fff;
     padding:25px;
 }
-.host-container {
-    position: relative;
-    cursor: pointer;
-    width: 150px !important;
-    height: 150px !important;
-    margin-right: 16px;
-    margin-bottom: 16px;
-}
 #backIcon {
-    height: 32px;
     width: 32px;
-    margin-left: -20px;
-    padding-right: 20px;
+    height: 24px;
+    position: fixed;
+    top: 16px;
+    left: 28px;
 }
 #backIcon:hover {
     cursor: pointer;
 }
 .mdl-dialog {
-    border: none;
-    box-shadow: 0 9px 46px 8px rgba(0, 0, 0, 0.14), 0 11px 15px -7px rgba(0, 0, 0, 0.12), 0 24px 38px 3px rgba(0, 0, 0, 0.2);
-    width: 400px; 
+    width: 400px;
+    background-color: #333846;
+    color: white;
 }
 .mdl-dialog__title {
     padding: 24px 24px 0;
@@ -42,7 +126,13 @@
 }
 .mdl-dialog__content {
     padding: 20px 24px 24px 24px;
-    color: rgba(0,0,0, 0.54); 
+    color: rgba(255, 255, 255, 0.90);
+}
+.mdl-textfield__input {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.90);
+}
+.mdl-textfield__label {
+    color: rgba(255, 255, 255, 0.90);
 }
 #naclSpinner {
     display: none;
@@ -76,31 +166,84 @@
 .mdl-snackbar {
     min-width:0px;
 }
-main {
-    padding: 50px 100px;
+#host-grid, #game-grid {
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: center;
 }
-#bitrateField {
+#host-grid .mdl-card {
+    flex-basis: 15%;
+}
+#game-grid .mdl-card {
+    position: relative;
+    background: transparent;
+}
+#host-grid .mdl-card, #game-grid .mdl-card {
     text-align: center;
-    display: block;
-    padding-top: 15px;
+    width: 170px;
+    height: 170px;
+    min-height: 170px;
+    margin: 15px;
+    cursor: pointer;
+    transition: all .2s ease-in-out;
 }
-#hostSettings {
-    padding: 5px 10px;
-    border: 1px dashed;
-    margin: 10px 0;
+#host-grid .mdl-card:hover, #game-grid .mdl-card:hover {
+    transform: scale(1.1);
 }
-#hostSettings p {
+#host-grid .mdl-card__title {
+    padding: 0;
+}
+#host-grid .mdl-card__title .mdl-card__title-text {
+    width: 100%;
+    font-size: 14px;
+    padding: 10px 15px;
+    background-color: rgba(0,0,0,0.7);
+}
+#game-grid .mdl-card img {
+    height: 100%;
+    width: 100%;
+}
+#game-grid .game-title {
+    position: absolute;
+    bottom: 0;
+    min-height: 20px;
+    font-size: 13px;
+    font-weight: 300;
+    padding: 5px 0;
+    width: 100%;
+    color: white;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+#game-grid .game-title span {
+    padding: 0 10px;
+}
+.add-host-card > .mdl-card__title {
+    color: #fff;
+    background:
+            url('../res/ic_add_to_queue_white_48px.svg') center no-repeat #3E4454;
+}
+.host-container > .mdl-card__title {
+    color: #fff;
+    background:
+            url('../res/ic_tv_white_48px.svg') center no-repeat #3E4454;
+}
+#host-grid p {
     margin: 0;
 }
-#hostSettings .mdl-textfield {
+#host-grid .mdl-textfield {
     width: 200px;
     margin-right: 20px;
     margin-bottom: 0px;
 }
-#hostSettings #GFEHostIPField {
+#host-grid #GFEHostIPField {
     padding-bottom: 0px;
 }
-#hostSettings #selectHost {
+#host-grid #selectHost {
     padding: 0px;
     line-height: 20px;
     height: 20px;
@@ -109,22 +252,22 @@ main {
     margin-right: 20px;
     background: none;
 }
-#hostSettings .button-holder {
+#host-grid .button-holder {
     padding: 0px;
     margin-top: 10px;
     margin-bottom: 10px;
 }
 .remove-host {
     position:absolute;
-    right:0px;
-    top:0px;
+    right:5px;
+    top:5px;
     width:24px;
     height:24px;
-    margin-top: 15px;
-    /*to account for the shadow*/
-    cursor:pointer;
     z-index: 5;
-    background: url('\\static\\res\\ic_remove_circle_white_24px.svg') no-repeat;
+    background-image: url('../res/ic_remove_circle_outline_white_48px.svg');
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+    background-position: center;
     border: 0;
     cursor: pointer;
 }
@@ -144,62 +287,20 @@ main {
 }
 .fullscreen {
     height: 100vh !important;
-    overflow: none !important;
+    overflow: hidden !important;
     margin: auto !important;
     padding: 0 !important;
-    width 100%;
     border: none !important;
 }
-.box-art {
-    background-color: transparent;
-}
-.box-art > img {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-}
-.box-art:hover {
-    cursor: pointer;
-}
 .current-game {
-    border: 3px solid green;
-}
-.not-current-game {
-    border: 1px solid black;
-}
-.game-title {
-    color: #000;
-    font-weight: bold;
-}
-.host-cell {
-    display: inline-block;
-    width: 150px !important;
-    height: 150px !important;
-    background-color: #000;
-    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.34);
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
+    border: 2px solid #00A3C6;
 }
 .host-cell-inactive {
-    border: 3px solid red;
+    border: 3px solid #8e0000;
 }
 .host-cell:hover {
     cursor: pointer;
     color: #000 !important;
-}
-.host-cell:hover img {
-    -webkit-filter: invert(100%);
-    filter: invert(100%);
-}
-.host-cell img {
-    width: 80px;
-    margin-bottom: 10px;
 }
 .cancel-current:hover {
     cursor: pointer;
