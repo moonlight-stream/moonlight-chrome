@@ -1,6 +1,11 @@
 COMMON_C_DIR := moonlight-common-c/src
-OPENAES_DIR := $(COMMON_C_DIR)/OpenAES
 ENET_DIR := moonlight-common-c/enet
+RS_DIR := moonlight-common-c/reedsolomon
+
+RS_SOURCE := \
+	$(RS_DIR)/rs.c \
+
+RS_INCLUDE := $(RS_DIR)
 
 ENET_SOURCE := \
     $(ENET_DIR)/callbacks.c \
@@ -26,6 +31,7 @@ COMMON_C_SOURCE := \
 	$(COMMON_C_DIR)/Misc.c                \
 	$(COMMON_C_DIR)/Platform.c            \
 	$(COMMON_C_DIR)/PlatformSockets.c     \
+	$(COMMON_C_DIR)/RtpFecQueue.c         \
 	$(COMMON_C_DIR)/RtpReorderQueue.c     \
 	$(COMMON_C_DIR)/RtspConnection.c      \
 	$(COMMON_C_DIR)/RtspParser.c          \
@@ -33,7 +39,8 @@ COMMON_C_SOURCE := \
 	$(COMMON_C_DIR)/VideoDepacketizer.c   \
 	$(COMMON_C_DIR)/VideoStream.c         \
     $(ENET_SOURCE)                        \
+	$(RS_SOURCE)						  \
 
-COMMON_C_INCLUDE := $(COMMON_C_DIR) $(ENET_INCLUDE)
+COMMON_C_INCLUDE := $(COMMON_C_DIR) $(ENET_INCLUDE) $(RS_INCLUDE)
 
 COMMON_C_C_FLAGS := -DLC_CHROME -Wno-missing-braces -DHAS_SOCKLEN_T=1 -DHAS_FCNTL=1 -DNO_MSGAPI=1
