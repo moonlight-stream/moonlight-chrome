@@ -70,15 +70,24 @@ function changeUiModeForNaClLoad() {
     $('#naclSpinner').css('display', 'inline-block');
 }
 
+function startPollingHosts() {
+    for(var hostUID in hosts) {
+        beginBackgroundPollingOfHost(hosts[hostUID]);
+    }
+}
+
+function stopPollingHosts() {
+    for(var hostUID in hosts) {
+        stopBackgroundPollingOfHost(hosts[hostUID]);
+    }
+}
+
 function restoreUiAfterNaClLoad() {
     $('#main-navigation').children().not("#quitCurrentApp").show();
     $("#main-content").children().not("#listener, #naclSpinner, #game-grid").show();
     $('#naclSpinner').hide();
     $('#loadingSpinner').css('display', 'none');
     showHostsAndSettingsMode();
-    for(var hostUID in hosts) {
-        beginBackgroundPollingOfHost(hosts[hostUID]);
-    }
 
     findNvService(function (finder, opt_error) {
         if (finder.byService_['_nvstream._tcp']) {
@@ -275,7 +284,9 @@ function hostChosen(host) {
         return;
     }
 
-    stopBackgroundPollingOfHost(host);
+    // Avoid delay from other polling during pairing
+    stopPollingHosts();
+
     api = host;
     if (!host.paired) {
         // Still not paired; go to the pairing flow
@@ -283,7 +294,8 @@ function hostChosen(host) {
             showApps(host); 
             saveHosts();
         }, 
-            function(){ 
+        function(){ 
+                startPollingHosts();
         });
     } else {
         // When we queried again, it was paired, so show apps.
@@ -478,11 +490,8 @@ function showHostsAndSettingsMode() {
     $('#quitCurrentApp').hide();
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
-    // We're no longer in a host-specific screen.  Null host, and add it back to the polling list
-    if(api) {
-        beginBackgroundPollingOfHost(api);
-        api = null;  // and null api
-    }
+
+    startPollingHosts();
 }
 
 function showAppsMode() {
@@ -497,6 +506,11 @@ function showAppsMode() {
     $("#settings").hide();
     $("#main-content").removeClass("fullscreen");
     $("#listener").removeClass("fullscreen");
+
+    // FIXME: We want to eventually poll on the app screen but we can't now
+    // because it slows down box art loading and we don't update the UI live
+    // anyway.
+    stopPollingHosts();
 }
 
 
