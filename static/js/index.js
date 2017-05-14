@@ -785,9 +785,8 @@ function onWindowLoad(){
         // Load stored remote audio prefs
         chrome.storage.sync.get('remoteAudio', function(previousValue) {
             if(previousValue.remoteAudio == null) {
-                document.querySelector('#externalAudioBtn').MaterialIconToggle.check();
-                return;
-            } else if(previousValue.remoteAudio == false) {
+                document.querySelector('#externalAudioBtn').MaterialIconToggle.uncheck();
+            } else if (previousValue.remoteAudio == false) {
                 document.querySelector('#externalAudioBtn').MaterialIconToggle.uncheck();
             }  else {
                 document.querySelector('#externalAudioBtn').MaterialIconToggle.check();
