@@ -52,6 +52,8 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this.numofapps = 0;
     this.hostname = address;
     this.externalIP = '';
+    this._pollCompletionCallbacks = [];
+
     _self = this;
 };
 
@@ -104,6 +106,16 @@ NvHTTP.prototype = {
 
     // called every few seconds to poll the server for updated info
     pollServer: function(onComplete) {
+        // Pend this callback on completion
+        this._pollCompletionCallbacks.push(onComplete);
+
+        // Check if a poll was already in progress
+        if (this._pollCompletionCallbacks.length > 1) {
+            // Don't start another. The one in progress will
+            // alert our caller too.
+            return;
+        }
+
         this.selectServerAddress(function(successfulAddress) {
             // Successfully determined server address. Update base URL.
             this.address = successfulAddress;
@@ -120,13 +132,21 @@ NvHTTP.prototype = {
             this._consecutivePollFailures = 0;
             this.online = true;
 
-            onComplete(this);
+            // Call all pending completion callbacks
+            var completion;
+            while ((completion = this._pollCompletionCallbacks.pop())) {
+                completion(this);
+            }
         }.bind(this), function() {
             if (++this._consecutivePollFailures >= 3) {
                 this.online = false;
             }
 
-            onComplete(this);
+            // Call all pending completion callbacks
+            var completion;
+            while ((completion = this._pollCompletionCallbacks.pop())) {
+                completion(this);
+            }
         }.bind(this));
     },
 
