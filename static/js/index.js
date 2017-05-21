@@ -28,7 +28,7 @@ function fullscreenChromeWindow() {
     // FIRST restore it to the previous size, then fullscreen it to the whole screen
     // this prevents the previous window size from being 'maximized',
     // and allows us to functionally retain two window sizes
-    // so that when the user hits `esc`, they go back to the "restored" size, 
+    // so that when the user hits `esc`, they go back to the "restored" size,
     // instead of "maximized", which would immediately go to fullscreen
     chrome.app.window.current().restore();
     chrome.app.window.current().fullscreen();
@@ -192,14 +192,14 @@ function moduleDidLoad() {
     }
 
     if(!pairingCert) { // we couldn't load a cert. Make one.
-        console.log("Failed to load local cert. Generating new one");   
+        console.log("Failed to load local cert. Generating new one");
         sendMessage('makeCert', []).then(function (cert) {
             storeData('cert', cert, null);
             pairingCert = cert;
             console.log("Generated new cert.");
         }, function (failedCert) {
             console.log('ERROR: failed to generate new cert!');
-            console.log('Returned error was: ' + failedCert);            
+            console.log('Returned error was: ' + failedCert);
         }).then(function (ret) {
             sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
                 restoreUiAfterNaClLoad();
@@ -290,11 +290,11 @@ function hostChosen(host) {
     api = host;
     if (!host.paired) {
         // Still not paired; go to the pairing flow
-        pairTo(host, function() { 
-            showApps(host); 
+        pairTo(host, function() {
+            showApps(host);
             saveHosts();
-        }, 
-        function(){ 
+        },
+        function(){
                 startPollingHosts();
         });
     } else {
@@ -351,7 +351,7 @@ function addHostToGrid(host, ismDNSDiscovered) {
     $(outerDiv).append(cell);
     if (!ismDNSDiscovered) {
         // we don't have the option to delete mDNS hosts.  So don't show it to the user.
-        $(outerDiv).append(removalButton);        
+        $(outerDiv).append(removalButton);
     }
     $('#host-grid').append(outerDiv);
     hosts[host.serverUid] = host;
@@ -385,7 +385,7 @@ function removeClicked(host) {
 // and puts the CSS style for non-current app apps that aren't running
 // this requires a hot-off-the-host `api`, and the appId we're going to stylize
 // the function was made like this so that we can remove duplicated code, but
-// not do N*N stylizations of the box art, or make the code not flow very well 
+// not do N*N stylizations of the box art, or make the code not flow very well
 function stylizeBoxArt(freshApi, appIdToStylize) {
     if (freshApi.currentGame === appIdToStylize){ // stylize the currently running game
         // destylize it, if it has the not-current-game style
@@ -429,7 +429,7 @@ function showApps(host) {
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
                     var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
-                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: URL.createObjectURL(imageBlob) });
+                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: URL.createObjectURL(imageBlob), role: 'link', tabindex: 0, title: app.title, 'aria-label': app.title });
                     $(outerDiv).append($("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }));
                     $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
                     $("#game-grid").append(outerDiv);
@@ -529,7 +529,7 @@ function startGame(host, appID) {
             if(host.currentGame != 0 && host.currentGame != appID) {
                 host.getAppById(host.currentGame).then(function (currentApp) {
                     var quitAppDialog = document.querySelector('#quitAppDialog');
-                    document.getElementById('quitAppDialogText').innerHTML = 
+                    document.getElementById('quitAppDialogText').innerHTML =
                         currentApp.title + ' is already running. Would you like to quit ' +
                         currentApp.title + '?';
                     quitAppDialog.showModal();
@@ -677,7 +677,7 @@ function stopGame(host, callbackFunction) {
             }
             var appName = runningApp.title;
             snackbarLog('Stopping ' + appName);
-            host.quitApp().then(function (ret2) { 
+            host.quitApp().then(function (ret2) {
                 host.refreshServerInfo().then(function (ret3) { // refresh to show no app is currently running.
                     showAppsMode();
                     stylizeBoxArt(host, runningApp.id);
