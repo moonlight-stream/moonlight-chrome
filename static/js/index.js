@@ -336,10 +336,10 @@ function addHost() {
 // host is an NvHTTP object
 function addHostToGrid(host, ismDNSDiscovered) {
 
-    var outerDiv = $("<div>", {class: 'host-container mdl-card mdl-shadow--4dp', id: 'host-container-' + host.serverUid });
+    var outerDiv = $("<div>", {class: 'host-container mdl-card mdl-shadow--4dp', id: 'host-container-' + host.serverUid, role: 'link', tabindex: 0, 'aria-label': host.hostname });
     var cell = $("<div>", {class: 'mdl-card__title mdl-card--expand', id: 'hostgrid-' + host.serverUid });
     $(cell).prepend($("<h2>", {class: "mdl-card__title-text", html: host.hostname}));
-    var removalButton = $("<div>", {class: "remove-host", id: "removeHostButton-" + host.serverUid});
+    var removalButton = $("<div>", {class: "remove-host", id: "removeHostButton-" + host.serverUid, role: 'button', tabindex: 0, 'aria-label': 'Remove host ' + host.hostname});
     removalButton.off('click');
     removalButton.click(function () {
         removeClicked(host);
