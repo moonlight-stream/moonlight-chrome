@@ -348,6 +348,11 @@ function addHostToGrid(host, ismDNSDiscovered) {
     cell.click(function () {
         hostChosen(host);
     });
+    outerDiv.keypress(function(e){
+      if(e.keyCode == 13) {
+        hostChosen(host);
+      }
+    });
     $(outerDiv).append(cell);
     if (!ismDNSDiscovered) {
         // we don't have the option to delete mDNS hosts.  So don't show it to the user.
@@ -438,6 +443,11 @@ function showApps(host) {
                     // $("#gameList").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
                     $('#game-'+app.id).on('click', function () {
                         startGame(host, app.id);
+                    });
+                    $('#game-'+app.id).keypress(function(e){
+                      if(e.keyCode == 13) {
+                        startGame(host, app.id);
+                      }
                     });
 
                     // apply CSS stylization to indicate whether the app is active
