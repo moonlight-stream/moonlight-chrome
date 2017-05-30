@@ -14,7 +14,7 @@ function attachListeners() {
     $('.resolutionMenu li').on('click', saveResolution);
     $('.framerateMenu li').on('click', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
-    $('#bitrateSlider').on('change', saveBitrate); // change occurs once the mouse lets go.
+    //$('#bitrateSlider').on('change', saveBitrate); //FIXME: it seems not working
     $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
     $('#addHostCell').on('click', addHost);
     $('#backIcon').on('click', showHostsAndSettingsMode);
@@ -182,6 +182,7 @@ function snackbarLogLong(givenMessage) {
 
 function updateBitrateField() {
     $('#bitrateField').html($('#bitrateSlider').val() + " Mbps");
+    saveBitrate();
 }
 
 function moduleDidLoad() {
