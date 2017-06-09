@@ -125,11 +125,11 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool InitializeRenderingSurface(int width, int height);
         void DidChangeFocus(bool got_focus);
         
-        static void VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags);
+        static int VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags);
         static void VidDecCleanup(void);
         static int VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit);
         
-        static void AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig);
+        static int AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig);
         static void AudDecCleanup(void);
         static void AudDecDecodeAndPlaySample(char* sampleData, int sampleLength);
         

@@ -137,7 +137,7 @@ bool MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     return true;
 }
 
-void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
+int MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
     g_Instance->m_VideoDecoder = new pp::VideoDecoder(g_Instance);
     
     s_DecodeBufferLength = INITIAL_DECODE_BUFFER_LEN;
@@ -176,7 +176,7 @@ void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int 
             // No decoders available at all. We can't continue.
             ClDisplayMessage("No hardware or software H.264 decoders available!");
             g_Instance->StopConnection();
-            return;
+            return -1;
         }
         else if (!(drFlags & DR_FLAG_FORCE_SW_DECODE)) {
             // Tell the user we had to fall back
@@ -186,6 +186,8 @@ void MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int 
     
     pp::Module::Get()->core()->CallOnMainThread(0,
         g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::DispatchGetPicture));
+    
+    return 0;
 }
 
 void MoonlightInstance::DispatchGetPicture(uint32_t unused) {
@@ -485,8 +487,8 @@ void MoonlightInstance::PictureReady(int32_t result, PP_VideoPicture picture) {
 }
 
 DECODER_RENDERER_CALLBACKS MoonlightInstance::s_DrCallbacks = {
-    MoonlightInstance::VidDecSetup,
-    MoonlightInstance::VidDecCleanup,
-    MoonlightInstance::VidDecSubmitDecodeUnit,
-    CAPABILITY_SLICES_PER_FRAME(4)
+    .setup = MoonlightInstance::VidDecSetup,
+    .cleanup = MoonlightInstance::VidDecCleanup,
+    .submitDecodeUnit = MoonlightInstance::VidDecSubmitDecodeUnit,
+    .capabilities = CAPABILITY_SLICES_PER_FRAME(4)
 };

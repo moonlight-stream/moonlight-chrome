@@ -34,7 +34,7 @@ static void AudioPlayerSampleCallback(void* samples, uint32_t buffer_size, void*
     }
 }
 
-void MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
+int MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
     int rc;
     
     g_Instance->m_OpusDecoder = opus_multistream_decoder_create(opusConfig->sampleRate,
@@ -49,6 +49,8 @@ void MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CON
     
     // Start playback now
     g_Instance->m_AudioPlayer.StartPlayback();
+    
+    return 0;
 }
 
 void MoonlightInstance::AudDecCleanup(void) {
@@ -83,8 +85,8 @@ void MoonlightInstance::AudDecDecodeAndPlaySample(char* sampleData, int sampleLe
 }
 
 AUDIO_RENDERER_CALLBACKS MoonlightInstance::s_ArCallbacks = {
-    MoonlightInstance::AudDecInit,
-    MoonlightInstance::AudDecCleanup,
-    MoonlightInstance::AudDecDecodeAndPlaySample,
-    CAPABILITY_DIRECT_SUBMIT
+    .init = MoonlightInstance::AudDecInit,
+    .cleanup = MoonlightInstance::AudDecCleanup,
+    .decodeAndPlaySample = MoonlightInstance::AudDecDecodeAndPlaySample,
+    .capabilities = CAPABILITY_DIRECT_SUBMIT
 };

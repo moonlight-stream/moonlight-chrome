@@ -39,11 +39,10 @@ void MoonlightInstance::ClDisplayTransientMessage(const char* message) {
 }
 
 CONNECTION_LISTENER_CALLBACKS MoonlightInstance::s_ClCallbacks = {
-    MoonlightInstance::ClStageStarting,
-    NULL,
-    MoonlightInstance::ClStageFailed,
-    MoonlightInstance::ClConnectionStarted,
-    MoonlightInstance::ClConnectionTerminated,
-    MoonlightInstance::ClDisplayMessage,
-    MoonlightInstance::ClDisplayTransientMessage
+    .stageStarting = MoonlightInstance::ClStageStarting,
+    .stageFailed = MoonlightInstance::ClStageFailed,
+    .connectionStarted = MoonlightInstance::ClConnectionStarted,
+    .connectionTerminated = MoonlightInstance::ClConnectionTerminated,
+    .displayMessage = MoonlightInstance::ClDisplayMessage,
+    .displayTransientMessage = MoonlightInstance::ClDisplayTransientMessage
 };
