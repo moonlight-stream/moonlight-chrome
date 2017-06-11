@@ -123,6 +123,7 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
                             &MoonlightInstance::s_ClCallbacks,
                             &MoonlightInstance::s_DrCallbacks,
                             &MoonlightInstance::s_ArCallbacks,
+                            NULL, 0,
                             NULL, 0);
     if (err != 0) {
         // Notify the JS code that the stream has ended

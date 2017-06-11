@@ -34,7 +34,7 @@ static void AudioPlayerSampleCallback(void* samples, uint32_t buffer_size, void*
     }
 }
 
-int MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig) {
+int MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig, void* context, int flags) {
     int rc;
     
     g_Instance->m_OpusDecoder = opus_multistream_decoder_create(opusConfig->sampleRate,

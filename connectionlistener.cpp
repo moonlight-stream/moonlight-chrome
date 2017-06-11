@@ -38,6 +38,13 @@ void MoonlightInstance::ClDisplayTransientMessage(const char* message) {
     g_Instance->PostMessage(response);
 }
 
+void MoonlightInstance::ClLogMessage(const char* format, ...) {
+    va_list va;
+    va_start(va, format);
+    vfprintf(stderr, format, va);
+    va_end(va);
+}
+
 CONNECTION_LISTENER_CALLBACKS MoonlightInstance::s_ClCallbacks = {
     .stageStarting = MoonlightInstance::ClStageStarting,
     .stageFailed = MoonlightInstance::ClStageFailed,

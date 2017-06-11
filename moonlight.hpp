@@ -114,6 +114,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void ClConnectionTerminated(long errorCode);
         static void ClDisplayMessage(const char* message);
         static void ClDisplayTransientMessage(const char* message);
+        static void ClLogMessage(const char* format, ...);
         
         static Shader CreateProgram(const char* vertexShader, const char* fragmentShader);
         static void CreateShader(GLuint program, GLenum type, const char* source, int size);
@@ -129,7 +130,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void VidDecCleanup(void);
         static int VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit);
         
-        static int AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig);
+        static int AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig, void* context, int flags);
         static void AudDecCleanup(void);
         static void AudDecDecodeAndPlaySample(char* sampleData, int sampleLength);
         
