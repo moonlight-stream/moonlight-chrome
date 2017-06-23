@@ -59,6 +59,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             m_MouseLocked(false),
             m_WaitingForAllModifiersUp(false),
             m_AccumulatedTicks(0),
+            m_MouseDeltaX(0),
+            m_MouseDeltaY(0),
             openHttpThread(this) {
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
@@ -85,6 +87,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void PairCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args);
     
         bool HandleInputEvent(const pp::InputEvent& event);
+        void ReportMouseMovement();
         
         void PollGamepads();
         
@@ -105,7 +108,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void ProfilerPrintWarning(const char* message);
 
         static void* ConnectionThreadFunc(void* context);
-        static void* GamepadThreadFunc(void* context);
+        static void* InputThreadFunc(void* context);
         static void* StopThreadFunc(void* context);
         
         static void ClStageStarting(int stage);
@@ -151,7 +154,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool m_Running;
         
         pthread_t m_ConnectionThread;
-        pthread_t m_GamepadThread;
+        pthread_t m_InputThread;
     
         pp::Graphics3D m_Graphics3D;
         pp::VideoDecoder* m_VideoDecoder;
@@ -173,6 +176,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool m_MouseLocked;
         bool m_WaitingForAllModifiersUp;
         float m_AccumulatedTicks;
+        int32_t m_MouseDeltaX, m_MouseDeltaY;
     
         pp::SimpleThread openHttpThread;
 };

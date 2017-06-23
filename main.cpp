@@ -85,18 +85,19 @@ void* MoonlightInstance::StopThreadFunc(void* context) {
 
     // We also need to stop this thread after the connection thread, because it depends
     // on being initialized there.
-    pthread_join(g_Instance->m_GamepadThread, NULL);
+    pthread_join(g_Instance->m_InputThread, NULL);
 
     // Stop the connection
     LiStopConnection();
     return NULL;
 }
 
-void* MoonlightInstance::GamepadThreadFunc(void* context) {
+void* MoonlightInstance::InputThreadFunc(void* context) {
     MoonlightInstance* me = (MoonlightInstance*)context;
 
     while (me->m_Running) {
         me->PollGamepads();
+        me->ReportMouseMovement();
         
         // Poll every 10 ms
         usleep(10 * 1000);
@@ -135,7 +136,7 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
     // Set running state before starting connection-specific threads
     me->m_Running = true;
     
-    pthread_create(&me->m_GamepadThread, NULL, MoonlightInstance::GamepadThreadFunc, me);
+    pthread_create(&me->m_InputThread, NULL, MoonlightInstance::InputThreadFunc, me);
     
     return NULL;
 }

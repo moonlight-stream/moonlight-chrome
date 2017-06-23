@@ -51,6 +51,13 @@ static char GetModifierFlags(const pp::InputEvent& event) {
     return flags;
 }
 
+void MoonlightInstance::ReportMouseMovement() {
+    if (m_MouseDeltaX != 0 || m_MouseDeltaY != 0) {
+        LiSendMouseMoveEvent(m_MouseDeltaX, m_MouseDeltaY);
+        m_MouseDeltaX = m_MouseDeltaY = 0;
+    }
+}
+
 bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
     switch (event.GetType()) {
         case PP_INPUTEVENT_TYPE_MOUSEDOWN: {
@@ -77,7 +84,10 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             pp::MouseInputEvent mouseEvent(event);
             pp::Point posDelta = mouseEvent.GetMovement();
             
-            LiSendMouseMoveEvent(posDelta.x(), posDelta.y());
+            // Wait to report mouse movement until the next input polling window
+            // to allow batching to occur which reduces overall input lag.
+            m_MouseDeltaX += posDelta.x();
+            m_MouseDeltaY += posDelta.y();
             return true;
         }
         
