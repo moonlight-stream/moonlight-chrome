@@ -14,7 +14,7 @@
 <div class="mdl-layout mdl-js-layout">
     <header id="main-navigation" class="mdl-layout__header mdl-layout__header--transparent">
         <div class="mdl-layout__header-row">
-            <span id='backIcon'><i class="material-icons">keyboard_arrow_left</i></span>
+            <button id="backIcon" class="mdl-button mdl-js-button mdl-button--icon" role="link" aria-label="Host selection"><i class="material-icons">keyboard_arrow_left</i></button>
             <!-- Title -->
             <span class="mdl-layout-title">MOON<span>LIGHT</span></span>
             <!-- Add spacer, to align navigation to the right -->
@@ -61,7 +61,7 @@
 
                     <div class="nav-menu-parent">
                         <div id="bandwidthMenu">
-                            <button id='bitrateField' class="mdl-button">10 Mbps</button>
+                            <button id="bitrateField" class="mdl-button">10 Mbps</button>
                         </div>
 
                         <div class="bitrateMenu mdl-menu mdl-js-menu mdl-js-ripple-effect" for="bandwidthMenu">
@@ -81,7 +81,7 @@
                         Remote audio
                     </div>
 
-                    <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="quitCurrentApp">
+                    <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="quitCurrentApp" aria-label="Quit current app">
                         <i class="material-icons">remove_circle_outline</i>
                         Quit Current App
                     </button>
@@ -91,8 +91,8 @@
     <main id="main-content" class="mdl-layout__content">
             <div id="host-grid">
                 <div class="page-title">Your PCs</div>
-                <div class="add-host-card mdl-card mdl-shadow--4dp" id='addHostCell'>
-                    <div class="mdl-card__title mdl-card--expand" id="addHostIcon">
+                <div class="add-host-card mdl-card mdl-shadow--4dp" id="addHostCell">
+                    <div class="mdl-card__title mdl-card--expand" id="addHostIcon" role="link" tabindex="0" aria-label="Add Host">
                         <h2 class="mdl-card__title-text" >Add Host</h2>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
 </dialog>
 <div id="snackbar" class="mdl-snackbar mdl-js-snackbar">
     <div class="mdl-snackbar__text"></div>
-    <button id='snackButton' class="mdl-snackbar__action" type="button"></button> <!-- this button exists to suppress the snackbar warning. we're really using a toast. -->
+    <button id="snackButton" class="mdl-snackbar__action" type="button"></button> <!-- this button exists to suppress the snackbar warning. we're really using a toast. -->
 </div>
 </body>
 </html>
