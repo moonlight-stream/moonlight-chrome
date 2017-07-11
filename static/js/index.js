@@ -157,7 +157,7 @@ function beginBackgroundPollingOfHost(host) {
 }
 
 function stopBackgroundPollingOfHost(host) {
-  console.log('%c[Moonlight GUI, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host);
+  console.log('%c[Moonlight GUI, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
   window.clearInterval(activePolls[host.serverUid]);
   delete activePolls[host.serverUid];
 }
@@ -407,7 +407,7 @@ function showApps(host) {
       console.log('%c[Moonlight GUI, showApps]', 'color: green;', 'Moved into showApps, but `host` did not initialize properly! Failing.');
       return;
     }
-    console.log('%c[Moonlight GUI, showApps]', 'color: green;', 'Current host object:', host);
+    console.log('%c[Moonlight GUI, showApps]', 'color: green;', 'Current host object:', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
     $('#quitCurrentApp').show();
     $("#gameList .game-container").remove();
 
