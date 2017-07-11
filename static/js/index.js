@@ -601,8 +601,7 @@ function startGame(host, appID) {
                 sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
                         bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
             }, function (failedLaunchApp) {
-                console.log('ERROR: failed to launch app with appID: ' + appID);
-                console.log('Returned error was: ' + failedLaunchApp);
+                console.error('%c[index.js, launchApp]','color: green;','Failed to launch app width id: ' + appID + '\nReturned error was: ' + failedLaunchApp);
                 return;
             });
 
@@ -748,7 +747,7 @@ function saveRemoteAudio() {
     // checking the new state
     setTimeout(function() {
         var remoteAudioState = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked');
-        console.log('saving remote audio state : ' + remoteAudioState);
+        console.log('%c[index.js, saveRemoteAudio]', 'color: green;', 'Saving remote audio state : ' + remoteAudioState);
         storeData('remoteAudio', remoteAudioState, null);
     }, 100);
 }
