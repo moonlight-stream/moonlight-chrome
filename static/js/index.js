@@ -748,7 +748,7 @@ function saveRemoteAudio() {
     // checking the new state
     setTimeout(function() {
         var remoteAudioState = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked');
-        console.log('saving remote audio state : ' + remoteAudioState);
+        console.log('[index.js, saveRemoteAudio]', 'color: green;', 'Saving remote audio state : ' + remoteAudioState);
         storeData('remoteAudio', remoteAudioState, null);
     }, 100);
 }
