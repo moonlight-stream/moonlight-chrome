@@ -32,7 +32,7 @@ String.prototype.toHex = function() {
 }
 
 function NvHTTP(address, clientUid, userEnteredAddress = '') {
-		console.log('%c[NvHTTP Object]', 'color: gray;', this);
+		console.log('%c[utils.js, NvHTTP Object]', 'color: gray;', this);
     this.address = address;
     this.paired = false;
     this.currentGame = 0;
@@ -95,7 +95,7 @@ NvHTTP.prototype = {
         // try HTTPS first
         return sendMessage('openUrl', [ 'https://' + givenAddress + ':47984' + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
             if (!this._parseServerInfo(ret)) {  // if that fails
-                console.log('%c[utils.js, refreshServerInfoAtAddress]', 'color: gray;', 'Failed to parse serverinfo from HTTPS, falling back to HTTP');
+                console.log('%c[utils.js, utils.js,  refreshServerInfoAtAddress]', 'color: gray;', 'Failed to parse serverinfo from HTTPS, falling back to HTTP');
                 // try HTTP as a failover.  Useful to clients who aren't paired yet
                 return sendMessage('openUrl', [ 'http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
                     return this._parseServerInfo(retHttp);
@@ -165,7 +165,7 @@ NvHTTP.prototype = {
                     this.refreshServerInfoAtAddress(this.userEnteredAddress).then(function(successUserEntered) {
                         onSuccess(this.userEnteredAddress);
                     }.bind(this), function(failureUserEntered) {
-                        console.warn('%c[utils.js, selectServerAddress]', 'color: gray;', 'Failed to contact host ' + this.hostname, this);
+                        console.warn('%c[utils.js, utils.js,  selectServerAddress]', 'color: gray;', 'Failed to contact host ' + this.hostname, this);
                         onFailure();
                     }.bind(this));
                 }.bind(this));
@@ -208,7 +208,7 @@ NvHTTP.prototype = {
             return false;
         }
 
-				console.log('%c[_parseServerInfo]', 'color:gray;', 'Parsing server info:', $root);
+				console.log('%c[utils.js, _parseServerInfo]', 'color:gray;', 'Parsing server info:', $root);
 
         this.paired = $root.find("PairStatus").text().trim() == 1;
         this.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
@@ -289,7 +289,7 @@ NvHTTP.prototype = {
 
             if ($root.attr("status_code") != 200) {
                 // TODO: Bubble up an error here
-								console.error('%c[utils.js, getAppListWithCacheFlush]', 'color: gray;', 'Applist request failed', $root.attr("status_code"));
+								console.error('%c[utils.js, utils.js,  getAppListWithCacheFlush]', 'color: gray;', 'Applist request failed', $root.attr("status_code"));
                 return [];
             }
 
@@ -313,7 +313,7 @@ NvHTTP.prototype = {
     getAppList: function () {
         if (this._memCachedApplist) {
             return new Promise(function (resolve, reject) {
-                console.log('%c[utils.js]', 'color: gray;', 'Returning memory-cached apps list');
+                console.log('%c[utils.js, utils.js]', 'color: gray;', 'Returning memory-cached apps list');
                 resolve(this._memCachedApplist);
                 return;
             }.bind(this));
@@ -326,11 +326,11 @@ NvHTTP.prototype = {
     // this is inefficient, but works well.
     warmBoxArtCache: function () {
         if (!this.paired) {
-					console.log('%c[warmBoxArtCache, utils.js]', 'color: grey;', 'Not warming box art cache for unpaired host');
+					console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Not warming box art cache for unpaired host');
           return;
         }
         if (Object.keys(this._memCachedBoxArtArray).length != 0) {
-					console.log('%c[warmBoxArtCache, utils.js]', 'color: grey;', 'Box art cache already warmed');
+					console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache already warmed');
           return;
         }
         if (chrome.storage) {
@@ -342,9 +342,9 @@ NvHTTP.prototype = {
                     for (var key in storedBoxArtArray) {
                         this._memCachedBoxArtArray[key] = _base64ToArrayBuffer(storedBoxArtArray[key]);
                     }
-										console.log('%c[warmBoxArtCache, utils.js]', 'color: grey;', 'Box art cache warmed');
+										console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache warmed');
                 } else {
-									 console.warn('%c[warmBoxArtCache, utils.js]', 'color: grey;', 'No box art found in storage. Cannot warm cache!');
+									 console.warn('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'No box art found in storage. Cannot warm cache!');
                    return;
                 }
             }.bind(this));
@@ -360,13 +360,13 @@ NvHTTP.prototype = {
         if (this._memCachedBoxArtArray[appId] === null) {
             // This means a previous box art request failed, don't try again
             return new Promise(function (resolve, reject) {
-							console.error('%c[utils.js, getBoxArt]', 'color: gray;', 'Returning cached box-art failure result')
+							console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning cached box-art failure result')
               reject(null);
               return;
             }.bind(this));
         } else if (this._memCachedBoxArtArray[appId] !== undefined) {
             return new Promise(function (resolve, reject) {
-                console.log('%c[utils.js, getBoxArt]', 'color: gray;', 'Returning memory-cached box-art');
+                console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning memory-cached box-art');
                 resolve(this._memCachedBoxArtArray[appId]);
                 return;
             }.bind(this));
@@ -391,7 +391,7 @@ NvHTTP.prototype = {
 
                     // if we already have it, load it.
                     if (storedBoxArtArray[appId] !== undefined && Object.keys(storedBoxArtArray).length !== 0 && storedBoxArtArray[appId].constructor !== Object) {
-                        console.log('%c[getBoxArt, utils.js]', 'color: gray;', 'Returning strage-cached box art for app: ', appId);
+                        console.log('%c[utils.js, getBoxArt]', 'color: gray;', 'Returning strage-cached box art for app: ', appId);
                         resolve(storedBoxArtArray[appId]);
                         return;
                     }
@@ -415,13 +415,13 @@ NvHTTP.prototype = {
 
                         obj['boxArtCache'] = arrayToStore;  // storage is in JSON format.  JSON does not support binary data.
                         chrome.storage.local.set(obj, function(onSuccess) {});
-                        console.log('%c[utils.js, getBoxArt]', 'color: gray;', 'Returning streamed box art');
+                        console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning streamed box art');
                         resolve(streamedBoxArt);
                         return;
                     }.bind(this), function(error) {
                         // Cache the failure but not persistently
                         this._memCachedBoxArtArray[appId] = null;
-                        console.error('%c[utils.js, getBoxArt]', 'color: gray;', 'Box-art request failed!', error);
+                        console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Box-art request failed!', error);
                         reject(error);
                         return;
                     }.bind(this));
@@ -429,7 +429,7 @@ NvHTTP.prototype = {
             }.bind(this));
 
         } else {  // shouldn't run because we always have chrome.storage, but I'm not going to antagonize other browsers
-						console.warn('%c[utils.js, getBoxArt]', 'color: gray;', 'chrome.storage not detected! Box art will not be saved!');
+						console.warn('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'chrome.storage not detected! Box art will not be saved!');
             return sendMessage('openUrl', [
                 this._baseUrlHttps +
                 '/appasset?'+this._buildUidStr() +

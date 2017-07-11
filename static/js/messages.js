@@ -19,7 +19,7 @@ function handleMessage(msg) {
         callbacks[msg.data.callbackId][msg.data.type](msg.data.ret);
         delete callbacks[msg.data.callbackId]
     } else {  // else, it's just info, or an event
-        console.log('%c[handleMessage]', 'color:gray;', 'Message data: ', msg.data)
+        console.log('%c[messages.js, handleMessage]', 'color:gray;', 'Message data: ', msg.data)
         if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
             $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.
             $('body').css('backgroundColor', '#282C38');
