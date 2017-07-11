@@ -163,7 +163,7 @@ function stopBackgroundPollingOfHost(host) {
 }
 
 function snackbarLog(givenMessage) {
-    console.log(givenMessage);
+    console.log('%c[index.js, snackbarLog]', 'color: green;', givenMessage);
     var data = {
         message: givenMessage,
         timeout: 2000
