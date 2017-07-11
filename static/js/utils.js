@@ -313,7 +313,7 @@ NvHTTP.prototype = {
     getAppList: function () {
         if (this._memCachedApplist) {
             return new Promise(function (resolve, reject) {
-                console.log('%c[Moonlight GUI]', 'color: green;', 'Returning memory-cached apps list');
+                console.log('%c[utils.js]', 'color: gray;', 'Returning memory-cached apps list');
                 resolve(this._memCachedApplist);
                 return;
             }.bind(this));

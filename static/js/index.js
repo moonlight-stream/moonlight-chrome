@@ -157,7 +157,7 @@ function beginBackgroundPollingOfHost(host) {
 }
 
 function stopBackgroundPollingOfHost(host) {
-  console.log('%c[Moonlight GUI, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
+  console.log('%c[index.js, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
   window.clearInterval(activePolls[host.serverUid]);
   delete activePolls[host.serverUid];
 }
@@ -187,24 +187,24 @@ function updateBitrateField() {
 
 function moduleDidLoad() {
     if(!myUniqueid) {
-      console.warn('%c[Moonlight GUI, moduleDidLoad]', 'color: green;', 'Failed to get uniqueId.  We should have already generated one.  Regenerating...');
+      console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to get uniqueId.  We should have already generated one.  Regenerating...');
       myUniqueid = uniqueid();
       storeData('uniqueid', myUniqueid, null);
     }
 
     if(!pairingCert) { // we couldn't load a cert. Make one.
-      console.warn('%c[Moonlight GUI, moduleDidLoad]', 'color: green;', 'Failed to load local cert. Generating new one');
+      console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to load local cert. Generating new one');
         sendMessage('makeCert', []).then(function (cert) {
             storeData('cert', cert, null);
             pairingCert = cert;
-            console.info('%c[Moonlight GUI, moduleDidLoad]', 'color: green;', 'Generated new cert:', cert);
+            console.info('%c[index.js, moduleDidLoad]', 'color: green;', 'Generated new cert:', cert);
         }, function (failedCert) {
-            console.error('%c[Moonlight GUI, moduleDidLoad]', 'color: green;', 'Failed to generate new cert! Returned error was: \n', failedCert);
+            console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to generate new cert! Returned error was: \n', failedCert);
         }).then(function (ret) {
             sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
                 restoreUiAfterNaClLoad();
             }, function (failedInit) {
-              console.error('%c[Moonlight GUI, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
+              console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
             });
         });
     }
@@ -212,7 +212,7 @@ function moduleDidLoad() {
         sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
             restoreUiAfterNaClLoad();
         }, function (failedInit) {
-          console.error('%c[Moonlight GUI, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
+          console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
         });
     }
 }
@@ -221,7 +221,7 @@ function moduleDidLoad() {
 function pairTo(nvhttpHost, onSuccess, onFailure) {
     if(!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
-        console.warn('%c[Moonlight GUI]', 'color: green;', 'User wants to pair, and we still have no cert. Problem = very yes.');
+        console.warn('%c[index.js]', 'color: green;', 'User wants to pair, and we still have no cert. Problem = very yes.');
         onFailure();
         return;
     }
@@ -229,7 +229,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
     nvhttpHost.pollServer(function (ret) {
         if (!nvhttpHost.online) {
             snackbarLog('Failed to connect to ' + nvhttpHost.hostname + '! Are you sure the host is on?');
-            console.error('%c[Moonlight GUI]', 'color: green;', 'Host declared as offline:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
+            console.error('%c[index.js]', 'color: green;', 'Host declared as offline:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
             onFailure();
             return;
         }
@@ -249,7 +249,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             pairingDialog.close();
         });
 
-        console.log('%c[Moonlight GUI]', 'color: green;', 'Sending pairing request to ' + nvhttpHost.hostname + ' with random number' + randomNumber);
+        console.log('%c[index.js]', 'color: green;', 'Sending pairing request to ' + nvhttpHost.hostname + ' with random number' + randomNumber);
         nvhttpHost.pair(randomNumber).then(function (paired) {
             if (!paired) {
                 if (nvhttpHost.currentGame != 0) {
@@ -257,7 +257,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
                 } else {
                     $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.hostname + '.');
                 }
-                console.log('%c[Moonlight GUI]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
+                console.log('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
                 onFailure();
                 return;
             }
@@ -267,8 +267,8 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             onSuccess();
         }, function (failedPairing) {
             snackbarLog('Failed pairing to: ' + nvhttpHost.hostname);
-            console.error('%c[Moonlight GUI]', 'color: green;', 'Pairing failed, and returned:', failedPairing);
-            console.error('%c[Moonlight GUI]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
+            console.error('%c[index.js]', 'color: green;', 'Pairing failed, and returned:', failedPairing);
+            console.error('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
             onFailure();
         });
     });
@@ -404,10 +404,10 @@ function stylizeBoxArt(freshApi, appIdToStylize) {
 // show the app list
 function showApps(host) {
     if(!host || !host.paired) {  // safety checking. shouldn't happen.
-      console.log('%c[Moonlight GUI, showApps]', 'color: green;', 'Moved into showApps, but `host` did not initialize properly! Failing.');
+      console.log('%c[index.js, showApps]', 'color: green;', 'Moved into showApps, but `host` did not initialize properly! Failing.');
       return;
     }
-    console.log('%c[Moonlight GUI, showApps]', 'color: green;', 'Current host object:', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
+    console.log('%c[index.js, showApps]', 'color: green;', 'Current host object:', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
     $('#quitCurrentApp').show();
     $("#gameList .game-container").remove();
 
@@ -486,7 +486,7 @@ function showApps(host) {
 
 // set the layout to the initial mode you see when you open moonlight
 function showHostsAndSettingsMode() {
-    console.log('%c[Moonlight GUI]', 'color: green;', 'Entering "Show apps and hosts" mode');
+    console.log('%c[index.js]', 'color: green;', 'Entering "Show apps and hosts" mode');
     $("#main-navigation").show();
     $(".nav-menu-parent").show();
     $("#externalAudioBtn").show();
@@ -501,7 +501,7 @@ function showHostsAndSettingsMode() {
 }
 
 function showAppsMode() {
-    console.log('%c[Moonlight GUI]', 'color: green;', 'Entrering "Show apps" mode');
+    console.log('%c[index.js]', 'color: green;', 'Entrering "Show apps" mode');
     $('#backIcon').show();
     $("#main-navigation").show();
     $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
@@ -524,7 +524,7 @@ function showAppsMode() {
 // if the given app is already running, just resume it.
 function startGame(host, appID) {
     if(!host || !host.paired) {
-      console.error('%c[Moonlight GUI, startGame]', 'color: green;', 'Attempted to start a game, but `host` did not initialize properly. Host object: ', host);
+      console.error('%c[index.js, startGame]', 'color: green;', 'Attempted to start a game, but `host` did not initialize properly. Host object: ', host);
       return;
     }
 
@@ -784,7 +784,7 @@ function updateDefaultBitrate() {
 }
 
 function onWindowLoad(){
-    console.log('%c[Moonlight GUI]', 'color: green;', 'Moonlight\'s main window loaded');
+    console.log('%c[index.js]', 'color: green;', 'Moonlight\'s main window loaded');
     // don't show the game selection div
     $('#gameSelection').css('display', 'none');
 
@@ -856,7 +856,7 @@ function onWindowLoad(){
                 revivedHost.hostname = hosts[hostUID].hostname;
                 addHostToGrid(revivedHost);
             }
-            console.log('%c[Moonlight GUI]', 'color: green;', 'Loaded previously connected hosts');
+            console.log('%c[index.js]', 'color: green;', 'Loaded previously connected hosts');
         });
     }
 }
