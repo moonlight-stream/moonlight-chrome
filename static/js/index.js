@@ -172,7 +172,7 @@ function snackbarLog(givenMessage) {
 }
 
 function snackbarLogLong(givenMessage) {
-    console.log(givenMessage);
+    console.log('%c[index.js, snackbarLog]', 'color: green;', givenMessage);
     var data = {
         message: givenMessage,
         timeout: 5000
@@ -451,9 +451,7 @@ function showApps(host) {
                 }
 
             }, function (failedPromise) {
-                console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
-                console.log('failed host object: ');
-                console.log(host.toString());
+              console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
 
                 if ($('#game-' + app.id).length === 0) {
                     // double clicking the button will cause multiple box arts to appear.
@@ -476,9 +474,7 @@ function showApps(host) {
     }, function (failedAppList) {
         $('#naclSpinner').hide();
 
-        console.log('Failed to get applist from host: ' + host.hostname);
-        console.log('failed host object: ');
-        console.log(host.toString());
+        console.log('%c[index.js, showApps]', 'color: green;', 'Failed to get applist from host: ' + host.hostname, '\n Host object:', host, host.toString());
     });
 
     showAppsMode();
@@ -542,11 +538,11 @@ function startGame(host, appID) {
                     $('#cancelQuitApp').off('click');
                     $('#cancelQuitApp').on('click', function () {
                         quitAppDialog.close();
-                        console.log('closing app dialog, and returning');
+                        console.log('[index.js, startGame]','color: green;', 'Closing app dialog, and returning');
                     });
                     $('#continueQuitApp').off('click');
                     $('#continueQuitApp').on('click', function () {
-                        console.log('stopping game, and closing app dialog, and returning');
+                        console.log('[index.js, startGame]','color: green;', 'Stopping game, and closing app dialog, and returning');
                         stopGame(host, function () {
                             // please oh please don't infinite loop with recursion
                             startGame(host, appID);
@@ -556,10 +552,7 @@ function startGame(host, appID) {
 
                     return;
                 }, function (failedCurrentApp) {
-                    console.log('ERROR: failed to get the current running app from host!');
-                    console.log('Returned error was: ' + failedCurrentApp);
-                    console.log('failed host object: ');
-                    console.log(host.toString());
+                    console.error('[index.js, startGame]','color: green;', 'Failed to get the current running app from host! Returned error was:' + failedCurrentApp, '\n Host object:', host; host.toString());
                     return;
                 });
                 return;
@@ -570,7 +563,7 @@ function startGame(host, appID) {
             var streamHeight = $('#selectResolution').data('value').split(':')[1];
             // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
             var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
-            console.log('startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
+            console.log('%c[index.js, startGame]','color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
             var rikey = generateRemoteInputKey();
             var rikeyid = generateRemoteInputKeyId();
@@ -583,8 +576,7 @@ function startGame(host, appID) {
                     sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
                             bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
                 }, function (failedResumeApp) {
-                    console.log('ERROR: failed to resume the app!');
-                    console.log('Returned error was: ' + failedResumeApp);
+                    console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
                     return;
                 });
             }
@@ -610,7 +602,7 @@ function startGame(host, appID) {
 }
 
 function playGameMode() {
-    console.log("entering play game mode");
+    console.log('%c[index.js, playGameMode]', 'color:green;', 'Entering play game mode');
     isInGame = true;
 
     $("#main-navigation").hide();
@@ -653,12 +645,12 @@ function stopGameWithConfirmation() {
             quitAppDialog.showModal();
             $('#cancelQuitApp').off('click');
             $('#cancelQuitApp').on('click', function () {
-                console.log('closing app dialog, and returning');
+                console.log('%c[index.js, stopGameWithConfirmation]', 'color:green;', 'Closing app dialog, and returning');
                 quitAppDialog.close();
             });
             $('#continueQuitApp').off('click');
             $('#continueQuitApp').on('click', function () {
-                console.log('stopping game, and closing app dialog, and returning');
+                console.log('%c[index.js, stopGameWithConfirmation]', 'color:green;', 'Stopping game, and closing app dialog, and returning');
                 stopGame(api);
                 quitAppDialog.close();
             });
@@ -688,21 +680,16 @@ function stopGame(host, callbackFunction) {
                     stylizeBoxArt(host, runningApp.id);
                     if (typeof(callbackFunction) === "function") callbackFunction();
                 }, function (failedRefreshInfo2) {
-                    console.log('ERROR: failed to refresh server info!');
-                    console.log('Returned error was: ' + failedRefreshInfo2);
-                    console.log('failed server was: ' + host.toString());
+                    console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to refresh server info! Returned error was:' + failedRefreshInfo + ' and failed server was:', host, host.toString());
                 });
             }, function (failedQuitApp) {
-                console.log('ERROR: failed to quit app!');
-                console.log('Returned error was: ' + failedQuitApp);
+                console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to quit app! Returned error was:' + failedQuitApp);
             });
         }, function (failedGetApp) {
-            console.log('ERROR: failed to get app ID!');
-            console.log('Returned error was: ' + failedRefreshInfo);
+          console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to get app ID! Returned error was:' + failedRefreshInfo);
         });
     }, function (failedRefreshInfo) {
-        console.log('ERROR: failed to refresh server info!');
-        console.log('Returned error was: ' + failedRefreshInfo);
+        console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to refresh server info! Returned error was:' + failedRefreshInfo);
     });
 }
 
