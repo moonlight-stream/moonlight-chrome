@@ -552,7 +552,7 @@ function startGame(host, appID) {
 
                     return;
                 }, function (failedCurrentApp) {
-                    console.error('[index.js, startGame]','color: green;', 'Failed to get the current running app from host! Returned error was:' + failedCurrentApp, '\n Host object:', host; host.toString());
+                    console.error('[index.js, startGame]','color: green;', 'Failed to get the current running app from host! Returned error was:' + failedCurrentApp, '\n Host object:', host, host.toString());
                     return;
                 });
                 return;
