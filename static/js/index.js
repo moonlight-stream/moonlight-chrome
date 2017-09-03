@@ -157,13 +157,13 @@ function beginBackgroundPollingOfHost(host) {
 }
 
 function stopBackgroundPollingOfHost(host) {
-    console.log('stopping background polling of server: ' + host.toString());
-    window.clearInterval(activePolls[host.serverUid]);
-    delete activePolls[host.serverUid];
+  console.log('%c[index.js, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
+  window.clearInterval(activePolls[host.serverUid]);
+  delete activePolls[host.serverUid];
 }
 
 function snackbarLog(givenMessage) {
-    console.log(givenMessage);
+    console.log('%c[index.js, snackbarLog]', 'color: green;', givenMessage);
     var data = {
         message: givenMessage,
         timeout: 2000
@@ -172,7 +172,7 @@ function snackbarLog(givenMessage) {
 }
 
 function snackbarLogLong(givenMessage) {
-    console.log(givenMessage);
+    console.log('%c[index.js, snackbarLog]', 'color: green;', givenMessage);
     var data = {
         message: givenMessage,
         timeout: 5000
@@ -187,26 +187,24 @@ function updateBitrateField() {
 
 function moduleDidLoad() {
     if(!myUniqueid) {
-        console.log("Failed to get uniqueId.  We should have already generated one.  Regenerating...");
-        myUniqueid = uniqueid();
-        storeData('uniqueid', myUniqueid, null);
+      console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to get uniqueId.  We should have already generated one.  Regenerating...');
+      myUniqueid = uniqueid();
+      storeData('uniqueid', myUniqueid, null);
     }
 
     if(!pairingCert) { // we couldn't load a cert. Make one.
-        console.log("Failed to load local cert. Generating new one");
+      console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to load local cert. Generating new one');
         sendMessage('makeCert', []).then(function (cert) {
             storeData('cert', cert, null);
             pairingCert = cert;
-            console.log("Generated new cert.");
+            console.info('%c[index.js, moduleDidLoad]', 'color: green;', 'Generated new cert:', cert);
         }, function (failedCert) {
-            console.log('ERROR: failed to generate new cert!');
-            console.log('Returned error was: ' + failedCert);
+            console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to generate new cert! Returned error was: \n', failedCert);
         }).then(function (ret) {
             sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
                 restoreUiAfterNaClLoad();
             }, function (failedInit) {
-                console.log('ERROR: failed httpInit!');
-                console.log('Returned error was: ' + failedInit);
+              console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
             });
         });
     }
@@ -214,8 +212,7 @@ function moduleDidLoad() {
         sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
             restoreUiAfterNaClLoad();
         }, function (failedInit) {
-            console.log('ERROR: failed httpInit!');
-            console.log('Returned error was: ' + failedInit);
+          console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
         });
     }
 }
@@ -224,7 +221,7 @@ function moduleDidLoad() {
 function pairTo(nvhttpHost, onSuccess, onFailure) {
     if(!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
-        console.log("User wants to pair, and we still have no cert. Problem = very yes.");
+        console.warn('%c[index.js]', 'color: green;', 'User wants to pair, and we still have no cert. Problem = very yes.');
         onFailure();
         return;
     }
@@ -232,7 +229,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
     nvhttpHost.pollServer(function (ret) {
         if (!nvhttpHost.online) {
             snackbarLog('Failed to connect to ' + nvhttpHost.hostname + '! Are you sure the host is on?');
-            console.log(nvhttpHost.toString());
+            console.error('%c[index.js]', 'color: green;', 'Host declared as offline:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
             onFailure();
             return;
         }
@@ -252,7 +249,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             pairingDialog.close();
         });
 
-        console.log('sending pairing request to ' + nvhttpHost.hostname + ' with random number ' + randomNumber);
+        console.log('%c[index.js]', 'color: green;', 'Sending pairing request to ' + nvhttpHost.hostname + ' with random number' + randomNumber);
         nvhttpHost.pair(randomNumber).then(function (paired) {
             if (!paired) {
                 if (nvhttpHost.currentGame != 0) {
@@ -260,8 +257,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
                 } else {
                     $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.hostname + '.');
                 }
-                console.log('failed API object: ');
-                console.log(nvhttpHost.toString());
+                console.log('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
                 onFailure();
                 return;
             }
@@ -271,9 +267,8 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             onSuccess();
         }, function (failedPairing) {
             snackbarLog('Failed pairing to: ' + nvhttpHost.hostname);
-            console.log('pairing failed, and returned ' + failedPairing);
-            console.log('failed API object: ');
-            console.log(nvhttpHost.toString());
+            console.error('%c[index.js]', 'color: green;', 'Pairing failed, and returned:', failedPairing);
+            console.error('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
             onFailure();
         });
     });
@@ -417,10 +412,10 @@ function stylizeBoxArt(freshApi, appIdToStylize) {
 // show the app list
 function showApps(host) {
     if(!host || !host.paired) {  // safety checking. shouldn't happen.
-        console.log('Moved into showApps, but `host` did not initialize properly! Failing.');
-        return;
+      console.log('%c[index.js, showApps]', 'color: green;', 'Moved into showApps, but `host` did not initialize properly! Failing.');
+      return;
     }
-    console.log(host);
+    console.log('%c[index.js, showApps]', 'color: green;', 'Current host object:', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
     $('#quitCurrentApp').show();
     $("#gameList .game-container").remove();
 
@@ -464,9 +459,7 @@ function showApps(host) {
                 }
 
             }, function (failedPromise) {
-                console.log('Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise)
-                console.log('failed host object: ');
-                console.log(host.toString());
+              console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
 
                 if ($('#game-' + app.id).length === 0) {
                     // double clicking the button will cause multiple box arts to appear.
@@ -489,9 +482,7 @@ function showApps(host) {
     }, function (failedAppList) {
         $('#naclSpinner').hide();
 
-        console.log('Failed to get applist from host: ' + host.hostname);
-        console.log('failed host object: ');
-        console.log(host.toString());
+        console.log('%c[index.js, showApps]', 'color: green;', 'Failed to get applist from host: ' + host.hostname, '\n Host object:', host, host.toString());
     });
 
     showAppsMode();
@@ -499,7 +490,7 @@ function showApps(host) {
 
 // set the layout to the initial mode you see when you open moonlight
 function showHostsAndSettingsMode() {
-    console.log('entering show hosts and settings mode.');
+    console.log('%c[index.js]', 'color: green;', 'Entering "Show apps and hosts" mode');
     $("#main-navigation").show();
     $(".nav-menu-parent").show();
     $("#externalAudioBtn").show();
@@ -514,7 +505,7 @@ function showHostsAndSettingsMode() {
 }
 
 function showAppsMode() {
-    console.log("entering show apps mode.");
+    console.log('%c[index.js]', 'color: green;', 'Entrering "Show apps" mode');
     $('#backIcon').show();
     $("#main-navigation").show();
     $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
@@ -537,8 +528,8 @@ function showAppsMode() {
 // if the given app is already running, just resume it.
 function startGame(host, appID) {
     if(!host || !host.paired) {
-        console.log('attempted to start a game, but `host` did not initialize properly. Failing!');
-        return;
+      console.error('%c[index.js, startGame]', 'color: green;', 'Attempted to start a game, but `host` did not initialize properly. Host object: ', host);
+      return;
     }
 
     // refresh the server info, because the user might have quit the game.
@@ -555,11 +546,11 @@ function startGame(host, appID) {
                     $('#cancelQuitApp').off('click');
                     $('#cancelQuitApp').on('click', function () {
                         quitAppDialog.close();
-                        console.log('closing app dialog, and returning');
+                        console.log('[index.js, startGame]','color: green;', 'Closing app dialog, and returning');
                     });
                     $('#continueQuitApp').off('click');
                     $('#continueQuitApp').on('click', function () {
-                        console.log('stopping game, and closing app dialog, and returning');
+                        console.log('[index.js, startGame]','color: green;', 'Stopping game, and closing app dialog, and returning');
                         stopGame(host, function () {
                             // please oh please don't infinite loop with recursion
                             startGame(host, appID);
@@ -569,10 +560,7 @@ function startGame(host, appID) {
 
                     return;
                 }, function (failedCurrentApp) {
-                    console.log('ERROR: failed to get the current running app from host!');
-                    console.log('Returned error was: ' + failedCurrentApp);
-                    console.log('failed host object: ');
-                    console.log(host.toString());
+                    console.error('[index.js, startGame]','color: green;', 'Failed to get the current running app from host! Returned error was:' + failedCurrentApp, '\n Host object:', host, host.toString());
                     return;
                 });
                 return;
@@ -583,7 +571,7 @@ function startGame(host, appID) {
             var streamHeight = $('#selectResolution').data('value').split(':')[1];
             // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
             var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
-            console.log('startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
+            console.log('%c[index.js, startGame]','color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
 
             var rikey = generateRemoteInputKey();
             var rikeyid = generateRemoteInputKeyId();
@@ -596,8 +584,7 @@ function startGame(host, appID) {
                     sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
                             bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
                 }, function (failedResumeApp) {
-                    console.log('ERROR: failed to resume the app!');
-                    console.log('Returned error was: ' + failedResumeApp);
+                    console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
                     return;
                 });
             }
@@ -614,8 +601,7 @@ function startGame(host, appID) {
                 sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
                         bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
             }, function (failedLaunchApp) {
-                console.log('ERROR: failed to launch app with appID: ' + appID);
-                console.log('Returned error was: ' + failedLaunchApp);
+                console.error('%c[index.js, launchApp]','color: green;','Failed to launch app width id: ' + appID + '\nReturned error was: ' + failedLaunchApp);
                 return;
             });
 
@@ -624,7 +610,7 @@ function startGame(host, appID) {
 }
 
 function playGameMode() {
-    console.log("entering play game mode");
+    console.log('%c[index.js, playGameMode]', 'color:green;', 'Entering play game mode');
     isInGame = true;
 
     $("#main-navigation").hide();
@@ -667,12 +653,12 @@ function stopGameWithConfirmation() {
             quitAppDialog.showModal();
             $('#cancelQuitApp').off('click');
             $('#cancelQuitApp').on('click', function () {
-                console.log('closing app dialog, and returning');
+                console.log('%c[index.js, stopGameWithConfirmation]', 'color:green;', 'Closing app dialog, and returning');
                 quitAppDialog.close();
             });
             $('#continueQuitApp').off('click');
             $('#continueQuitApp').on('click', function () {
-                console.log('stopping game, and closing app dialog, and returning');
+                console.log('%c[index.js, stopGameWithConfirmation]', 'color:green;', 'Stopping game, and closing app dialog, and returning');
                 stopGame(api);
                 quitAppDialog.close();
             });
@@ -702,21 +688,16 @@ function stopGame(host, callbackFunction) {
                     stylizeBoxArt(host, runningApp.id);
                     if (typeof(callbackFunction) === "function") callbackFunction();
                 }, function (failedRefreshInfo2) {
-                    console.log('ERROR: failed to refresh server info!');
-                    console.log('Returned error was: ' + failedRefreshInfo2);
-                    console.log('failed server was: ' + host.toString());
+                    console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to refresh server info! Returned error was:' + failedRefreshInfo + ' and failed server was:', host, host.toString());
                 });
             }, function (failedQuitApp) {
-                console.log('ERROR: failed to quit app!');
-                console.log('Returned error was: ' + failedQuitApp);
+                console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to quit app! Returned error was:' + failedQuitApp);
             });
         }, function (failedGetApp) {
-            console.log('ERROR: failed to get app ID!');
-            console.log('Returned error was: ' + failedRefreshInfo);
+          console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to get app ID! Returned error was:' + failedRefreshInfo);
         });
     }, function (failedRefreshInfo) {
-        console.log('ERROR: failed to refresh server info!');
-        console.log('Returned error was: ' + failedRefreshInfo);
+        console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to refresh server info! Returned error was:' + failedRefreshInfo);
     });
 }
 
@@ -761,7 +742,7 @@ function saveRemoteAudio() {
     // checking the new state
     setTimeout(function() {
         var remoteAudioState = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked');
-        console.log('saving remote audio state : ' + remoteAudioState);
+        console.log('%c[index.js, saveRemoteAudio]', 'color: green;', 'Saving remote audio state : ' + remoteAudioState);
         storeData('remoteAudio', remoteAudioState, null);
     }, 100);
 }
@@ -797,7 +778,7 @@ function updateDefaultBitrate() {
 }
 
 function onWindowLoad(){
-    console.log('Window loaded.');
+    console.log('%c[index.js]', 'color: green;', 'Moonlight\'s main window loaded');
     // don't show the game selection div
     $('#gameSelection').css('display', 'none');
 
@@ -869,7 +850,7 @@ function onWindowLoad(){
                 revivedHost.hostname = hosts[hostUID].hostname;
                 addHostToGrid(revivedHost);
             }
-            console.log('Loaded previously connected hosts.');
+            console.log('%c[index.js]', 'color: green;', 'Loaded previously connected hosts');
         });
     }
 }
