@@ -38,6 +38,11 @@
 
 #define DR_FLAG_FORCE_SW_DECODE     0x01
 
+// These will mostly be I/O bound so we'll create
+// a bunch to allow more concurrent server requests
+// since our HTTP request libary is synchronous.
+#define HTTP_HANDLER_THREADS 8
+
 struct Shader {
   Shader() : program(0), texcoord_scale_location(0) {}
   ~Shader() {}
@@ -61,7 +66,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             m_AccumulatedTicks(0),
             m_MouseDeltaX(0),
             m_MouseDeltaY(0),
-            openHttpThread(this) {
+            m_HttpThreadPoolSequence(0) {
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
             nacl_io_init_ppapi(pp_instance(), pp::Module::Get()->get_browser_interface());
             
@@ -71,10 +76,18 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             
             m_GamepadApi = static_cast<const PPB_Gamepad*>(pp::Module::Get()->GetBrowserInterface(PPB_GAMEPAD_INTERFACE));
             
-            openHttpThread.Start();
+            for (int i = 0; i < HTTP_HANDLER_THREADS; i++) {
+                m_HttpThreadPool[i] = new pp::SimpleThread(this);
+                m_HttpThreadPool[i]->Start();
+            }
         }
         
-        virtual ~MoonlightInstance();
+        virtual ~MoonlightInstance() {
+            for (int i = 0; i < HTTP_HANDLER_THREADS; i++) {
+                m_HttpThreadPool[i]->Join();
+                delete m_HttpThreadPool[i];
+            }
+        }
         
         bool Init(uint32_t argc, const char* argn[], const char* argv[]);
         
@@ -178,7 +191,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         float m_AccumulatedTicks;
         int32_t m_MouseDeltaX, m_MouseDeltaY;
     
-        pp::SimpleThread openHttpThread;
+        pp::SimpleThread* m_HttpThreadPool[HTTP_HANDLER_THREADS];
+        uint32_t m_HttpThreadPoolSequence;
 };
 
 extern MoonlightInstance* g_Instance;

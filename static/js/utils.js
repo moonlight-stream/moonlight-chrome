@@ -138,7 +138,7 @@ NvHTTP.prototype = {
                 completion(this);
             }
         }.bind(this), function() {
-            if (++this._consecutivePollFailures >= 3) {
+            if (++this._consecutivePollFailures >= 2) {
                 this.online = false;
             }
 
