@@ -323,11 +323,19 @@ function addHost() {
         var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
 
         pairTo(_nvhttpHost, function() {
+            // Check if we already have record of this host
+            if (hosts[_nvhttpHost.serverUid] != null) {
+                // Just update the addresses
+                hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
+                hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
+            }
+            else {
                 beginBackgroundPollingOfHost(_nvhttpHost);
                 addHostToGrid(_nvhttpHost);
-                saveHosts();
-            }, function() {
-                snackbarLog('pairing to ' + inputHost + ' failed!');
+            }
+            saveHosts();
+        }, function() {
+            snackbarLog('pairing to ' + inputHost + ' failed!');
         });
         modal.close();
     });
