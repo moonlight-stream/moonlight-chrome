@@ -12,11 +12,11 @@ function attachListeners() {
     changeUiModeForNaClLoad();
 
     $('.resolutionMenu li').on('click', saveResolution);
-    $('.optimizeMenu li').on('click', saveOptimize);
     $('.framerateMenu li').on('click', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     //$('#bitrateSlider').on('change', saveBitrate); //FIXME: it seems not working
     $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
+    $('#optimizeGamesSwitch').on('click', saveOptimize);
     $('#addHostCell').on('click', addHost);
     $('#backIcon').on('click', showHostsAndSettingsMode);
     $('#quitCurrentApp').on('click', stopGameWithConfirmation);
@@ -568,7 +568,7 @@ function startGame(host, appID) {
             }
 
             var frameRate = $('#selectFramerate').data('value').toString();
-	    var optimize = $('#selectOptimize').data('value').toString();
+            var optimize = $("#optimizeGamesSwitch").parent().hasClass('is-checked') ? 1 : 0;
             var streamWidth = $('#selectResolution').data('value').split(':')[0];
             var streamHeight = $('#selectResolution').data('value').split(':')[1];
             // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
@@ -718,10 +718,13 @@ function saveResolution() {
 }
 
 function saveOptimize() {
-    var chosenOptimize = $(this).data('value');
-    $('#selectOptimize').text($(this).text()).data('value', chosenOptimize);
-    storeData('optimize', chosenOptimize, null);
-    updateDefaultBitrate();
+    // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
+    // checking the new state
+    setTimeout(function() {
+        var chosenOptimize = $("#optimizeGamesSwitch").parent().hasClass('is-checked');
+        console.log('%c[index.js, saveOptimize]', 'color: green;', 'Saving optimize state : ' + chosenOptimize);
+        storeData('optimize', chosenOptimize, null);
+    }, 100);
 }
 
 function saveFramerate() {
@@ -829,17 +832,16 @@ function onWindowLoad(){
             }
         });
 
-	// load stored optimization prefs
+        // load stored optimization prefs
         chrome.storage.sync.get('optimize', function(previousValue) {
-            if(previousValue.optimize != null) {
-                $('.optimizeMenu li').each(function () {
-                    if ($(this).data('value') === previousValue.optimize) {
-                        $('#selectOptimize').text($(this).text()).data('value', previousValue.optimize);
-                    }
-                });
+            if(previousValue.optimize == null) {
+                document.querySelector('#optimizeGamesBtn').MaterialIconToggle.uncheck();
+            } else if (previousValue.optimize == false) {
+                document.querySelector('#optimizeGamesBtn').MaterialIconToggle.uncheck();
+            }  else {
+                document.querySelector('#optimizeGamesBtn').MaterialIconToggle.check();
             }
         });
-
 	
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function(previousValue) {

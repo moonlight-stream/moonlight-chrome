@@ -22,23 +22,6 @@
             <!-- Navigation -->
             <nav class="mdl-navigation">
                     <div class="nav-menu-parent">
-                        <div id="optimizeMenu">
-                            <button id="selectOptimize" data-value="1" class="mdl-button mdl-js-button">
-                                GFE Optimization
-                            </button>
-                        </div>
-
-                        <ul class="optimizeMenu mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-                            for="selectOptimize">
-                            <li class="mdl-menu__item" data-value="1">GFE Optimization</li>
-                            <li class="mdl-menu__item" data-value="0">No GFE Optimization</li>
-                        </ul>
-
-                        <div id="optimizeTooltip" class="mdl-tooltip" for="optimizeMenu">
-                            Allow Geforce Experience to optimize game settings for stream
-                        </div>
-                    </div>
-                    <div class="nav-menu-parent">
                         <div id="resolutionMenu">
                             <button id="selectResolution" data-value="1280:720" class="mdl-button mdl-js-button">
                                 720p
@@ -94,6 +77,16 @@
                     </label>
                     <div id="externalAudioTooltip" class="mdl-tooltip" for="externalAudioBtn">
                         Remote audio
+                    </div>
+
+                    <div class="nav-menu-parent">
+                        <label id="optimizeGamesBtn" class="mdl-icon-toggle mdl-js-icon-toggle mdl-js-ripple-effect" for="optimizeGamesSwitch">
+                            <input type="checkbox" id="optimizeGamesSwitch" class="mdl-icon-toggle__input">
+                            <i class="mdl-icon-toggle__label material-icons">timeline</i>
+                        </label>
+                        <div id="optimizeGamesTooltip" class="mdl-tooltip" for="optimizeGamesBtn">
+                            Allow GeForce Experience to optimize game settings for streaming
+                        </div>
                     </div>
 
                     <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="quitCurrentApp" aria-label="Quit current app">
