@@ -21,7 +21,23 @@
             <div class="mdl-layout-spacer"></div>
             <!-- Navigation -->
             <nav class="mdl-navigation">
+                    <div class="nav-menu-parent">
+                        <div id="optimizeMenu">
+                            <button id="selectOptimize" data-value="1" class="mdl-button mdl-js-button">
+                                GFE Optimization
+                            </button>
+                        </div>
 
+                        <ul class="optimizeMenu mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+                            for="selectOptimize">
+                            <li class="mdl-menu__item" data-value="1">GFE Optimization</li>
+                            <li class="mdl-menu__item" data-value="0">No GFE Optimization</li>
+                        </ul>
+
+                        <div id="optimizeTooltip" class="mdl-tooltip" for="optimizeMenu">
+                            Allow Geforce Experience to optimize game settings for stream
+                        </div>
+                    </div>
                     <div class="nav-menu-parent">
                         <div id="resolutionMenu">
                             <button id="selectResolution" data-value="1280:720" class="mdl-button mdl-js-button">
@@ -40,7 +56,6 @@
                             Resolution
                         </div>
                     </div>
-
                     <div class="nav-menu-parent">
                         <div id="framerateMenu">
                             <button id="selectFramerate" data-value="60" class="mdl-button mdl-js-button">

@@ -12,6 +12,7 @@ function attachListeners() {
     changeUiModeForNaClLoad();
 
     $('.resolutionMenu li').on('click', saveResolution);
+    $('.optimizeMenu li').on('click', saveOptimize);
     $('.framerateMenu li').on('click', saveFramerate);
     $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
     //$('#bitrateSlider').on('change', saveBitrate); //FIXME: it seems not working
@@ -567,11 +568,12 @@ function startGame(host, appID) {
             }
 
             var frameRate = $('#selectFramerate').data('value').toString();
+	    var optimize = $('#selectOptimize').data('value').toString();
             var streamWidth = $('#selectResolution').data('value').split(':')[0];
             var streamHeight = $('#selectResolution').data('value').split(':')[1];
             // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
             var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
-            console.log('%c[index.js, startGame]','color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate);
+            console.log('%c[index.js, startGame]','color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate + ":" + optimize);
 
             var rikey = generateRemoteInputKey();
             var rikeyid = generateRemoteInputKeyId();
@@ -593,7 +595,7 @@ function startGame(host, appID) {
 
             host.launchApp(appID,
                     streamWidth + "x" + streamHeight + "x" + frameRate,
-                    1, // Allow GFE to optimize game settings
+                    optimize, // DON'T Allow GFE (0) to optimize game settings, or ALLOW (1) to optimize game settings
                     rikey, rikeyid,
                     remote_audio_enabled, // Play audio locally too?
                     0x030002 // Surround channel mask << 16 | Surround channel count
@@ -715,12 +717,21 @@ function saveResolution() {
     updateDefaultBitrate();
 }
 
+function saveOptimize() {
+    var chosenOptimize = $(this).data('value');
+    $('#selectOptimize').text($(this).text()).data('value', chosenOptimize);
+    storeData('optimize', chosenOptimize, null);
+    updateDefaultBitrate();
+}
+
 function saveFramerate() {
     var chosenFramerate = $(this).data('value');
     $('#selectFramerate').text($(this).text()).data('value', chosenFramerate);
     storeData('frameRate', chosenFramerate, null);
     updateDefaultBitrate();
 }
+
+
 
 // storing data in chrome.storage takes the data as an object, and shoves it into JSON to store
 // unfortunately, objects with function instances (classes) are stripped of their function instances when converted to a raw object
@@ -818,6 +829,18 @@ function onWindowLoad(){
             }
         });
 
+	// load stored optimization prefs
+        chrome.storage.sync.get('optimize', function(previousValue) {
+            if(previousValue.optimize != null) {
+                $('.optimizeMenu li').each(function () {
+                    if ($(this).data('value') === previousValue.optimize) {
+                        $('#selectOptimize').text($(this).text()).data('value', previousValue.optimize);
+                    }
+                });
+            }
+        });
+
+	
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function(previousValue) {
             $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
