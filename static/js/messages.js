@@ -1,11 +1,18 @@
 var callbacks = {}
 var callbacks_ids = 1;
 
+/**
+ * var sendMessage - Sends a message with arguments to the NaCl module
+ *
+ * @param  {String} method A named method
+ * @param  {(String|Array)} params An array of options or a signle string
+ * @return {void}        The NaCl module calls back trought the handleMessage method
+ */
 var sendMessage = function(method, params) {
     return new Promise(function(resolve, reject) {
         var id = callbacks_ids++;
         callbacks[id] = {'resolve': resolve, 'reject': reject};
-        
+
         common.naclModule.postMessage({
             'callbackId': id,
             'method': method,
@@ -14,14 +21,20 @@ var sendMessage = function(method, params) {
     });
 }
 
+/**
+ * handleMessage - Handles messages from the NaCl module
+ *
+ * @param  {Object} msg An object given by the NaCl module 
+ * @return {void}
+ */
 function handleMessage(msg) {
     if (msg.data.callbackId && callbacks[msg.data.callbackId]) {  // if it's a callback, treat it as such
         callbacks[msg.data.callbackId][msg.data.type](msg.data.ret);
         delete callbacks[msg.data.callbackId]
     } else {  // else, it's just info, or an event
-        console.log(msg.data);
+        console.log('%c[messages.js, handleMessage]', 'color:gray;', 'Message data: ', msg.data)
         if(msg.data === 'streamTerminated') {  // if it's a recognized event, notify the appropriate function
-            $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.            
+            $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.
             $('body').css('backgroundColor', '#282C38');
 
             api.refreshServerInfo().then(function (ret) {  // refresh the serverinfo to acknowledge the currently running app

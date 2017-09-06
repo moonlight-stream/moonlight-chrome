@@ -32,7 +32,7 @@ String.prototype.toHex = function() {
 }
 
 function NvHTTP(address, clientUid, userEnteredAddress = '') {
-    console.log(this);
+		console.log('%c[utils.js, NvHTTP Object]', 'color: gray;', this);
     this.address = address;
     this.paired = false;
     this.currentGame = 0;
@@ -95,7 +95,7 @@ NvHTTP.prototype = {
         // try HTTPS first
         return sendMessage('openUrl', [ 'https://' + givenAddress + ':47984' + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
             if (!this._parseServerInfo(ret)) {  // if that fails
-                console.log('Failed to parse serverinfo from HTTPS, falling back to HTTP');
+                console.log('%c[utils.js, utils.js,  refreshServerInfoAtAddress]', 'color: gray;', 'Failed to parse serverinfo from HTTPS, falling back to HTTP');
                 // try HTTP as a failover.  Useful to clients who aren't paired yet
                 return sendMessage('openUrl', [ 'http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
                     return this._parseServerInfo(retHttp);
@@ -138,7 +138,7 @@ NvHTTP.prototype = {
                 completion(this);
             }
         }.bind(this), function() {
-            if (++this._consecutivePollFailures >= 3) {
+            if (++this._consecutivePollFailures >= 2) {
                 this.online = false;
             }
 
@@ -165,7 +165,7 @@ NvHTTP.prototype = {
                     this.refreshServerInfoAtAddress(this.userEnteredAddress).then(function(successUserEntered) {
                         onSuccess(this.userEnteredAddress);
                     }.bind(this), function(failureUserEntered) {
-                        console.log('WARN! Failed to contact host: ' + this.hostname + '\r\n' + this.toString());
+                        console.warn('%c[utils.js, utils.js,  selectServerAddress]', 'color: gray;', 'Failed to contact host ' + this.hostname, this);
                         onFailure();
                     }.bind(this));
                 }.bind(this));
@@ -194,7 +194,7 @@ NvHTTP.prototype = {
     _prepareForStorage: function() {
         this._memCachedBoxArtArray = {};
     },
-    
+
     _parseServerInfo: function(xmlStr) {
         $xml = this._parseXML(xmlStr);
         $root = $xml.find('root');
@@ -207,9 +207,8 @@ NvHTTP.prototype = {
             // if we received a UID that isn't the one we expected, fail.
             return false;
         }
-        
-        console.log('parsing server info: ');
-        console.log($root);
+
+				console.log('%c[utils.js, _parseServerInfo]', 'color:gray;', 'Parsing server info:', $root);
 
         this.paired = $root.find("PairStatus").text().trim() == 1;
         this.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
@@ -245,44 +244,44 @@ NvHTTP.prototype = {
         if ($root.find("state").text().trim().endsWith("_SERVER_AVAILABLE")) {
             this.currentGame = 0;
         }
-        
+
         return true;
     },
-    
+
     getAppById: function (appId) {
         return this.getAppList().then(function (list) {
             var retApp = null;
-            
+
             list.some(function (app) {
                 if (app.id == appId) {
                     retApp = app;
                     return true;
                 }
-                
+
                 return false;
             });
-            
+
             return retApp;
         });
     },
-    
+
     getAppByName: function (appName) {
         return this.getAppList().then(function (list) {
             var retApp = null;
-            
+
             list.some(function (app) {
                 if (app.title == appName) {
                     retApp = app;
                     return true;
                 }
-                
+
                 return false;
             });
-            
+
             return retApp;
         });
     },
-    
+
     getAppListWithCacheFlush: function () {
         return sendMessage('openUrl', [this._baseUrlHttps + '/applist?' + this._buildUidStr(), false]).then(function (ret) {
             $xml = this._parseXML(ret);
@@ -290,14 +289,14 @@ NvHTTP.prototype = {
 
             if ($root.attr("status_code") != 200) {
                 // TODO: Bubble up an error here
-                console.log('applist request failed: ' + $root.attr("status_code"));
+								console.error('%c[utils.js, utils.js,  getAppListWithCacheFlush]', 'color: gray;', 'Applist request failed', $root.attr("status_code"));
                 return [];
             }
-            
+
             var rootElement = $xml.find("root")[0];
             var appElements = rootElement.getElementsByTagName("App");
             var appList = [];
-            
+
             for (var i = 0, len = appElements.length; i < len; i++) {
                 appList.push({
                     title: appElements[i].getElementsByTagName("AppTitle")[0].innerHTML.trim(),
@@ -306,7 +305,7 @@ NvHTTP.prototype = {
             }
 
             this._memCachedApplist = appList;
-            
+
             return appList;
         }.bind(this));
     },
@@ -314,7 +313,7 @@ NvHTTP.prototype = {
     getAppList: function () {
         if (this._memCachedApplist) {
             return new Promise(function (resolve, reject) {
-                console.log('returning memory cached app list');
+                console.log('%c[utils.js, utils.js]', 'color: gray;', 'Returning memory-cached apps list');
                 resolve(this._memCachedApplist);
                 return;
             }.bind(this));
@@ -327,12 +326,12 @@ NvHTTP.prototype = {
     // this is inefficient, but works well.
     warmBoxArtCache: function () {
         if (!this.paired) {
-            console.log('not warming box art cache from unpaired host.');
-            return;
+					console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Not warming box art cache for unpaired host');
+          return;
         }
         if (Object.keys(this._memCachedBoxArtArray).length != 0) {
-            console.log('box art cache already warmed.');
-            return;
+					console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache already warmed');
+          return;
         }
         if (chrome.storage) {
             chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
@@ -343,15 +342,15 @@ NvHTTP.prototype = {
                     for (var key in storedBoxArtArray) {
                         this._memCachedBoxArtArray[key] = _base64ToArrayBuffer(storedBoxArtArray[key]);
                     }
-                    console.log('box art cache warmed.');
+										console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache warmed');
                 } else {
-                     console.log('WARN: no box art found in storage. Cannot warm cache!');
-                     return;
+									 console.warn('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'No box art found in storage. Cannot warm cache!');
+                   return;
                 }
             }.bind(this));
         }
     },
-    
+
     // returns the box art of the given appID.
     // three layers of response time are possible: memory cached (in javascript), storage cached (in chrome.storage.local), and streamed (host sends binary over the network)
     getBoxArt: function (appId) {
@@ -361,13 +360,13 @@ NvHTTP.prototype = {
         if (this._memCachedBoxArtArray[appId] === null) {
             // This means a previous box art request failed, don't try again
             return new Promise(function (resolve, reject) {
-                console.log('returning cached box art failure result');
-                reject(null);
-                return;
+							console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning cached box-art failure result')
+              reject(null);
+              return;
             }.bind(this));
         } else if (this._memCachedBoxArtArray[appId] !== undefined) {
             return new Promise(function (resolve, reject) {
-                console.log('returning memory cached box art');
+                console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning memory-cached box-art');
                 resolve(this._memCachedBoxArtArray[appId]);
                 return;
             }.bind(this));
@@ -392,7 +391,7 @@ NvHTTP.prototype = {
 
                     // if we already have it, load it.
                     if (storedBoxArtArray[appId] !== undefined && Object.keys(storedBoxArtArray).length !== 0 && storedBoxArtArray[appId].constructor !== Object) {
-                        console.log('returning storage cached box art');
+                        console.log('%c[utils.js, getBoxArt]', 'color: gray;', 'Returning strage-cached box art for app: ', appId);
                         resolve(storedBoxArtArray[appId]);
                         return;
                     }
@@ -401,7 +400,7 @@ NvHTTP.prototype = {
                     sendMessage('openUrl', [
                         this._baseUrlHttps +
                         '/appasset?'+this._buildUidStr() +
-                        '&appid=' + appId + 
+                        '&appid=' + appId +
                         '&AssetType=2&AssetIdx=0',
                         true
                     ]).then(function(streamedBoxArt) {
@@ -416,13 +415,13 @@ NvHTTP.prototype = {
 
                         obj['boxArtCache'] = arrayToStore;  // storage is in JSON format.  JSON does not support binary data.
                         chrome.storage.local.set(obj, function(onSuccess) {});
-                        console.log('returning streamed box art');
+                        console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning streamed box art');
                         resolve(streamedBoxArt);
                         return;
                     }.bind(this), function(error) {
                         // Cache the failure but not persistently
                         this._memCachedBoxArtArray[appId] = null;
-                        console.log('box art request failed');
+                        console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Box-art request failed!', error);
                         reject(error);
                         return;
                     }.bind(this));
@@ -430,17 +429,17 @@ NvHTTP.prototype = {
             }.bind(this));
 
         } else {  // shouldn't run because we always have chrome.storage, but I'm not going to antagonize other browsers
-            console.log('WARN: Chrome.storage not detected!  Box art will not be saved!');
+						console.warn('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'chrome.storage not detected! Box art will not be saved!');
             return sendMessage('openUrl', [
                 this._baseUrlHttps +
                 '/appasset?'+this._buildUidStr() +
-                '&appid=' + appId + 
+                '&appid=' + appId +
                 '&AssetType=2&AssetIdx=0',
                 true
             ]);
         }
     },
-    
+
     launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
         return sendMessage('openUrl', [
             this._baseUrlHttps +
@@ -457,7 +456,7 @@ NvHTTP.prototype = {
             return true;
         });
     },
-    
+
     resumeApp: function (rikey, rikeyid) {
         return sendMessage('openUrl', [
             this._baseUrlHttps +
@@ -469,7 +468,7 @@ NvHTTP.prototype = {
             return true;
         });
     },
-    
+
     quitApp: function () {
         return sendMessage('openUrl', [this._baseUrlHttps + '/cancel?' + this._buildUidStr(), false])
             // Refresh server info after quitting because it may silently fail if the
@@ -477,15 +476,15 @@ NvHTTP.prototype = {
             // TODO: We should probably bubble this up to our caller.
             .then(this.refreshServerInfo());
     },
-    
+
     pair: function(randomNumber) {
         return this.refreshServerInfo().then(function () {
             if (this.paired)
                 return true;
-            
+
             if (this.currentGame != 0)
                 return false;
-            
+
             return sendMessage('pair', [this.serverMajorVersion.toString(), this.address, randomNumber]).then(function (pairStatus) {
                 return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function (ret) {
                     $xml = this._parseXML(ret);
@@ -495,11 +494,11 @@ NvHTTP.prototype = {
             }.bind(this));
         }.bind(this));
     },
-    
+
     _buildUidStr: function () {
         return 'uniqueid=' + this.clientUid + '&uuid=' + guuid();
     },
-    
+
     _parseXML: function (xmlData) {
         return $($.parseXML(xmlData.toString()));
     },

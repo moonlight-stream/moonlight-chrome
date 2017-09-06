@@ -22,8 +22,6 @@
 
 MoonlightInstance* g_Instance;
 
-MoonlightInstance::~MoonlightInstance() {}
-
 class MoonlightModule : public pp::Module {
     public:
         MoonlightModule() : pp::Module() {}
@@ -258,13 +256,15 @@ void MoonlightInstance::HandleOpenURL(int32_t callbackId, pp::VarArray args) {
     std::string url = args.Get(0).AsString();
     bool binaryResponse = args.Get(1).AsBool();
     
-    openHttpThread.message_loop().PostWork(m_CallbackFactory.NewCallback(&MoonlightInstance::NvHTTPRequest, callbackId, url, binaryResponse));
+    m_HttpThreadPool[m_HttpThreadPoolSequence++ % HTTP_HANDLER_THREADS]->message_loop().PostWork(
+        m_CallbackFactory.NewCallback(&MoonlightInstance::NvHTTPRequest, callbackId, url, binaryResponse));
     
     PostMessage(pp::Var (url.c_str()));
 }
 
 void MoonlightInstance::HandlePair(int32_t callbackId, pp::VarArray args) {
-     openHttpThread.message_loop().PostWork(m_CallbackFactory.NewCallback(&MoonlightInstance::PairCallback, callbackId, args));
+     m_HttpThreadPool[m_HttpThreadPoolSequence++ % HTTP_HANDLER_THREADS]->message_loop().PostWork(
+         m_CallbackFactory.NewCallback(&MoonlightInstance::PairCallback, callbackId, args));
 }
 
 void MoonlightInstance::PairCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args) {

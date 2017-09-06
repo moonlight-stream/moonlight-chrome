@@ -317,7 +317,7 @@ var common = (function() {
   function updateStatus(opt_message) {
     if (opt_message) {
       statusText = opt_message;
-      console.log('common.js: ' + statusText);
+      console.log('%c[updateStatus, common.js]', 'color: gray;', statusText);
     }
     var statusField = document.getElementById('statusField');
     if (statusField) {
