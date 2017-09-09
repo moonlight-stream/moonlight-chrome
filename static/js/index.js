@@ -834,8 +834,8 @@ function onWindowLoad(){
 
         // load stored optimization prefs
         chrome.storage.sync.get('optimize', function(previousValue) {
-            if(previousValue.optimize == null) {
-                document.querySelector('#optimizeGamesBtn').MaterialIconToggle.uncheck();
+            if (previousValue.optimize == null) {
+                document.querySelector('#optimizeGamesBtn').MaterialIconToggle.check();
             } else if (previousValue.optimize == false) {
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.uncheck();
             }  else {
