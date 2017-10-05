@@ -37,6 +37,9 @@ function handleMessage(msg) {
             $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.
             $('body').css('backgroundColor', '#282C38');
 
+            // Release our keep awake request
+            chrome.power.releaseKeepAwake();
+
             api.refreshServerInfo().then(function (ret) {  // refresh the serverinfo to acknowledge the currently running app
                 api.getAppList().then(function (appList) {
                     appList.forEach(function (app) {
@@ -54,6 +57,9 @@ function handleMessage(msg) {
         } else if(msg.data === 'Connection Established') {
             $('#loadingSpinner').css('display', 'none');
             $('body').css('backgroundColor', 'black');
+
+            // Keep the display awake while streaming
+            chrome.power.requestKeepAwake("display");
         } else if(msg.data.indexOf('ProgressMsg: ') === 0) {
             $('#loadingMessage').text(msg.data.replace('ProgressMsg: ', ''));
         } else if(msg.data.indexOf('TransientMsg: ') === 0) {
