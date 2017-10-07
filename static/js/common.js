@@ -71,8 +71,8 @@ var common = (function() {
    * @param {Object} attrs Dictionary of attributes to set on the module.
    */
   function createNaClModule(name, tool, path, width, height, attrs) {
-    console.log('%c[createNaClModule, common.js]', 'color: gray;', "name: " + name, "tool: " + tool, "path: " + path,"width: " + width,
-        "height: " + height, "attrs: " + attrs);
+    console.log('%c[createNaClModule, common.js]', 'color: gray;', "name: " + name + ", tool: " + tool + ", path: " + path + ", width: " + width +
+        ", height: " + height + ", attrs: " + JSON.stringify(attrs));
     var moduleEl = document.createElement('embed');
     moduleEl.setAttribute('name', 'nacl_module');
     moduleEl.setAttribute('id', 'nacl_module');
@@ -91,7 +91,7 @@ var common = (function() {
     var mimetype = mimeTypeForTool(tool);
     moduleEl.setAttribute('type', mimetype);
 
-    console.log('%c[createNaClModule, common.js]', 'color: gray;', "moduleEl: " + moduleEl);
+    console.log('%c[createNaClModule, common.js]', 'color: gray;', "moduleEl: " + JSON.stringify(moduleEl));
 
     // The <EMBED> element is wrapped inside a <DIV>, which has both a 'load'
     // and a 'message' event listener attached.  This wrapping method is used
