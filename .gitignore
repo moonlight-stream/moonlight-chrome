@@ -42,3 +42,6 @@ dir.stamp
 *.pexe
 *.nmf
 *.bc
+
+# Jetbrains IDEs
+*.idea/
