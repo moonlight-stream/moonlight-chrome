@@ -1,38 +1,30 @@
 function guuid() {
-	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-	    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-	    return v.toString(16);
-	});
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 
 function uniqueid() {
-    return 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, function(c) {
-	    var r = Math.random()*16|0;
-	    return r.toString(16);
-	});
+    return 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, function (c) {
+        let r = Math.random() * 16 | 0;
+        return r.toString(16);
+    });
 }
 
 function generateRemoteInputKey() {
-    return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[x]/g, function(c) {
-        var r = Math.random()*16|0;
+    return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[x]/g, function (c) {
+        let r = Math.random() * 16 | 0;
         return r.toString(16);
     });
 }
 
 function generateRemoteInputKeyId() {
-    return ((Math.random()-0.5) * 0x7FFFFFFF)|0;
-}
-
-String.prototype.toHex = function() {
-	var hex = '';
-	for(var i = 0; i < this.length; i++) {
-		hex += '' + this.charCodeAt(i).toString(16);
-	}
-	return hex;
+    return ((Math.random() - 0.5) * 0x7FFFFFFF) | 0;
 }
 
 function NvHTTP(address, clientUid, userEnteredAddress = '') {
-		console.log('%c[utils.js, NvHTTP Object]', 'color: gray;', this);
+    console.log('%c[utils.js, NvHTTP Object]', 'color: gray;', this);
     this.address = address;
     this.paired = false;
     this.currentGame = 0;
@@ -55,23 +47,23 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this._pollCompletionCallbacks = [];
 
     _self = this;
-};
+}
 
-function _arrayBufferToBase64( buffer ) {
-    var binary = '';
-    var bytes = new Uint8Array( buffer );
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode( bytes[ i ] );
+function _arrayBufferToBase64(buffer) {
+    let binary = '';
+    let bytes = new Uint8Array(buffer);
+    let len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
     }
-    return window.btoa( binary );
+    return window.btoa(binary);
 }
 
 function _base64ToArrayBuffer(base64) {
-    var binary_string =  window.atob(base64);
-    var len = binary_string.length;
-    var bytes = new Uint8Array( len );
-    for (var i = 0; i < len; i++) {
+    let binary_string = window.atob(base64);
+    let len = binary_string.length;
+    let bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
         bytes[i] = binary_string.charCodeAt(i);
     }
     return bytes.buffer;
@@ -80,10 +72,10 @@ function _base64ToArrayBuffer(base64) {
 NvHTTP.prototype = {
     refreshServerInfo: function () {
         // try HTTPS first
-        return sendMessage('openUrl', [ this._baseUrlHttps + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
+        return sendMessage('openUrl', [this._baseUrlHttps + '/serverinfo?' + this._buildUidStr(), false]).then(function (ret) {
             if (!this._parseServerInfo(ret)) {  // if that fails
                 // try HTTP as a failover.  Useful to clients who aren't paired yet
-                return sendMessage('openUrl', [ this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
+                return sendMessage('openUrl', [this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), false]).then(function (retHttp) {
                     this._parseServerInfo(retHttp);
                 }.bind(this));
             }
@@ -91,13 +83,13 @@ NvHTTP.prototype = {
     },
 
     // refreshes the server info using a given address.  This is useful for testing whether we can successfully ping a host at a given address
-    refreshServerInfoAtAddress: function(givenAddress) {
+    refreshServerInfoAtAddress: function (givenAddress) {
         // try HTTPS first
-        return sendMessage('openUrl', [ 'https://' + givenAddress + ':47984' + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
+        return sendMessage('openUrl', ['https://' + givenAddress + ':47984' + '/serverinfo?' + this._buildUidStr(), false]).then(function (ret) {
             if (!this._parseServerInfo(ret)) {  // if that fails
                 console.log('%c[utils.js, utils.js,  refreshServerInfoAtAddress]', 'color: gray;', 'Failed to parse serverinfo from HTTPS, falling back to HTTP');
                 // try HTTP as a failover.  Useful to clients who aren't paired yet
-                return sendMessage('openUrl', [ 'http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
+                return sendMessage('openUrl', ['http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), false]).then(function (retHttp) {
                     return this._parseServerInfo(retHttp);
                 }.bind(this));
             }
@@ -105,7 +97,7 @@ NvHTTP.prototype = {
     },
 
     // called every few seconds to poll the server for updated info
-    pollServer: function(onComplete) {
+    pollServer: function (onComplete) {
         // Pend this callback on completion
         this._pollCompletionCallbacks.push(onComplete);
 
@@ -116,7 +108,7 @@ NvHTTP.prototype = {
             return;
         }
 
-        this.selectServerAddress(function(successfulAddress) {
+        this.selectServerAddress(function (successfulAddress) {
             // Successfully determined server address. Update base URL.
             this.address = successfulAddress;
             this._baseUrlHttps = 'https://' + successfulAddress + ':47984';
@@ -125,7 +117,7 @@ NvHTTP.prototype = {
             // Poll for the app list every 10 successful serverinfo polls.
             // Not including the first one to avoid PCs taking a while to show
             // as online initially
-            if (this._pollCount++ % 10 == 1) {
+            if (this._pollCount++ % 10 === 1) {
                 this.getAppListWithCacheFlush();
             }
 
@@ -133,17 +125,17 @@ NvHTTP.prototype = {
             this.online = true;
 
             // Call all pending completion callbacks
-            var completion;
+            let completion;
             while ((completion = this._pollCompletionCallbacks.pop())) {
                 completion(this);
             }
-        }.bind(this), function() {
+        }.bind(this), function () {
             if (++this._consecutivePollFailures >= 2) {
                 this.online = false;
             }
 
             // Call all pending completion callbacks
-            var completion;
+            let completion;
             while ((completion = this._pollCompletionCallbacks.pop())) {
                 completion(this);
             }
@@ -151,20 +143,20 @@ NvHTTP.prototype = {
     },
 
     // initially pings the server to try and figure out if it's routable by any means.
-    selectServerAddress: function(onSuccess, onFailure) {
+    selectServerAddress: function (onSuccess, onFailure) {
         // TODO: Deduplicate the addresses
-        this.refreshServerInfoAtAddress(this.address).then(function(successPrevAddr) {
+        this.refreshServerInfoAtAddress(this.address).then(function (successPrevAddr) {
             onSuccess(this.address);
-        }.bind(this), function(successPrevAddr) {
-            this.refreshServerInfoAtAddress(this.hostname + '.local').then(function(successLocal) {
+        }.bind(this), function (successPrevAddr) {
+            this.refreshServerInfoAtAddress(this.hostname + '.local').then(function (successLocal) {
                 onSuccess(this.hostname + '.local');
-            }.bind(this), function(failureLocal) {
-                this.refreshServerInfoAtAddress(this.externalIP).then(function(successExternal) {
+            }.bind(this), function (failureLocal) {
+                this.refreshServerInfoAtAddress(this.externalIP).then(function (successExternal) {
                     onSuccess(this.externalIP);
-                }.bind(this), function(failureExternal) {
-                    this.refreshServerInfoAtAddress(this.userEnteredAddress).then(function(successUserEntered) {
+                }.bind(this), function (failureExternal) {
+                    this.refreshServerInfoAtAddress(this.userEnteredAddress).then(function (successUserEntered) {
                         onSuccess(this.userEnteredAddress);
-                    }.bind(this), function(failureUserEntered) {
+                    }.bind(this), function (failureUserEntered) {
                         console.warn('%c[utils.js, utils.js,  selectServerAddress]', 'color: gray;', 'Failed to contact host ' + this.hostname, this);
                         onFailure();
                     }.bind(this));
@@ -173,8 +165,8 @@ NvHTTP.prototype = {
         }.bind(this));
     },
 
-    toString: function() {
-        var string = '';
+    toString: function () {
+        let string = '';
         string += 'server address: ' + this.address + '\r\n';
         string += 'server UID: ' + this.serverUid + '\r\n';
         string += 'is paired: ' + this.paired + '\r\n';
@@ -185,32 +177,32 @@ NvHTTP.prototype = {
         string += 'gpu type: ' + this.gputype + '\r\n';
         string += 'number of apps: ' + this.numofapps + '\r\n';
         string += 'supported display modes: ' + '\r\n';
-        for(var displayMode in this.supportedDisplayModes) {
+        for (let displayMode in this.supportedDisplayModes) {
             string += '\t' + displayMode + ': ' + this.supportedDisplayModes[displayMode] + '\r\n';
         }
         return string;
     },
 
-    _prepareForStorage: function() {
+    _prepareForStorage: function () {
         this._memCachedBoxArtArray = {};
     },
 
-    _parseServerInfo: function(xmlStr) {
+    _parseServerInfo: function (xmlStr) {
         $xml = this._parseXML(xmlStr);
         $root = $xml.find('root');
 
-        if($root.attr("status_code") != 200) {
+        if ($root.attr("status_code") !== 200) {
             return false;
         }
 
-        if(this.serverUid != $root.find('uniqueid').text().trim() && this.serverUid != "") {
+        if (this.serverUid !== $root.find('uniqueid').text().trim() && this.serverUid !== "") {
             // if we received a UID that isn't the one we expected, fail.
             return false;
         }
 
-				console.log('%c[utils.js, _parseServerInfo]', 'color:gray;', 'Parsing server info:', $root);
+        console.log('%c[utils.js, _parseServerInfo]', 'color:gray;', 'Parsing server info:', $root);
 
-        this.paired = $root.find("PairStatus").text().trim() == 1;
+        this.paired = $root.find("PairStatus").text().trim() === 1;
         this.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
         this.appVersion = $root.find("appversion").text().trim();
         this.serverMajorVersion = parseInt(this.appVersion.substring(0, 1), 10);
@@ -222,14 +214,14 @@ NvHTTP.prototype = {
             this.gputype = $root.find('gputype').text().trim();
             this.numofapps = $root.find('numofapps').text().trim();
             // now for the hard part: parsing the supported streaming
-            $root.find('DisplayMode').each(function(index, value) {  // for each resolution:FPS object
-                var yres = parseInt($(value).find('Height').text());
-                var xres = parseInt($(value).find('Width').text());
-                var fps = parseInt($(value).find('RefreshRate').text());
-                if(!this.supportedDisplayModes[yres + ':' + xres]) {
+            $root.find('DisplayMode').each(function (index, value) {  // for each resolution:FPS object
+                let yres = parseInt($(value).find('Height').text());
+                let xres = parseInt($(value).find('Width').text());
+                let fps = parseInt($(value).find('RefreshRate').text());
+                if (!this.supportedDisplayModes[yres + ':' + xres]) {
                     this.supportedDisplayModes[yres + ':' + xres] = [];
                 }
-                if(!this.supportedDisplayModes[yres + ':' + xres].includes(fps)) {
+                if (!this.supportedDisplayModes[yres + ':' + xres].includes(fps)) {
                     this.supportedDisplayModes[yres + ':' + xres].push(fps);
                 }
             }.bind(this));
@@ -250,27 +242,10 @@ NvHTTP.prototype = {
 
     getAppById: function (appId) {
         return this.getAppList().then(function (list) {
-            var retApp = null;
+            let retApp = null;
 
             list.some(function (app) {
-                if (app.id == appId) {
-                    retApp = app;
-                    return true;
-                }
-
-                return false;
-            });
-
-            return retApp;
-        });
-    },
-
-    getAppByName: function (appName) {
-        return this.getAppList().then(function (list) {
-            var retApp = null;
-
-            list.some(function (app) {
-                if (app.title == appName) {
+                if (app.id === appId) {
                     retApp = app;
                     return true;
                 }
@@ -287,17 +262,17 @@ NvHTTP.prototype = {
             $xml = this._parseXML(ret);
             $root = $xml.find("root");
 
-            if ($root.attr("status_code") != 200) {
+            if ($root.attr("status_code") !== 200) {
                 // TODO: Bubble up an error here
-								console.error('%c[utils.js, utils.js,  getAppListWithCacheFlush]', 'color: gray;', 'Applist request failed', $root.attr("status_code"));
+                console.error('%c[utils.js, utils.js,  getAppListWithCacheFlush]', 'color: gray;', 'Applist request failed', $root.attr("status_code"));
                 return [];
             }
 
-            var rootElement = $xml.find("root")[0];
-            var appElements = rootElement.getElementsByTagName("App");
-            var appList = [];
+            let rootElement = $xml.find("root")[0];
+            let appElements = rootElement.getElementsByTagName("App");
+            let appList = [];
 
-            for (var i = 0, len = appElements.length; i < len; i++) {
+            for (let i = 0, len = appElements.length; i < len; i++) {
                 appList.push({
                     title: appElements[i].getElementsByTagName("AppTitle")[0].innerHTML.trim(),
                     id: parseInt(appElements[i].getElementsByTagName("ID")[0].innerHTML.trim(), 10)
@@ -315,7 +290,6 @@ NvHTTP.prototype = {
             return new Promise(function (resolve, reject) {
                 console.log('%c[utils.js, utils.js]', 'color: gray;', 'Returning memory-cached apps list');
                 resolve(this._memCachedApplist);
-                return;
             }.bind(this));
         }
 
@@ -326,26 +300,25 @@ NvHTTP.prototype = {
     // this is inefficient, but works well.
     warmBoxArtCache: function () {
         if (!this.paired) {
-					console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Not warming box art cache for unpaired host');
-          return;
+            console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Not warming box art cache for unpaired host');
+            return;
         }
-        if (Object.keys(this._memCachedBoxArtArray).length != 0) {
-					console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache already warmed');
-          return;
+        if (Object.keys(this._memCachedBoxArtArray).length !== 0) {
+            console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache already warmed');
+            return;
         }
         if (chrome.storage) {
-            chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
+            chrome.storage.local.get('boxArtCache', function (JSONCachedBoxArtArray) {
 
-                var storedBoxArtArray;  // load cached data if it exists
-                if (JSONCachedBoxArtArray.boxArtCache != undefined) {
+                let storedBoxArtArray;  // load cached data if it exists
+                if (JSONCachedBoxArtArray.boxArtCache !== undefined) {
                     storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
-                    for (var key in storedBoxArtArray) {
+                    for (let key in storedBoxArtArray) {
                         this._memCachedBoxArtArray[key] = _base64ToArrayBuffer(storedBoxArtArray[key]);
                     }
-										console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache warmed');
+                    console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache warmed');
                 } else {
-									 console.warn('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'No box art found in storage. Cannot warm cache!');
-                   return;
+                    console.warn('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'No box art found in storage. Cannot warm cache!');
                 }
             }.bind(this));
         }
@@ -360,15 +333,13 @@ NvHTTP.prototype = {
         if (this._memCachedBoxArtArray[appId] === null) {
             // This means a previous box art request failed, don't try again
             return new Promise(function (resolve, reject) {
-							console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning cached box-art failure result')
-              reject(null);
-              return;
+                console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning cached box-art failure result');
+                reject(null);
             }.bind(this));
         } else if (this._memCachedBoxArtArray[appId] !== undefined) {
             return new Promise(function (resolve, reject) {
                 console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning memory-cached box-art');
                 resolve(this._memCachedBoxArtArray[appId]);
-                return;
             }.bind(this));
         }
 
@@ -376,17 +347,17 @@ NvHTTP.prototype = {
             // This may be bad practice to push/pull this much data through local storage?
 
             return new Promise(function (resolve, reject) {
-                chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
+                chrome.storage.local.get('boxArtCache', function (JSONCachedBoxArtArray) {
 
-                    var storedBoxArtArray;  // load cached data if it exists
-                    if (JSONCachedBoxArtArray.boxArtCache != undefined && JSONCachedBoxArtArray.boxArtCache[appId] != undefined) {
+                    let storedBoxArtArray;  // load cached data if it exists
+                    if (JSONCachedBoxArtArray.boxArtCache !== undefined && JSONCachedBoxArtArray.boxArtCache[appId] !== undefined) {
                         storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
 
                         storedBoxArtArray[appId] = _base64ToArrayBuffer(storedBoxArtArray[appId]);
                         this._memCachedBoxArtArray[appId] = storedBoxArtArray[appId];
 
                     } else {
-                         storedBoxArtArray = {};
+                        storedBoxArtArray = {};
                     }
 
                     // if we already have it, load it.
@@ -399,40 +370,39 @@ NvHTTP.prototype = {
                     // otherwise, put it in our cache, then return it
                     sendMessage('openUrl', [
                         this._baseUrlHttps +
-                        '/appasset?'+this._buildUidStr() +
+                        '/appasset?' + this._buildUidStr() +
                         '&appid=' + appId +
                         '&AssetType=2&AssetIdx=0',
                         true
-                    ]).then(function(streamedBoxArt) {
+                    ]).then(function (streamedBoxArt) {
                         // the memcached data is global to all the async calls we're doing.  This way there's only one array that holds everything properly.
                         this._memCachedBoxArtArray[appId] = streamedBoxArt;
-                        var obj = {};
-                        var arrayToStore = {}
+                        let obj = {};
+                        let arrayToStore = {};
 
                         for (key in this._memCachedBoxArtArray) { // convert the arraybuffer into a string
                             arrayToStore[key] = _arrayBufferToBase64(this._memCachedBoxArtArray[key]);
                         }
 
                         obj['boxArtCache'] = arrayToStore;  // storage is in JSON format.  JSON does not support binary data.
-                        chrome.storage.local.set(obj, function(onSuccess) {});
+                        chrome.storage.local.set(obj, function (onSuccess) {
+                        });
                         console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning streamed box art');
                         resolve(streamedBoxArt);
-                        return;
-                    }.bind(this), function(error) {
+                    }.bind(this), function (error) {
                         // Cache the failure but not persistently
                         this._memCachedBoxArtArray[appId] = null;
                         console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Box-art request failed!', error);
                         reject(error);
-                        return;
                     }.bind(this));
                 }.bind(this));
             }.bind(this));
 
         } else {  // shouldn't run because we always have chrome.storage, but I'm not going to antagonize other browsers
-						console.warn('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'chrome.storage not detected! Box art will not be saved!');
+            console.warn('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'chrome.storage not detected! Box art will not be saved!');
             return sendMessage('openUrl', [
                 this._baseUrlHttps +
-                '/appasset?'+this._buildUidStr() +
+                '/appasset?' + this._buildUidStr() +
                 '&appid=' + appId +
                 '&AssetType=2&AssetIdx=0',
                 true
@@ -471,24 +441,24 @@ NvHTTP.prototype = {
 
     quitApp: function () {
         return sendMessage('openUrl', [this._baseUrlHttps + '/cancel?' + this._buildUidStr(), false])
-            // Refresh server info after quitting because it may silently fail if the
-            // session belongs to a different client.
-            // TODO: We should probably bubble this up to our caller.
+        // Refresh server info after quitting because it may silently fail if the
+        // session belongs to a different client.
+        // TODO: We should probably bubble this up to our caller.
             .then(this.refreshServerInfo());
     },
 
-    pair: function(randomNumber) {
+    pair: function (randomNumber) {
         return this.refreshServerInfo().then(function () {
             if (this.paired)
                 return true;
 
-            if (this.currentGame != 0)
+            if (this.currentGame !== 0)
                 return false;
 
             return sendMessage('pair', [this.serverMajorVersion.toString(), this.address, randomNumber]).then(function (pairStatus) {
                 return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function (ret) {
                     $xml = this._parseXML(ret);
-                    this.paired = $xml.find('paired').html() == "1";
+                    this.paired = $xml.find('paired').html() === "1";
                     return this.paired;
                 }.bind(this));
             }.bind(this));
