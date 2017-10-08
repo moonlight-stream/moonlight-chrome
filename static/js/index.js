@@ -322,7 +322,7 @@ function addHost() {
 
         pairTo(_nvhttpHost, function () {
             // Check if we already have record of this host
-            if (hosts[_nvhttpHost.serverUid] !== null) {
+            if (hosts[_nvhttpHost.serverUid] !== undefined) {
                 // Just update the addresses
                 hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
                 hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
