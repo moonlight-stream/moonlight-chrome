@@ -410,7 +410,7 @@ function removeClicked(host) {
 // the function was made like this so that we can remove duplicated code, but
 // not do N*N stylizations of the box art, or make the code not flow very well
 function stylizeBoxArt(freshApi, appIdToStylize) {
-    let app_selector = $('#game-' + app.id);
+    let app_selector = $('#game-' + appIdToStylize);
     if (freshApi.currentGame === appIdToStylize) { // stylize the currently running game
         // destylize it, if it has the not-current-game style
         if (app_selector.hasClass("not-current-game")) $('#game-' + appIdToStylize).removeClass("not-current-game");

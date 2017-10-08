@@ -191,7 +191,7 @@ NvHTTP.prototype = {
         $xml = this._parseXML(xmlStr);
         $root = $xml.find('root');
 
-        if ($root.attr("status_code") !== 200) {
+        if ($root.attr("status_code") !== '200') {
             return false;
         }
 
@@ -202,7 +202,7 @@ NvHTTP.prototype = {
 
         console.log('%c[utils.js, _parseServerInfo]', 'color:gray;', 'Parsing server info:', $root);
 
-        this.paired = $root.find("PairStatus").text().trim() === 1;
+        this.paired = $root.find("PairStatus").text().trim() === '1';
         this.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
         this.appVersion = $root.find("appversion").text().trim();
         this.serverMajorVersion = parseInt(this.appVersion.substring(0, 1), 10);
@@ -262,7 +262,7 @@ NvHTTP.prototype = {
             $xml = this._parseXML(ret);
             $root = $xml.find("root");
 
-            if ($root.attr("status_code") !== 200) {
+            if ($root.attr("status_code") !== '200') {
                 // TODO: Bubble up an error here
                 console.error('%c[utils.js, utils.js,  getAppListWithCacheFlush]', 'color: gray;', 'Applist request failed', $root.attr("status_code"));
                 return [];
