@@ -447,9 +447,8 @@ function showApps(host) {
 
         appList.forEach(function (app) {
             host.getBoxArt(app.id).then(function (resolvedPromise) {
-                let app_selector = $('#game-' + app.id);
                 // put the box art into the image holder
-                if (app_selector.length === 0) {
+                if ($('#game-' + app.id).length === 0) {
                     // double clicking the button will cause multiple box arts to appear.
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
@@ -473,10 +472,10 @@ function showApps(host) {
 
 
                     // $("#gameList").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
-                    app_selector.on('click', function () {
+                    $('#game-' + app.id).on('click', function () {
                         startGame(host, app.id);
                     });
-                    app_selector.keypress(function (e) {
+                    $('#game-' + app.id).keypress(function (e) {
                         if (e.keyCode === 13) {
                             startGame(host, app.id);
                         }
