@@ -53,14 +53,14 @@ function loadWindowState() {
 }
 
 function onFullscreened() {
-    if (!isInGame && windowState === 'normal') {
+    if (!isInGame && windowState == 'normal') {
         storeData('windowState', 'fullscreen', null);
         windowState = 'fullscreen';
     }
 }
 
 function onBoundsChanged() {
-    if (!isInGame && windowState === 'fullscreen') {
+    if (!isInGame && windowState == 'fullscreen') {
         storeData('windowState', 'normal', null);
         windowState = 'normal';
     }
@@ -105,7 +105,7 @@ function restoreUiAfterNaClLoad() {
                             return;
                         }
 
-                        if (hosts[returneMdnsDiscoveredHost.serverUid] !== null) {
+                        if (hosts[returneMdnsDiscoveredHost.serverUid] != null) {
                             // if we're seeing a host we've already seen before, update it for the current local IP.
                             hosts[returneMdnsDiscoveredHost.serverUid].address = returneMdnsDiscoveredHost.address;
                         } else {
@@ -255,7 +255,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
         console.log('%c[index.js]', 'color: green;', 'Sending pairing request to ' + nvhttpHost.hostname + ' with random number' + randomNumber);
         nvhttpHost.pair(randomNumber).then(function (paired) {
             if (!paired) {
-                if (nvhttpHost.currentGame !== 0) {
+                if (nvhttpHost.currentGame != 0) {
                     $('#pairingDialogText').html('Error: ' + nvhttpHost.hostname + ' is busy.  Stop streaming to pair.');
                 } else {
                     $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.hostname + '.');
@@ -322,7 +322,7 @@ function addHost() {
 
         pairTo(_nvhttpHost, function () {
             // Check if we already have record of this host
-            if (hosts[_nvhttpHost.serverUid] !== undefined) {
+            if (hosts[_nvhttpHost.serverUid] != undefined) {
                 // Just update the addresses
                 hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
                 hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
@@ -368,7 +368,7 @@ function addHostToGrid(host, ismDNSDiscovered) {
         hostChosen(host);
     });
     outerDiv.keypress(function (e) {
-        if (e.keyCode === 13) {
+        if (e.keyCode == 13) {
             hostChosen(host);
         }
     });
@@ -411,7 +411,7 @@ function removeClicked(host) {
 // not do N*N stylizations of the box art, or make the code not flow very well
 function stylizeBoxArt(freshApi, appIdToStylize) {
     let app_selector = $('#game-' + appIdToStylize);
-    if (freshApi.currentGame === appIdToStylize) { // stylize the currently running game
+    if (freshApi.currentGame == appIdToStylize) { // stylize the currently running game
         // destylize it, if it has the not-current-game style
         if (app_selector.hasClass("not-current-game")) $('#game-' + appIdToStylize).removeClass("not-current-game");
         // add the current-game style
@@ -448,7 +448,7 @@ function showApps(host) {
         appList.forEach(function (app) {
             host.getBoxArt(app.id).then(function (resolvedPromise) {
                 // put the box art into the image holder
-                if ($('#game-' + app.id).length === 0) {
+                if ($('#game-' + app.id).length == 0) {
                     // double clicking the button will cause multiple box arts to appear.
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
@@ -476,7 +476,7 @@ function showApps(host) {
                         startGame(host, app.id);
                     });
                     $('#game-' + app.id).keypress(function (e) {
-                        if (e.keyCode === 13) {
+                        if (e.keyCode == 13) {
                             startGame(host, app.id);
                         }
                     });
@@ -488,7 +488,7 @@ function showApps(host) {
             }, function (failedPromise) {
                 console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
 
-                if ($('#game-' + app.id).length === 0) {
+                if ($('#game-' + app.id).length == 0) {
                     // double clicking the button will cause multiple box arts to appear.
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
@@ -571,7 +571,7 @@ function startGame(host, appID) {
     host.refreshServerInfo().then(function (ret) {
         host.getAppById(appID).then(function (appToStart) {
 
-            if (host.currentGame !== 0 && host.currentGame !== appID) {
+            if (host.currentGame != 0 && host.currentGame != appID) {
                 host.getAppById(host.currentGame).then(function (currentApp) {
                     let quitAppDialog = document.querySelector('#quitAppDialog');
                     document.getElementById('quitAppDialogText').innerHTML =
@@ -612,7 +612,7 @@ function startGame(host, appID) {
             $('#loadingMessage').text('Starting ' + appToStart.title + '...');
             playGameMode();
 
-            if (host.currentGame === appID) { // if user wants to launch the already-running app, then we resume it.
+            if (host.currentGame == appID) { // if user wants to launch the already-running app, then we resume it.
                 return host.resumeApp(rikey, rikeyid).then(function (ret) {
                     sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
                         bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
@@ -673,7 +673,7 @@ function fullscreenNaclModule() {
 }
 
 function stopGameWithConfirmation() {
-    if (api.currentGame === 0) {
+    if (api.currentGame == 0) {
         snackbarLog('Nothing was running');
     } else {
         api.getAppById(api.currentGame).then(function (currentGame) {
@@ -717,7 +717,7 @@ function stopGame(host, callbackFunction) {
                 host.refreshServerInfo().then(function (ret3) { // refresh to show no app is currently running.
                     showAppsMode();
                     stylizeBoxArt(host, runningApp.id);
-                    if (typeof(callbackFunction) === "function") callbackFunction();
+                    if (typeof(callbackFunction) == "function") callbackFunction();
                 }, function (failedRefreshInfo2) {
                     console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to refresh server info! Returned error was:' + failedRefreshInfo + ' and failed server was:', host, host.toString());
                 });
@@ -793,20 +793,20 @@ function updateDefaultBitrate() {
     let res = $('#selectResolution').data('value');
     let frameRate = $('#selectFramerate').data('value').toString();
 
-    if (res === "1920:1080") {
-        if (frameRate === "30") { // 1080p, 30fps
+    if (res == "1920:1080") {
+        if (frameRate == "30") { // 1080p, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         } else { // 1080p, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('20');
         }
-    } else if (res === "1280:720") {
-        if (frameRate === "30") { // 720, 30fps
+    } else if (res == "1280:720") {
+        if (frameRate == "30") { // 720, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('5');
         } else { // 720, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         }
-    } else if (res === "3840:2160") {
-        if (frameRate === "30") { // 2160p, 30fps
+    } else if (res == "3840:2160") {
+        if (frameRate == "30") { // 2160p, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('40');
         } else { // 2160p, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('80');
@@ -829,9 +829,9 @@ function onWindowLoad() {
     if (chrome.storage) {
         // load stored resolution prefs
         chrome.storage.sync.get('resolution', function (previousValue) {
-            if (previousValue.resolution !== null) {
+            if (previousValue.resolution != null) {
                 $('.resolutionMenu li').each(function () {
-                    if ($(this).data('value') === previousValue.resolution) {
+                    if ($(this).data('value') == previousValue.resolution) {
                         $('#selectResolution').text($(this).text()).data('value', previousValue.resolution);
                     }
                 });
@@ -840,9 +840,9 @@ function onWindowLoad() {
 
         // Load stored remote audio prefs
         chrome.storage.sync.get('remoteAudio', function (previousValue) {
-            if (previousValue.remoteAudio === null) {
+            if (previousValue.remoteAudio == null) {
                 document.querySelector('#externalAudioBtn').MaterialIconToggle.uncheck();
-            } else if (previousValue.remoteAudio === false) {
+            } else if (previousValue.remoteAudio == false) {
                 document.querySelector('#externalAudioBtn').MaterialIconToggle.uncheck();
             } else {
                 document.querySelector('#externalAudioBtn').MaterialIconToggle.check();
@@ -851,9 +851,9 @@ function onWindowLoad() {
 
         // load stored framerate prefs
         chrome.storage.sync.get('frameRate', function (previousValue) {
-            if (previousValue.frameRate !== null) {
+            if (previousValue.frameRate != null) {
                 $('.framerateMenu li').each(function () {
-                    if ($(this).data('value') === previousValue.frameRate) {
+                    if ($(this).data('value') == previousValue.frameRate) {
                         $('#selectFramerate').text($(this).text()).data('value', previousValue.frameRate);
                     }
                 });
@@ -862,9 +862,9 @@ function onWindowLoad() {
 
         // load stored optimization prefs
         chrome.storage.sync.get('optimize', function (previousValue) {
-            if (previousValue.optimize === null) {
+            if (previousValue.optimize == null) {
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.check();
-            } else if (previousValue.optimize === false) {
+            } else if (previousValue.optimize == false) {
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.uncheck();
             } else {
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.check();
@@ -873,19 +873,19 @@ function onWindowLoad() {
 
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function (previousValue) {
-            $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate !== null ? previousValue.bitrate : '10');
+            $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
             updateBitrateField();
         });
 
         // load the HTTP cert if we have one.
         chrome.storage.sync.get('cert', function (savedCert) {
-            if (savedCert.cert !== null) { // we have a saved cert
+            if (savedCert.cert != null) { // we have a saved cert
                 pairingCert = savedCert.cert;
             }
         });
 
         chrome.storage.sync.get('uniqueid', function (savedUniqueid) {
-            if (savedUniqueid.uniqueid !== null) { // we have a saved uniqueid
+            if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
                 myUniqueid = savedUniqueid.uniqueid;
             } else {
                 myUniqueid = uniqueid();
@@ -895,7 +895,7 @@ function onWindowLoad() {
 
         // load previously connected hosts, which have been killed into an object, and revive them back into a class
         chrome.storage.sync.get('hosts', function (previousValue) {
-            hosts = previousValue.hosts !== null ? previousValue.hosts : {};
+            hosts = previousValue.hosts != null ? previousValue.hosts : {};
             for (let hostUID in hosts) { // programmatically add each new host.
                 let revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
                 revivedHost.serverUid = hosts[hostUID].serverUid;

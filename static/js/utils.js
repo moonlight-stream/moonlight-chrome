@@ -1,6 +1,6 @@
 function guuid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 }
@@ -117,7 +117,7 @@ NvHTTP.prototype = {
             // Poll for the app list every 10 successful serverinfo polls.
             // Not including the first one to avoid PCs taking a while to show
             // as online initially
-            if (this._pollCount++ % 10 === 1) {
+            if (this._pollCount++ % 10 == 1) {
                 this.getAppListWithCacheFlush();
             }
 
@@ -191,18 +191,18 @@ NvHTTP.prototype = {
         $xml = this._parseXML(xmlStr);
         $root = $xml.find('root');
 
-        if ($root.attr("status_code") !== '200') {
+        if ($root.attr("status_code") != '200') {
             return false;
         }
 
-        if (this.serverUid !== $root.find('uniqueid').text().trim() && this.serverUid !== "") {
+        if (this.serverUid != $root.find('uniqueid').text().trim() && this.serverUid != "") {
             // if we received a UID that isn't the one we expected, fail.
             return false;
         }
 
         console.log('%c[utils.js, _parseServerInfo]', 'color:gray;', 'Parsing server info:', $root);
 
-        this.paired = $root.find("PairStatus").text().trim() === '1';
+        this.paired = $root.find("PairStatus").text().trim() == '1';
         this.currentGame = parseInt($root.find("currentgame").text().trim(), 10);
         this.appVersion = $root.find("appversion").text().trim();
         this.serverMajorVersion = parseInt(this.appVersion.substring(0, 1), 10);
@@ -245,7 +245,7 @@ NvHTTP.prototype = {
             let retApp = null;
 
             list.some(function (app) {
-                if (app.id === appId) {
+                if (app.id == appId) {
                     retApp = app;
                     return true;
                 }
@@ -262,7 +262,7 @@ NvHTTP.prototype = {
             $xml = this._parseXML(ret);
             $root = $xml.find("root");
 
-            if ($root.attr("status_code") !== '200') {
+            if ($root.attr("status_code") != '200') {
                 // TODO: Bubble up an error here
                 console.error('%c[utils.js, utils.js,  getAppListWithCacheFlush]', 'color: gray;', 'Applist request failed', $root.attr("status_code"));
                 return [];
@@ -303,7 +303,7 @@ NvHTTP.prototype = {
             console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Not warming box art cache for unpaired host');
             return;
         }
-        if (Object.keys(this._memCachedBoxArtArray).length !== 0) {
+        if (Object.keys(this._memCachedBoxArtArray).length != 0) {
             console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache already warmed');
             return;
         }
@@ -311,7 +311,7 @@ NvHTTP.prototype = {
             chrome.storage.local.get('boxArtCache', function (JSONCachedBoxArtArray) {
 
                 let storedBoxArtArray;  // load cached data if it exists
-                if (JSONCachedBoxArtArray.boxArtCache !== undefined) {
+                if (JSONCachedBoxArtArray.boxArtCache != undefined) {
                     storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
                     for (let key in storedBoxArtArray) {
                         this._memCachedBoxArtArray[key] = _base64ToArrayBuffer(storedBoxArtArray[key]);
@@ -330,13 +330,13 @@ NvHTTP.prototype = {
 
         // TODO: unfortunately we do N lookups from storage cache, each of them filling up the memory cache.
         // once the first round of calls are all made, each subsequent request hits this and returns from memory cache
-        if (this._memCachedBoxArtArray[appId] === null) {
+        if (this._memCachedBoxArtArray[appId] == null) {
             // This means a previous box art request failed, don't try again
             return new Promise(function (resolve, reject) {
                 console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning cached box-art failure result');
                 reject(null);
             }.bind(this));
-        } else if (this._memCachedBoxArtArray[appId] !== undefined) {
+        } else if (this._memCachedBoxArtArray[appId] != undefined) {
             return new Promise(function (resolve, reject) {
                 console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning memory-cached box-art');
                 resolve(this._memCachedBoxArtArray[appId]);
@@ -350,7 +350,7 @@ NvHTTP.prototype = {
                 chrome.storage.local.get('boxArtCache', function (JSONCachedBoxArtArray) {
 
                     let storedBoxArtArray;  // load cached data if it exists
-                    if (JSONCachedBoxArtArray.boxArtCache !== undefined && JSONCachedBoxArtArray.boxArtCache[appId] !== undefined) {
+                    if (JSONCachedBoxArtArray.boxArtCache != undefined && JSONCachedBoxArtArray.boxArtCache[appId] != undefined) {
                         storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
 
                         storedBoxArtArray[appId] = _base64ToArrayBuffer(storedBoxArtArray[appId]);
@@ -361,7 +361,7 @@ NvHTTP.prototype = {
                     }
 
                     // if we already have it, load it.
-                    if (storedBoxArtArray[appId] !== undefined && Object.keys(storedBoxArtArray).length !== 0 && storedBoxArtArray[appId].constructor !== Object) {
+                    if (storedBoxArtArray[appId] != undefined && Object.keys(storedBoxArtArray).length != 0 && storedBoxArtArray[appId].constructor != Object) {
                         console.log('%c[utils.js, getBoxArt]', 'color: gray;', 'Returning strage-cached box art for app: ', appId);
                         resolve(storedBoxArtArray[appId]);
                         return;
@@ -452,13 +452,13 @@ NvHTTP.prototype = {
             if (this.paired)
                 return true;
 
-            if (this.currentGame !== 0)
+            if (this.currentGame != 0)
                 return false;
 
             return sendMessage('pair', [this.serverMajorVersion.toString(), this.address, randomNumber]).then(function (pairStatus) {
                 return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function (ret) {
                     $xml = this._parseXML(ret);
-                    this.paired = $xml.find('paired').html() === "1";
+                    this.paired = $xml.find('paired').html() == "1";
                     return this.paired;
                 }.bind(this));
             }.bind(this));
