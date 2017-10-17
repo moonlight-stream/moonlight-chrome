@@ -6,7 +6,6 @@ var api;  // `api` should only be set if we're in a host-specific screen. on the
 var isInGame = false; // flag indicating whether the game stream started
 var windowState = 'normal'; // chrome's windowState, possible values: 'normal' or 'fullscreen'
 
-
 // Called by the common.js module.
 function attachListeners() {
     changeUiModeForNaClLoad();
@@ -410,6 +409,26 @@ function stylizeBoxArt(freshApi, appIdToStylize) {
     }
 }
 
+function sortTitles(list, sortOrder) {
+  return list.sort((a, b) => {
+    const titleA = a.title.toLowerCase();
+    const titleB = b.title.toLowerCase();
+
+    // A - Z
+    if (sortOrder === 'ASC') {
+      if (titleA < titleB) { return -1; }
+      if (titleA > titleB) { return 1; }
+      return 0;
+    }
+
+    // Z - A
+    if (sortOrder === 'DESC') {
+      if (titleA < titleB) { return 1; }
+      if (titleA > titleB) { return -1; }
+      return 0;    }
+  });
+}
+
 // show the app list
 function showApps(host) {
     if(!host || !host.paired) {  // safety checking. shouldn't happen.
@@ -431,7 +450,9 @@ function showApps(host) {
         $('#naclSpinner').hide();
         $("#game-grid").show();
 
-        appList.forEach(function (app) {
+        const sortedAppList = sortTitles(appList, 'ASC');
+
+        sortedAppList.forEach(function (app) {
             host.getBoxArt(app.id).then(function (resolvedPromise) {
                 // put the box art into the image holder
                 if ($('#game-' + app.id).length === 0) {
@@ -842,7 +863,7 @@ function onWindowLoad(){
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.check();
             }
         });
-	
+
         // load stored bitrate prefs
         chrome.storage.sync.get('bitrate', function(previousValue) {
             $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
