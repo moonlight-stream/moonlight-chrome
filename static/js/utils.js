@@ -241,7 +241,7 @@ NvHTTP.prototype = {
         // GFE 2.8 started keeping currentgame set to the last game played. As a result, it no longer
         // has the semantics that its name would indicate. To contain the effects of this change as much
         // as possible, we'll force the current game to zero if the server isn't in a streaming session.
-        if ($root.find("state").text().trim().endsWith("_SERVER_AVAILABLE")) {
+        if (!$root.find("state").text().trim().endsWith("_SERVER_BUSY")) {
             this.currentGame = 0;
         }
 
