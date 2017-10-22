@@ -45,3 +45,6 @@ dir.stamp
 
 # Jetbrains IDEs
 *.idea/
+
+# Visual Studio
+*.vs/
