@@ -26,6 +26,7 @@ var common = (function() {
    * the given toolchain.
    */
   function mimeTypeForTool(tool) {
+    console.log('%c[mimeTypeForTool, common.js]', 'color: gray;', 'tool: ' + tool);
     // For NaCl modules use application/x-nacl.
     var mimetype = 'application/x-nacl';
 
@@ -34,6 +35,7 @@ var common = (function() {
     } else if (tool == 'pnacl') {
       mimetype = 'application/x-pnacl';
     }
+      console.log('%c[updateStatus, common.js]', 'color: gray;', 'mimetype: ' + mimetype);
     return mimetype;
   }
 
@@ -51,7 +53,9 @@ var common = (function() {
     if (isHostToolchain(tool)) {
       return true;
     }
+    console.log('%c[browserSupportsNaCl, common.js]', 'color: gray;', 'is NOT host toolchain for tool: ' + tool);
     var mimetype = mimeTypeForTool(tool);
+    console.log('%c[browserSupportsNaCl, common.js]', 'color: gray;', 'mimetypes: ' + mimetype);
     return navigator.mimeTypes[mimetype] !== undefined;
   }
 
@@ -67,6 +71,8 @@ var common = (function() {
    * @param {Object} attrs Dictionary of attributes to set on the module.
    */
   function createNaClModule(name, tool, path, width, height, attrs) {
+    console.log('%c[createNaClModule, common.js]', 'color: gray;', "name: " + name + ", tool: " + tool + ", path: " + path + ", width: " + width +
+        ", height: " + height + ", attrs: " + JSON.stringify(attrs));
     var moduleEl = document.createElement('embed');
     moduleEl.setAttribute('name', 'nacl_module');
     moduleEl.setAttribute('id', 'nacl_module');
@@ -84,6 +90,8 @@ var common = (function() {
 
     var mimetype = mimeTypeForTool(tool);
     moduleEl.setAttribute('type', mimetype);
+
+    console.log('%c[createNaClModule, common.js]', 'color: gray;', "moduleEl: " + JSON.stringify(moduleEl));
 
     // The <EMBED> element is wrapped inside a <DIV>, which has both a 'load'
     // and a 'message' event listener attached.  This wrapping method is used
@@ -139,6 +147,7 @@ var common = (function() {
   function handleError(event) {
     // We can't use common.naclModule yet because the module has not been
     // loaded.
+    console.log('%c[handleError, common.js]', 'color: red;', event);
     var moduleEl = document.getElementById('nacl_module');
     updateStatus('ERROR [' + moduleEl.lastError + ']');
   }
@@ -149,6 +158,7 @@ var common = (function() {
    * This event listener is registered in attachDefaultListeners above.
    */
   function handleCrash(event) {
+      console.log('%c[handleCrash, common.js]', 'color: red;', event);
     if (common.naclModule.exitStatus == -1) {
       updateStatus('CRASHED');
     } else {
@@ -191,6 +201,7 @@ var common = (function() {
    * Remove the NaCl module from the page.
    */
   function removeModule() {
+    console.log('%c[removeModule, common.js]', 'color: gray;', "removing module...");
     common.naclModule.parentNode.removeChild(common.naclModule);
     common.naclModule = null;
   }

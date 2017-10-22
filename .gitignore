@@ -42,3 +42,9 @@ dir.stamp
 *.pexe
 *.nmf
 *.bc
+
+# Jetbrains IDEs
+*.idea/
+
+# Visual Studio
+*.vs/
