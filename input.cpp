@@ -99,6 +99,15 @@ static uint32_t GetTranslatedKeyCode(const pp::KeyboardInputEvent& event) {
             break;
     }
 
+    // We have to handle the ISKEYPAD modifier on macOS, and convert them
+    // to the correct numpad keycodes for Windows.
+    int32_t num = event.GetKeyCode() - 0x30;
+    if ((event.GetModifiers() & PP_INPUTEVENT_MODIFIER_ISKEYPAD) &&
+        num >= 0 && num <= 9) {
+        // Offset with numpad 0's virtual keycode
+        return num + 0x60;
+    }
+
     return event.GetKeyCode();
 }
 
