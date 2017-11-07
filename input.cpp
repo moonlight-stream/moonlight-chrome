@@ -51,6 +51,57 @@ static char GetModifierFlags(const pp::InputEvent& event) {
     return flags;
 }
 
+static uint32_t GetTranslatedKeyCode(const pp::KeyboardInputEvent& event) {
+
+    // For some reason, NaCl won't give us the real left and right
+    // VK codes for modifiers and instead gives us modifier flags
+    // to indicate whether the key is left or right. We have to
+    // convert these back to the original VK codes to before
+    // sending them to the PC.
+    switch (event.GetKeyCode()) {
+        // VK_SHIFT
+        case 0x10:
+            if (event.GetModifiers() & PP_INPUTEVENT_MODIFIER_ISLEFT) {
+                // VK_LSHIFT
+                return 0xA0;
+            }
+            else if (event.GetModifiers() & PP_INPUTEVENT_MODIFIER_ISRIGHT) {
+                // VK_RSHIFT
+                return 0xA1;
+            }
+            break;
+
+        // VK_CONTROL
+        case 0x11:
+            if (event.GetModifiers() & PP_INPUTEVENT_MODIFIER_ISLEFT) {
+                // VK_LCONTROL
+                return 0xA2;
+            }
+            else if (event.GetModifiers() & PP_INPUTEVENT_MODIFIER_ISRIGHT) {
+                // VK_RCONTROL
+                return 0xA3;
+            }
+            break;
+
+        // VK_MENU (Alt)
+        case 0x12:
+            if (event.GetModifiers() & PP_INPUTEVENT_MODIFIER_ISLEFT) {
+                // VK_LMENU
+                return 0xA4;
+            }
+            else if (event.GetModifiers() & PP_INPUTEVENT_MODIFIER_ISRIGHT) {
+                // VK_RMENU
+                return 0xA5;
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    return event.GetKeyCode();
+}
+
 void MoonlightInstance::ReportMouseMovement() {
     if (m_MouseDeltaX != 0 || m_MouseDeltaY != 0) {
         LiSendMouseMoveEvent(m_MouseDeltaX, m_MouseDeltaY);
@@ -132,9 +183,10 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             
             pp::KeyboardInputEvent keyboardEvent(event);
             char modifiers = GetModifierFlags(event);
+            uint32_t keyCode = GetTranslatedKeyCode(keyboardEvent);
             
             if (modifiers == (MODIFIER_ALT | MODIFIER_CTRL | MODIFIER_SHIFT)) {
-                if (keyboardEvent.GetKeyCode() == 0x51) { // Q key
+                if (keyCode == 0x51) { // Q key
                     // Terminate the connection
                     StopConnection();
                     return true;
@@ -145,7 +197,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
                 }
             }
             
-            LiSendKeyboardEvent(KEY_PREFIX << 8 | keyboardEvent.GetKeyCode(),
+            LiSendKeyboardEvent(KEY_PREFIX << 8 | keyCode,
                                 KEY_ACTION_DOWN, modifiers);
             return true;
         }
@@ -157,6 +209,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             
             pp::KeyboardInputEvent keyboardEvent(event);
             char modifiers = GetModifierFlags(event);
+            uint32_t keyCode = GetTranslatedKeyCode(keyboardEvent);
              
             // Check if all modifiers are up now
             if (m_WaitingForAllModifiersUp && modifiers == 0) {
@@ -165,7 +218,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
                 m_WaitingForAllModifiersUp = false;
             }
             
-            LiSendKeyboardEvent(KEY_PREFIX << 8 | keyboardEvent.GetKeyCode(),
+            LiSendKeyboardEvent(KEY_PREFIX << 8 | keyCode,
                                 KEY_ACTION_UP, modifiers);
             return true;
         }
