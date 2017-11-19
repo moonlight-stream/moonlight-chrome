@@ -13,10 +13,6 @@ static unsigned char* s_DecodeBuffer;
 static unsigned int s_DecodeBufferLength;
 static int s_LastTextureType;
 static int s_LastTextureId;
-static unsigned char s_LastSps[256];
-static unsigned char s_LastPps[256];
-static unsigned int s_LastSpsLength;
-static unsigned int s_LastPpsLength;
 static bool s_FirstFrameDisplayed;
 static uint64_t s_LastPaintFinishedTime;
 
@@ -144,8 +140,6 @@ int MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int r
     s_DecodeBuffer = (unsigned char *)malloc(s_DecodeBufferLength);
     s_LastTextureType = 0;
     s_LastTextureId = 0;
-    s_LastSpsLength = 0;
-    s_LastPpsLength = 0;
     s_FirstFrameDisplayed = false;
     
     int32_t err;
@@ -222,24 +216,25 @@ void MoonlightInstance::VidDecCleanup(void) {
     g_Instance->BindGraphics(g_Instance->m_Graphics3D);
 }
 
-static void ProcessSpsNalu(unsigned char* data, int length) {
+static void WriteSpsNalu(PLENTRY nalu, unsigned char* outBuffer, unsigned int* offset) {
     const char naluHeader[] = {0x00, 0x00, 0x00, 0x01};
     h264_stream_t* stream = h264_new();
     
     // Read the old NALU
-    read_nal_unit(stream, &data[sizeof(naluHeader)], length-sizeof(naluHeader));
+    read_nal_unit(stream,
+                  (unsigned char *)&nalu->data[sizeof(naluHeader)],
+                  nalu->length - sizeof(naluHeader));
     
     // Fixup the SPS to what OS X needs to use hardware acceleration
     stream->sps->num_ref_frames = 1;
     stream->sps->vui.max_dec_frame_buffering = 1;
     
     // Copy the NALU prefix over from the original SPS
-    memcpy(s_LastSps, naluHeader, sizeof(naluHeader));
+    memcpy(&outBuffer[*offset], naluHeader, sizeof(naluHeader));
+    *offset += sizeof(naluHeader);
     
     // Copy the modified NALU data
-    s_LastSpsLength = sizeof(naluHeader) + write_nal_unit(stream,
-                                                          &s_LastSps[sizeof(naluHeader)],
-                                                          sizeof(s_LastSps)-sizeof(naluHeader));
+    *offset += write_nal_unit(stream, &outBuffer[*offset], nalu->length + 32 - sizeof(naluHeader));
     
     h264_free(stream);
 }
@@ -248,54 +243,17 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     PLENTRY entry;
     unsigned int offset;
     unsigned int totalLength;
-    bool isSps = false;
-    bool isPps = false;
-    bool isIframe = false;
 
     // Request an IDR frame if needed
     if (g_Instance->m_RequestIdrFrame) {
         g_Instance->m_RequestIdrFrame = false;
         return DR_NEED_IDR;
     }
-    
-    // Look at the NALU type
-    if (decodeUnit->bufferList->length > 5) {
-        switch (decodeUnit->bufferList->data[4]) {
-            case 0x67:
-                isSps = true;
-                
-                // Store the SPS for later submission with the I-frame
-                assert(decodeUnit->bufferList->length == decodeUnit->fullLength);
-                assert(decodeUnit->fullLength < sizeof(s_LastSps));
-                ProcessSpsNalu((unsigned char*)decodeUnit->bufferList->data,
-                               decodeUnit->bufferList->length);
-                
-                // Don't submit anything to the decoder yet
-                return DR_OK;
-                
-            case 0x68:
-                isPps = true;
-                
-                // Store the PPS for later submission with the I-frame
-                assert(decodeUnit->bufferList->length == decodeUnit->fullLength);
-                assert(decodeUnit->fullLength < sizeof(s_LastPps));
-                s_LastPpsLength = decodeUnit->bufferList->length;
-                memcpy(s_LastPps, decodeUnit->bufferList->data, s_LastPpsLength);
 
-                // Don't submit anything to the decoder yet
-                return DR_OK;
-                
-            case 0x65:
-                isIframe = true;
-                break;
-        }
-    }
-    
-    // Chrome on OS X requires the SPS and PPS submitted together with
-    // the first I-frame for hardware acceleration to work.
     totalLength = decodeUnit->fullLength;
-    if (isIframe) {
-        totalLength += s_LastSpsLength + s_LastPpsLength;
+    if (decodeUnit->frameType == FRAME_TYPE_IDR) {
+        // Add some extra space for the SPS fixup
+        totalLength += 32;
     }
     
     // Resize the decode buffer if needed
@@ -305,21 +263,17 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
         s_DecodeBuffer = (unsigned char *)malloc(s_DecodeBufferLength);
     }
     
-    if (isIframe) {
-        // Copy the SPS and PPS in front of the frame data if this is an I-frame
-        memcpy(&s_DecodeBuffer[0], s_LastSps, s_LastSpsLength);
-        memcpy(&s_DecodeBuffer[s_LastSpsLength], s_LastPps, s_LastPpsLength);
-        offset = s_LastSpsLength + s_LastPpsLength;
-    }
-    else {
-        // Copy the frame data at the beginning of the buffer
-        offset = 0;
-    }
-    
     entry = decodeUnit->bufferList;
+    offset = 0;
     while (entry != NULL) {
-        memcpy(&s_DecodeBuffer[offset], entry->data, entry->length);
-        offset += entry->length;
+        if (entry->bufferType == BUFFER_TYPE_SPS) {
+            // Write the SPS with required fixups and update offset
+            WriteSpsNalu(entry, s_DecodeBuffer, &offset);
+        }
+        else {
+            memcpy(&s_DecodeBuffer[offset], entry->data, entry->length);
+            offset += entry->length;
+        }
         
         entry = entry->next;
     }
