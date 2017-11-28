@@ -35,9 +35,11 @@ function fullscreenChromeWindow() {
 }
 
 function loadWindowState() {
-    if (!chrome.storage) { return; }
+    if (!chrome.storage) {
+        return;
+    }
 
-    chrome.storage.sync.get('windowState', function(item) {
+    chrome.storage.sync.get('windowState', function (item) {
         // load stored window state
         windowState = (item && item.windowState)
             ? item.windowState
@@ -71,13 +73,13 @@ function changeUiModeForNaClLoad() {
 }
 
 function startPollingHosts() {
-    for(var hostUID in hosts) {
+    for (let hostUID in hosts) {
         beginBackgroundPollingOfHost(hosts[hostUID]);
     }
 }
 
 function stopPollingHosts() {
-    for(var hostUID in hosts) {
+    for (let hostUID in hosts) {
         stopBackgroundPollingOfHost(hosts[hostUID]);
     }
 }
@@ -91,12 +93,12 @@ function restoreUiAfterNaClLoad() {
 
     findNvService(function (finder, opt_error) {
         if (finder.byService_['_nvstream._tcp']) {
-            var ips = Object.keys(finder.byService_['_nvstream._tcp']);
-            for (var i in ips) {
-                var ip = ips[i];
+            let ips = Object.keys(finder.byService_['_nvstream._tcp']);
+            for (let i in ips) {
+                let ip = ips[i];
                 if (finder.byService_['_nvstream._tcp'][ip]) {
-                    var mDnsDiscoveredHost = new NvHTTP(ip, myUniqueid);
-                    mDnsDiscoveredHost.pollServer(function(returneMdnsDiscoveredHost) {
+                    let mDnsDiscoveredHost = new NvHTTP(ip, myUniqueid);
+                    mDnsDiscoveredHost.pollServer(function (returneMdnsDiscoveredHost) {
                         // Just drop this if the host doesn't respond
                         if (!returneMdnsDiscoveredHost.online) {
                             return;
@@ -121,7 +123,7 @@ function beginBackgroundPollingOfHost(host) {
     if (host.online) {
         $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
         // The host was already online. Just start polling in the background now.
-        activePolls[host.serverUid] = window.setInterval(function() {
+        activePolls[host.serverUid] = window.setInterval(function () {
             // every 5 seconds, poll at the address we know it was live at
             host.pollServer(function () {
                 if (host.online) {
@@ -142,7 +144,7 @@ function beginBackgroundPollingOfHost(host) {
             }
 
             // Now start background polling
-            activePolls[host.serverUid] = window.setInterval(function() {
+            activePolls[host.serverUid] = window.setInterval(function () {
                 // every 5 seconds, poll at the address we know it was live at
                 host.pollServer(function () {
                     if (host.online) {
@@ -157,14 +159,14 @@ function beginBackgroundPollingOfHost(host) {
 }
 
 function stopBackgroundPollingOfHost(host) {
-  console.log('%c[index.js, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
-  window.clearInterval(activePolls[host.serverUid]);
-  delete activePolls[host.serverUid];
+    console.log('%c[index.js, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
+    window.clearInterval(activePolls[host.serverUid]);
+    delete activePolls[host.serverUid];
 }
 
 function snackbarLog(givenMessage) {
     console.log('%c[index.js, snackbarLog]', 'color: green;', givenMessage);
-    var data = {
+    let data = {
         message: givenMessage,
         timeout: 2000
     };
@@ -173,7 +175,7 @@ function snackbarLog(givenMessage) {
 
 function snackbarLogLong(givenMessage) {
     console.log('%c[index.js, snackbarLog]', 'color: green;', givenMessage);
-    var data = {
+    let data = {
         message: givenMessage,
         timeout: 5000
     };
@@ -186,14 +188,14 @@ function updateBitrateField() {
 }
 
 function moduleDidLoad() {
-    if(!myUniqueid) {
-      console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to get uniqueId.  We should have already generated one.  Regenerating...');
-      myUniqueid = uniqueid();
-      storeData('uniqueid', myUniqueid, null);
+    if (!myUniqueid) {
+        console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to get uniqueId.  We should have already generated one.  Regenerating...');
+        myUniqueid = uniqueid();
+        storeData('uniqueid', myUniqueid, null);
     }
 
-    if(!pairingCert) { // we couldn't load a cert. Make one.
-      console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to load local cert. Generating new one');
+    if (!pairingCert) { // we couldn't load a cert. Make one.
+        console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to load local cert. Generating new one');
         sendMessage('makeCert', []).then(function (cert) {
             storeData('cert', cert, null);
             pairingCert = cert;
@@ -204,7 +206,7 @@ function moduleDidLoad() {
             sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
                 restoreUiAfterNaClLoad();
             }, function (failedInit) {
-              console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
+                console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
             });
         });
     }
@@ -212,14 +214,14 @@ function moduleDidLoad() {
         sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
             restoreUiAfterNaClLoad();
         }, function (failedInit) {
-          console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
+            console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
         });
     }
 }
 
 // pair to the given NvHTTP host object.  Returns whether pairing was successful.
 function pairTo(nvhttpHost, onSuccess, onFailure) {
-    if(!pairingCert) {
+    if (!pairingCert) {
         snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
         console.warn('%c[index.js]', 'color: green;', 'User wants to pair, and we still have no cert. Problem = very yes.');
         onFailure();
@@ -239,8 +241,8 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
             return;
         }
 
-        var randomNumber = String("0000" + (Math.random()*10000|0)).slice(-4);
-        var pairingDialog = document.querySelector('#pairingDialog');
+        let randomNumber = String("0000" + (Math.random() * 10000 | 0)).slice(-4);
+        let pairingDialog = document.querySelector('#pairingDialog');
         $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
         pairingDialog.showModal();
 
@@ -286,13 +288,13 @@ function hostChosen(host) {
     api = host;
     if (!host.paired) {
         // Still not paired; go to the pairing flow
-        pairTo(host, function() {
-            showApps(host);
-            saveHosts();
-        },
-        function(){
+        pairTo(host, function () {
+                showApps(host);
+                saveHosts();
+            },
+            function () {
                 startPollingHosts();
-        });
+            });
     } else {
         // When we queried again, it was paired, so show apps.
         showApps(host);
@@ -302,24 +304,24 @@ function hostChosen(host) {
 // the `+` was selected on the host grid.
 // give the user a dialog to input connection details for the PC
 function addHost() {
-    var modal = document.querySelector('#addHostDialog');
+    let modal = document.querySelector('#addHostDialog');
     modal.showModal();
 
     // drop the dialog if they cancel
     $('#cancelAddHost').off('click');
-    $('#cancelAddHost').on('click', function() {
+    $('#cancelAddHost').on('click', function () {
         modal.close();
     });
 
     // try to pair if they continue
     $('#continueAddHost').off('click');
     $('#continueAddHost').on('click', function () {
-        var inputHost = $('#dialogInputHost').val();
-        var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
+        let inputHost = $('#dialogInputHost').val();
+        let _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
 
-        pairTo(_nvhttpHost, function() {
+        pairTo(_nvhttpHost, function () {
             // Check if we already have record of this host
-            if (hosts[_nvhttpHost.serverUid] != null) {
+            if (hosts[_nvhttpHost.serverUid] != undefined) {
                 // Just update the addresses
                 hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
                 hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
@@ -329,7 +331,7 @@ function addHost() {
                 addHostToGrid(_nvhttpHost);
             }
             saveHosts();
-        }, function() {
+        }, function () {
             snackbarLog('pairing to ' + inputHost + ' failed!');
         });
         modal.close();
@@ -340,10 +342,22 @@ function addHost() {
 // host is an NvHTTP object
 function addHostToGrid(host, ismDNSDiscovered) {
 
-    var outerDiv = $("<div>", {class: 'host-container mdl-card mdl-shadow--4dp', id: 'host-container-' + host.serverUid, role: 'link', tabindex: 0, 'aria-label': host.hostname });
-    var cell = $("<div>", {class: 'mdl-card__title mdl-card--expand', id: 'hostgrid-' + host.serverUid });
+    let outerDiv = $("<div>", {
+        class: 'host-container mdl-card mdl-shadow--4dp',
+        id: 'host-container-' + host.serverUid,
+        role: 'link',
+        tabindex: 0,
+        'aria-label': host.hostname
+    });
+    let cell = $("<div>", {class: 'mdl-card__title mdl-card--expand', id: 'hostgrid-' + host.serverUid});
     $(cell).prepend($("<h2>", {class: "mdl-card__title-text", html: host.hostname}));
-    var removalButton = $("<div>", {class: "remove-host", id: "removeHostButton-" + host.serverUid, role: 'button', tabindex: 0, 'aria-label': 'Remove host ' + host.hostname});
+    let removalButton = $("<div>", {
+        class: "remove-host",
+        id: "removeHostButton-" + host.serverUid,
+        role: 'button',
+        tabindex: 0,
+        'aria-label': 'Remove host ' + host.hostname
+    });
     removalButton.off('click');
     removalButton.click(function () {
         removeClicked(host);
@@ -352,10 +366,10 @@ function addHostToGrid(host, ismDNSDiscovered) {
     cell.click(function () {
         hostChosen(host);
     });
-    outerDiv.keypress(function(e){
-      if(e.keyCode == 13) {
-        hostChosen(host);
-      }
+    outerDiv.keypress(function (e) {
+        if (e.keyCode == 13) {
+            hostChosen(host);
+        }
     });
     $(outerDiv).append(cell);
     if (!ismDNSDiscovered) {
@@ -367,9 +381,9 @@ function addHostToGrid(host, ismDNSDiscovered) {
 }
 
 function removeClicked(host) {
-    var deleteHostDialog = document.querySelector('#deleteHostDialog');
+    let deleteHostDialog = document.querySelector('#deleteHostDialog');
     document.getElementById('deleteHostDialogText').innerHTML =
-    ' Are you sure you want to delete ' + host.hostname + '?';
+        ' Are you sure you want to delete ' + host.hostname + '?';
     deleteHostDialog.showModal();
 
     $('#cancelDeleteHost').off('click');
@@ -382,7 +396,6 @@ function removeClicked(host) {
     // this means we can re-add the host, and will still be paired.
     $('#continueDeleteHost').off('click');
     $('#continueDeleteHost').on('click', function () {
-        var deleteHostDialog = document.querySelector('#deleteHostDialog');
         $('#host-container-' + host.serverUid).remove();
         delete hosts[host.serverUid]; // remove the host from the array;
         saveHosts();
@@ -396,16 +409,17 @@ function removeClicked(host) {
 // the function was made like this so that we can remove duplicated code, but
 // not do N*N stylizations of the box art, or make the code not flow very well
 function stylizeBoxArt(freshApi, appIdToStylize) {
-    if (freshApi.currentGame === appIdToStylize){ // stylize the currently running game
+    let app_selector = $('#game-' + appIdToStylize);
+    if (freshApi.currentGame == appIdToStylize) { // stylize the currently running game
         // destylize it, if it has the not-current-game style
-        if ($('#game-'+ appIdToStylize).hasClass("not-current-game")) $('#game-'+ appIdToStylize).removeClass("not-current-game");
+        if (app_selector.hasClass("not-current-game")) $('#game-' + appIdToStylize).removeClass("not-current-game");
         // add the current-game style
-        $('#game-'+ appIdToStylize).addClass("current-game");
+        app_selector.addClass("current-game");
     } else {
         // destylize it, if it has the current-game style
-        if ($('#game-'+ appIdToStylize).hasClass("current-game")) $('#game-'+ appIdToStylize).removeClass("current-game");
+        if (app_selector.hasClass("current-game")) $('#game-' + appIdToStylize).removeClass("current-game");
         // add the not-current-game style
-        $('#game-'+ appIdToStylize).addClass('not-current-game');
+        app_selector.addClass('not-current-game');
     }
 }
 
@@ -431,9 +445,9 @@ function sortTitles(list, sortOrder) {
 
 // show the app list
 function showApps(host) {
-    if(!host || !host.paired) {  // safety checking. shouldn't happen.
-      console.log('%c[index.js, showApps]', 'color: green;', 'Moved into showApps, but `host` did not initialize properly! Failing.');
-      return;
+    if (!host || !host.paired) {  // safety checking. shouldn't happen.
+        console.log('%c[index.js, showApps]', 'color: green;', 'Moved into showApps, but `host` did not initialize properly! Failing.');
+        return;
     }
     console.log('%c[index.js, showApps]', 'color: green;', 'Current host object:', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
     $('#quitCurrentApp').show();
@@ -455,25 +469,37 @@ function showApps(host) {
         sortedAppList.forEach(function (app) {
             host.getBoxArt(app.id).then(function (resolvedPromise) {
                 // put the box art into the image holder
-                if ($('#game-' + app.id).length === 0) {
+                if ($('#game-' + app.id).length == 0) {
                     // double clicking the button will cause multiple box arts to appear.
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
-                    var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
-                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: URL.createObjectURL(imageBlob), role: 'link', tabindex: 0, title: app.title, 'aria-label': app.title });
-                    $(outerDiv).append($("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }));
-                    $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
+                    let imageBlob = new Blob([resolvedPromise], {type: "image/png"});
+                    let outerDiv = $("<div>", {
+                        class: 'game-container mdl-card mdl-shadow--4dp',
+                        id: 'game-' + app.id,
+                        backgroundImage: URL.createObjectURL(imageBlob),
+                        role: 'link',
+                        tabindex: 0,
+                        title: app.title,
+                        'aria-label': app.title
+                    });
+                    $(outerDiv).append($("<img \>", {
+                        src: URL.createObjectURL(imageBlob),
+                        id: 'game-' + app.id,
+                        name: app.title
+                    }));
+                    $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title})}));
                     $("#game-grid").append(outerDiv);
 
 
                     // $("#gameList").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
-                    $('#game-'+app.id).on('click', function () {
+                    $('#game-' + app.id).on('click', function () {
                         startGame(host, app.id);
                     });
-                    $('#game-'+app.id).keypress(function(e){
-                      if(e.keyCode == 13) {
-                        startGame(host, app.id);
-                      }
+                    $('#game-' + app.id).keypress(function (e) {
+                        if (e.keyCode == 13) {
+                            startGame(host, app.id);
+                        }
                     });
 
                     // apply CSS stylization to indicate whether the app is active
@@ -481,18 +507,26 @@ function showApps(host) {
                 }
 
             }, function (failedPromise) {
-              console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
+                console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
 
-                if ($('#game-' + app.id).length === 0) {
+                if ($('#game-' + app.id).length == 0) {
                     // double clicking the button will cause multiple box arts to appear.
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
-                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: "static/res/no_app_image.png" });
-                    $(outerDiv).append($("<img \>", {src: "static/res/no_app_image.png", id: 'game-'+app.id, name: app.title }));
-                    $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
+                    let outerDiv = $("<div>", {
+                        class: 'game-container mdl-card mdl-shadow--4dp',
+                        id: 'game-' + app.id,
+                        backgroundImage: "static/res/no_app_image.png"
+                    });
+                    $(outerDiv).append($("<img \>", {
+                        src: "static/res/no_app_image.png",
+                        id: 'game-' + app.id,
+                        name: app.title
+                    }));
+                    $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title})}));
                     $("#game-grid").append(outerDiv);
 
-                    $('#game-'+app.id).on('click', function () {
+                    $('#game-' + app.id).on('click', function () {
                         startGame(host, app.id);
                     });
 
@@ -549,18 +583,18 @@ function showAppsMode() {
 // start the given appID.  if another app is running, offer to quit it.
 // if the given app is already running, just resume it.
 function startGame(host, appID) {
-    if(!host || !host.paired) {
-      console.error('%c[index.js, startGame]', 'color: green;', 'Attempted to start a game, but `host` did not initialize properly. Host object: ', host);
-      return;
+    if (!host || !host.paired) {
+        console.error('%c[index.js, startGame]', 'color: green;', 'Attempted to start a game, but `host` did not initialize properly. Host object: ', host);
+        return;
     }
 
     // refresh the server info, because the user might have quit the game.
     host.refreshServerInfo().then(function (ret) {
         host.getAppById(appID).then(function (appToStart) {
 
-            if(host.currentGame != 0 && host.currentGame != appID) {
+            if (host.currentGame != 0 && host.currentGame != appID) {
                 host.getAppById(host.currentGame).then(function (currentApp) {
-                    var quitAppDialog = document.querySelector('#quitAppDialog');
+                    let quitAppDialog = document.querySelector('#quitAppDialog');
                     document.getElementById('quitAppDialogText').innerHTML =
                         currentApp.title + ' is already running. Would you like to quit ' +
                         currentApp.title + '?';
@@ -568,64 +602,59 @@ function startGame(host, appID) {
                     $('#cancelQuitApp').off('click');
                     $('#cancelQuitApp').on('click', function () {
                         quitAppDialog.close();
-                        console.log('[index.js, startGame]','color: green;', 'Closing app dialog, and returning');
+                        console.log('[index.js, startGame]', 'color: green;', 'Closing app dialog, and returning');
                     });
                     $('#continueQuitApp').off('click');
                     $('#continueQuitApp').on('click', function () {
-                        console.log('[index.js, startGame]','color: green;', 'Stopping game, and closing app dialog, and returning');
+                        console.log('[index.js, startGame]', 'color: green;', 'Stopping game, and closing app dialog, and returning');
                         stopGame(host, function () {
                             // please oh please don't infinite loop with recursion
                             startGame(host, appID);
                         });
                         quitAppDialog.close();
                     });
-
-                    return;
                 }, function (failedCurrentApp) {
-                    console.error('[index.js, startGame]','color: green;', 'Failed to get the current running app from host! Returned error was:' + failedCurrentApp, '\n Host object:', host, host.toString());
-                    return;
+                    console.error('[index.js, startGame]', 'color: green;', 'Failed to get the current running app from host! Returned error was:' + failedCurrentApp, '\n Host object:', host, host.toString());
                 });
                 return;
             }
 
-            var frameRate = $('#selectFramerate').data('value').toString();
-            var optimize = $("#optimizeGamesSwitch").parent().hasClass('is-checked') ? 1 : 0;
-            var streamWidth = $('#selectResolution').data('value').split(':')[0];
-            var streamHeight = $('#selectResolution').data('value').split(':')[1];
+            let frameRate = $('#selectFramerate').data('value').toString();
+            let optimize = $("#optimizeGamesSwitch").parent().hasClass('is-checked') ? 1 : 0;
+            let streamWidth = $('#selectResolution').data('value').split(':')[0];
+            let streamHeight = $('#selectResolution').data('value').split(':')[1];
             // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
-            var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
-            console.log('%c[index.js, startGame]','color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate + ":" + optimize);
+            let bitrate = parseInt($("#bitrateSlider").val()) * 1000;
+            console.log('%c[index.js, startGame]', 'color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate + ":" + optimize);
 
-            var rikey = generateRemoteInputKey();
-            var rikeyid = generateRemoteInputKeyId();
+            let rikey = generateRemoteInputKey();
+            let rikeyid = generateRemoteInputKeyId();
 
             $('#loadingMessage').text('Starting ' + appToStart.title + '...');
             playGameMode();
 
-            if(host.currentGame == appID) { // if user wants to launch the already-running app, then we resume it.
+            if (host.currentGame == appID) { // if user wants to launch the already-running app, then we resume it.
                 return host.resumeApp(rikey, rikeyid).then(function (ret) {
                     sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-                            bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
+                        bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
                 }, function (failedResumeApp) {
-                    console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
-                    return;
+                    console.error('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
                 });
             }
 
-            var remote_audio_enabled = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
+            let remote_audio_enabled = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
 
             host.launchApp(appID,
-                    streamWidth + "x" + streamHeight + "x" + frameRate,
-                    optimize, // DON'T Allow GFE (0) to optimize game settings, or ALLOW (1) to optimize game settings
-                    rikey, rikeyid,
-                    remote_audio_enabled, // Play audio locally too?
-                    0x030002 // Surround channel mask << 16 | Surround channel count
-                    ).then(function (ret) {
+                streamWidth + "x" + streamHeight + "x" + frameRate,
+                optimize, // DON'T Allow GFE (0) to optimize game settings, or ALLOW (1) to optimize game settings
+                rikey, rikeyid,
+                remote_audio_enabled, // Play audio locally too?
+                0x030002 // Surround channel mask << 16 | Surround channel count
+            ).then(function (ret) {
                 sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-                        bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
+                    bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
             }, function (failedLaunchApp) {
-                console.error('%c[index.js, launchApp]','color: green;','Failed to launch app width id: ' + appID + '\nReturned error was: ' + failedLaunchApp);
-                return;
+                console.error('%c[index.js, launchApp]', 'color: green;', 'Failed to launch app width id: ' + appID + '\nReturned error was: ' + failedLaunchApp);
             });
 
         });
@@ -648,31 +677,31 @@ function playGameMode() {
 
 // Maximize the size of the nacl module by scaling and resizing appropriately
 function fullscreenNaclModule() {
-    var streamWidth = $('#selectResolution').data('value').split(':')[0];
-    var streamHeight = $('#selectResolution').data('value').split(':')[1];
-    var screenWidth = window.innerWidth;
-    var screenHeight = window.innerHeight;
+    let streamWidth = $('#selectResolution').data('value').split(':')[0];
+    let streamHeight = $('#selectResolution').data('value').split(':')[1];
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
 
-    var xRatio = screenWidth / streamWidth;
-    var yRatio = screenHeight / streamHeight;
+    let xRatio = screenWidth / streamWidth;
+    let yRatio = screenHeight / streamHeight;
 
-    var zoom = Math.min(xRatio, yRatio);
+    let zoom = Math.min(xRatio, yRatio);
 
-    var module = $("#nacl_module")[0];
+    let module = $("#nacl_module")[0];
     module.width = zoom * streamWidth;
     module.height = zoom * streamHeight;
     module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
 }
 
 function stopGameWithConfirmation() {
-    if (api.currentGame === 0) {
+    if (api.currentGame == 0) {
         snackbarLog('Nothing was running');
     } else {
         api.getAppById(api.currentGame).then(function (currentGame) {
-            var quitAppDialog = document.querySelector('#quitAppDialog');
+            let quitAppDialog = document.querySelector('#quitAppDialog');
             document.getElementById('quitAppDialogText').innerHTML =
-            ' Are you sure you would like to quit ' +
-            currentGame.title + '?  Unsaved progress will be lost.';
+                ' Are you sure you would like to quit ' +
+                currentGame.title + '?  Unsaved progress will be lost.';
             quitAppDialog.showModal();
             $('#cancelQuitApp').off('click');
             $('#cancelQuitApp').on('click', function () {
@@ -703,13 +732,13 @@ function stopGame(host, callbackFunction) {
                 snackbarLog('Nothing was running');
                 return;
             }
-            var appName = runningApp.title;
+            let appName = runningApp.title;
             snackbarLog('Stopping ' + appName);
             host.quitApp().then(function (ret2) {
                 host.refreshServerInfo().then(function (ret3) { // refresh to show no app is currently running.
                     showAppsMode();
                     stylizeBoxArt(host, runningApp.id);
-                    if (typeof(callbackFunction) === "function") callbackFunction();
+                    if (typeof(callbackFunction) == "function") callbackFunction();
                 }, function (failedRefreshInfo2) {
                     console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to refresh server info! Returned error was:' + failedRefreshInfo + ' and failed server was:', host, host.toString());
                 });
@@ -717,7 +746,7 @@ function stopGame(host, callbackFunction) {
                 console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to quit app! Returned error was:' + failedQuitApp);
             });
         }, function (failedGetApp) {
-          console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to get app ID! Returned error was:' + failedRefreshInfo);
+            console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to get app ID! Returned error was:' + failedRefreshInfo);
         });
     }, function (failedRefreshInfo) {
         console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to refresh server info! Returned error was:' + failedRefreshInfo);
@@ -725,14 +754,14 @@ function stopGame(host, callbackFunction) {
 }
 
 function storeData(key, data, callbackFunction) {
-    var obj = {};
+    let obj = {};
     obj[key] = data;
-    if(chrome.storage)
+    if (chrome.storage)
         chrome.storage.sync.set(obj, callbackFunction);
 }
 
 function saveResolution() {
-    var chosenResolution = $(this).data('value');
+    let chosenResolution = $(this).data('value');
     $('#selectResolution').text($(this).text()).data('value', chosenResolution);
     storeData('resolution', chosenResolution, null);
     updateDefaultBitrate();
@@ -741,27 +770,26 @@ function saveResolution() {
 function saveOptimize() {
     // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
     // checking the new state
-    setTimeout(function() {
-        var chosenOptimize = $("#optimizeGamesSwitch").parent().hasClass('is-checked');
+    setTimeout(function () {
+        let chosenOptimize = $("#optimizeGamesSwitch").parent().hasClass('is-checked');
         console.log('%c[index.js, saveOptimize]', 'color: green;', 'Saving optimize state : ' + chosenOptimize);
         storeData('optimize', chosenOptimize, null);
     }, 100);
 }
 
 function saveFramerate() {
-    var chosenFramerate = $(this).data('value');
+    let chosenFramerate = $(this).data('value');
     $('#selectFramerate').text($(this).text()).data('value', chosenFramerate);
     storeData('frameRate', chosenFramerate, null);
     updateDefaultBitrate();
 }
 
 
-
 // storing data in chrome.storage takes the data as an object, and shoves it into JSON to store
 // unfortunately, objects with function instances (classes) are stripped of their function instances when converted to a raw object
 // so we cannot forget to revive the object after we load it.
 function saveHosts() {
-    for(var hostUID in hosts) {
+    for (let hostUID in hosts) {
         // slim the object down to only store the necessary bytes, because we have limited storage
         hosts[hostUID]._prepareForStorage();
     }
@@ -775,31 +803,31 @@ function saveBitrate() {
 function saveRemoteAudio() {
     // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
     // checking the new state
-    setTimeout(function() {
-        var remoteAudioState = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked');
+    setTimeout(function () {
+        let remoteAudioState = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked');
         console.log('%c[index.js, saveRemoteAudio]', 'color: green;', 'Saving remote audio state : ' + remoteAudioState);
         storeData('remoteAudio', remoteAudioState, null);
     }, 100);
 }
 
 function updateDefaultBitrate() {
-    var res = $('#selectResolution').data('value');
-    var frameRate = $('#selectFramerate').data('value').toString();
+    let res = $('#selectResolution').data('value');
+    let frameRate = $('#selectFramerate').data('value').toString();
 
-    if (res ==="1920:1080") {
-        if (frameRate === "30") { // 1080p, 30fps
+    if (res == "1920:1080") {
+        if (frameRate == "30") { // 1080p, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         } else { // 1080p, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('20');
         }
-    } else if (res === "1280:720") {
-        if (frameRate === "30") { // 720, 30fps
+    } else if (res == "1280:720") {
+        if (frameRate == "30") { // 720, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('5');
         } else { // 720, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('10');
         }
-    } else if (res === "3840:2160") {
-        if (frameRate === "30") { // 2160p, 30fps
+    } else if (res == "3840:2160") {
+        if (frameRate == "30") { // 2160p, 30fps
             $('#bitrateSlider')[0].MaterialSlider.change('40');
         } else { // 2160p, 60fps
             $('#bitrateSlider')[0].MaterialSlider.change('80');
@@ -812,19 +840,19 @@ function updateDefaultBitrate() {
     saveBitrate();
 }
 
-function onWindowLoad(){
+function onWindowLoad() {
     console.log('%c[index.js]', 'color: green;', 'Moonlight\'s main window loaded');
     // don't show the game selection div
     $('#gameSelection').css('display', 'none');
 
     loadWindowState();
 
-    if(chrome.storage) {
+    if (chrome.storage) {
         // load stored resolution prefs
-        chrome.storage.sync.get('resolution', function(previousValue) {
-            if(previousValue.resolution != null) {
+        chrome.storage.sync.get('resolution', function (previousValue) {
+            if (previousValue.resolution != null) {
                 $('.resolutionMenu li').each(function () {
-                    if ($(this).data('value') === previousValue.resolution) {
+                    if ($(this).data('value') == previousValue.resolution) {
                         $('#selectResolution').text($(this).text()).data('value', previousValue.resolution);
                     }
                 });
@@ -832,21 +860,21 @@ function onWindowLoad(){
         });
 
         // Load stored remote audio prefs
-        chrome.storage.sync.get('remoteAudio', function(previousValue) {
-            if(previousValue.remoteAudio == null) {
+        chrome.storage.sync.get('remoteAudio', function (previousValue) {
+            if (previousValue.remoteAudio == null) {
                 document.querySelector('#externalAudioBtn').MaterialIconToggle.uncheck();
             } else if (previousValue.remoteAudio == false) {
                 document.querySelector('#externalAudioBtn').MaterialIconToggle.uncheck();
-            }  else {
+            } else {
                 document.querySelector('#externalAudioBtn').MaterialIconToggle.check();
             }
         });
 
         // load stored framerate prefs
-        chrome.storage.sync.get('frameRate', function(previousValue) {
-            if(previousValue.frameRate != null) {
+        chrome.storage.sync.get('frameRate', function (previousValue) {
+            if (previousValue.frameRate != null) {
                 $('.framerateMenu li').each(function () {
-                    if ($(this).data('value') === previousValue.frameRate) {
+                    if ($(this).data('value') == previousValue.frameRate) {
                         $('#selectFramerate').text($(this).text()).data('value', previousValue.frameRate);
                     }
                 });
@@ -854,30 +882,30 @@ function onWindowLoad(){
         });
 
         // load stored optimization prefs
-        chrome.storage.sync.get('optimize', function(previousValue) {
+        chrome.storage.sync.get('optimize', function (previousValue) {
             if (previousValue.optimize == null) {
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.check();
             } else if (previousValue.optimize == false) {
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.uncheck();
-            }  else {
+            } else {
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.check();
             }
         });
 
         // load stored bitrate prefs
-        chrome.storage.sync.get('bitrate', function(previousValue) {
+        chrome.storage.sync.get('bitrate', function (previousValue) {
             $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
             updateBitrateField();
         });
 
         // load the HTTP cert if we have one.
-        chrome.storage.sync.get('cert', function(savedCert) {
+        chrome.storage.sync.get('cert', function (savedCert) {
             if (savedCert.cert != null) { // we have a saved cert
                 pairingCert = savedCert.cert;
             }
         });
 
-        chrome.storage.sync.get('uniqueid', function(savedUniqueid) {
+        chrome.storage.sync.get('uniqueid', function (savedUniqueid) {
             if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
                 myUniqueid = savedUniqueid.uniqueid;
             } else {
@@ -887,10 +915,10 @@ function onWindowLoad(){
         });
 
         // load previously connected hosts, which have been killed into an object, and revive them back into a class
-        chrome.storage.sync.get('hosts', function(previousValue) {
+        chrome.storage.sync.get('hosts', function (previousValue) {
             hosts = previousValue.hosts != null ? previousValue.hosts : {};
-            for(var hostUID in hosts) { // programmatically add each new host.
-                var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
+            for (let hostUID in hosts) { // programmatically add each new host.
+                let revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
                 revivedHost.serverUid = hosts[hostUID].serverUid;
                 revivedHost.externalIP = hosts[hostUID].externalIP;
                 revivedHost.hostname = hosts[hostUID].hostname;
