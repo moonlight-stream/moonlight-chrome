@@ -4,6 +4,11 @@
     "short_name": "Moonlight",
     "version": "0.8.0",
     "description": "Open-source client for NVIDIA GameStream",
+    "build":{
+        "nwFlavor": "sdk",
+	"excludes":["**/h264bitstream/**/*", "**/libgamestream/**/*", "**/moonlight-common-c/**/*", "**/opus/**/*", "**/ports/**/*", "**/*.cpp", "**/*.hpp", "**/*.c", "**/*.h", "**/*.md", 
+"make.bat", "Makefile", "**/*.mk", "package.json"]
+    },
     "icons": {
         "128": "icons/icon128.png",
         "48": "icons/icon48.png",

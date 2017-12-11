@@ -1,0 +1,24 @@
+{
+  "name": "moonlight-chrome",
+  "version": "1.0.0",
+  "description": "Open-source client for NVIDIA GameStream",
+  "main":"index.html",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cgutman/moonlight-chrome.git"
+  },
+  "author": "",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/cgutman/moonlight-chrome/issues"
+  },
+  "homepage": "https://github.com/cgutman/moonlight-chrome#readme",
+  "devDependencies": {
+    "nwjs-builder-phoenix": "^1.14.6"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dist": "build --chrome-app --tasks mac-x64,win-x64 --mirror https://dl.nwjs.io/ .",
+    "start": "run --x86 --mirror https://dl.nwjs.io/ ."
+  }
+}

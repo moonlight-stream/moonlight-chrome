@@ -1,5 +1,7 @@
 user-data-dir/
 pnacl/
+dist/
+node_modules/
 
 # Object files
 *.o
