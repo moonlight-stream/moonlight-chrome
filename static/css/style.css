@@ -105,8 +105,7 @@ main {
     padding:25px;
 }
 #backIcon {
-    position: fixed;
-    left: 28px;
+    right: 5px;
 }
 #backIcon:hover {
     cursor: pointer;
