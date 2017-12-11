@@ -1,48 +1,88 @@
-{
-    "manifest_version": 2,
-    "name": "Moonlight Game Streaming",
-    "short_name": "Moonlight",
-    "version": "0.8.0",
-    "description": "Open-source client for NVIDIA GameStream",
-    "build":{
-        "nwFlavor": "sdk",
-	"excludes":["**/h264bitstream/**/*", "**/libgamestream/**/*", "**/moonlight-common-c/**/*", "**/opus/**/*", "**/ports/**/*", "**/*.cpp", "**/*.hpp", "**/*.c", "**/*.h", "**/*.md", 
-"make.bat", "Makefile", "**/*.mk", "package.json"]
-    },
-    "icons": {
-        "128": "icons/icon128.png",
-        "48": "icons/icon48.png",
-        "32": "icons/icon32.png",
-        "16": "icons/icon16.png"    
-    },
-    "app": {
-        "background": {
-            "persistent": false,
-            "css": ["static/css/material.min.css", "static/css/material-icons.css", "static/css/style.css", "static/css/roboto.css"],
-            "scripts": ["static/js/jquery-2.2.0.min.js", "static/js/material.min.js", "static/js/common.js", "static/js/background.js"]
-        }
-    },
-    "sockets": {
-        "udp": { "bind": "*", "send": "*" }
-    },
-    "permissions": [
-        "storage",
-        "unlimitedStorage",
-        "pointerLock",
-        "system.network",
-        "fullscreen",
-        "power",
-        "overrideEscFullscreen", {
-        "socket": [
-            "tcp-connect", 
-            "resolve-host", 
-            "udp-bind:*:*", 
+{  
+   "manifest_version":2,
+   "name":"Moonlight Game Streaming",
+   "short_name":"Moonlight",
+   "version":"0.0.1",
+   "description":"Open-source client for NVIDIA GameStream",
+   "build":{  
+      "nwFlavor":"sdk",
+      "excludes":[  
+         "**/h264bitstream/**/*",
+         "**/libgamestream/**/*",
+         "**/moonlight-common-c/**/*",
+         "**/opus/**/*",
+         "**/ports/**/*",
+         "**/*.cpp",
+         "**/*.hpp",
+         "**/*.c",
+         "**/*.h",
+         "**/*.md",
+         "**/*.mk",
+         "make.bat",
+         "Makefile",
+         "package.json"
+      ],
+      "appId":"com.moonlight.moonlight-native",
+      "strippedProperties":[  
+         "build",
+         "scripts",
+         "devDependencies"
+      ],
+      "win":{  
+         "icon":"icons/windows.ico"
+      },
+      "mac":{  
+         "icon":"icons/macos.icns",
+         "plistStrings":{  
+            "CFBundleIdentifier":"com.moonlight.moonlight-native"
+         }
+      }
+   },
+   "app":{  
+      "background":{  
+         "persistent":false,
+         "css":[  
+            "static/css/material.min.css",
+            "static/css/material-icons.css",
+            "static/css/style.css",
+            "static/css/roboto.css"
+         ],
+         "scripts":[  
+            "static/js/jquery-2.2.0.min.js",
+            "static/js/material.min.js",
+            "static/js/common.js",
+            "static/js/background.js"
+         ]
+      }
+   },
+   "sockets":{  
+      "udp":{  
+         "bind":"*",
+         "send":"*"
+      }
+   },
+   "permissions":[  
+      "storage",
+      "unlimitedStorage",
+      "pointerLock",
+      "system.network",
+      "fullscreen",
+      "power",
+      "overrideEscFullscreen",
+      {  
+         "socket":[  
+            "tcp-connect",
+            "resolve-host",
+            "udp-bind:*:*",
             "udp-send-to:*:*"
-        ] }
-    ],
-    "requirements": {
-        "3D": {
-            "features": ["webgl"]
-        }
-    }
+         ]
+      }
+   ],
+   "requirements":{  
+      "3D":{  
+         "features":[  
+            "webgl"
+         ]
+      }
+   }
 }
