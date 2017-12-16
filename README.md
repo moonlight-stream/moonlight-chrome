@@ -1,4 +1,4 @@
-# Moonlight Native
+# Moonlight Chrome, Native Build
 
 [Moonlight Native](http://moonlight-stream.com) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield, but built to run natively.
 
@@ -21,7 +21,7 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 
 ## Installation
 * Download [GeForce Experience](http://www.geforce.com/geforce-experience) and install on your GameStream-compatible PC
-* Install the [latest release](https://github.com/moonlight-stream/moonlight-native/releases)
+* Install the latest release [none currently released for moonlight-native]
 
 ## Requirements
 * [GameStream-compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600+ series desktop or mobile GPU (for the PC from which you're streaming)
@@ -29,10 +29,10 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 
 ## Building
 1. Install the Chrome Native Client SDK, download the current Pepper SDK, and ensure a recent version `npm` is installed
-2. Run `npm install nwjs-builder-phoenix --save-dev` from within `moonlight-native/`
+2. Run `npm install nwjs-builder-phoenix --save-dev` from within `moonlight-chrome/`
 3. Set the `NACL_SDK_ROOT` environment variable to your Pepper SDK folder. If you need more detailed instructions, see [here](https://github.com/google/pepper.js/wiki/Getting-Started)
-4. Run `git submodule update --init --recursive` from within `moonlight-native/`
-5. Run `make` from within `moonlight-native/`
+4. Run `git submodule update --init --recursive` from within `moonlight-chrome/`
+5. Run `make` from within `moonlight-chrome/`
 6. Run `npm run dist`
 
 ## Testing
