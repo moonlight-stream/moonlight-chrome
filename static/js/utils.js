@@ -23,6 +23,38 @@ function generateRemoteInputKeyId() {
     return ((Math.random()-0.5) * 0x7FFFFFFF)|0;
 }
 
+function getConnectedGamepadMask() {
+    var count = 0;
+    var mask = 0;
+    var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+    for (var i = 0; i < gamepads.length; i++) {
+        var gamepad = gamepads[i];
+        if (gamepad) {
+            // See logic in gamepad.cpp
+            // These must stay in sync!
+
+            if (!gamepad.connected) {
+                // Not connected
+                continue;
+            }
+
+            if (gamepad.timestamp == 0) {
+                // On some platforms, Chrome returns "connected" pads that
+                // really aren't, so timestamp stays at zero. To work around this,
+                // we'll only count gamepads that have a non-zero timestamp in our
+                // controller index.
+                continue;
+            }
+
+            mask |= 1 << count++;
+        }
+    }
+
+    console.log('%c[utils.js, getConnectedGamepadMask]', 'color:gray;', 'Detected '+count+' gamepads');
+    return mask;
+}
+
 String.prototype.toHex = function() {
 	var hex = '';
 	for(var i = 0; i < this.length; i++) {
@@ -440,7 +472,7 @@ NvHTTP.prototype = {
         }
     },
 
-    launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo) {
+    launchApp: function (appId, mode, sops, rikey, rikeyid, localAudio, surroundAudioInfo, gamepadMask) {
         return sendMessage('openUrl', [
             this._baseUrlHttps +
             '/launch?' + this._buildUidStr() +
@@ -450,19 +482,22 @@ NvHTTP.prototype = {
             '&rikey=' + rikey +
             '&rikeyid=' + rikeyid +
             '&localAudioPlayMode=' + localAudio +
-            '&surroundAudioInfo=' + surroundAudioInfo,
+            '&surroundAudioInfo=' + surroundAudioInfo +
+            '&remoteControllersBitmap=' + gamepadMask +
+            '&gcmap=' + gamepadMask,
             false
         ]).then(function (ret) {
             return true;
         });
     },
 
-    resumeApp: function (rikey, rikeyid) {
+    resumeApp: function (rikey, rikeyid, surroundAudioInfo) {
         return sendMessage('openUrl', [
             this._baseUrlHttps +
             '/resume?' + this._buildUidStr() +
             '&rikey=' + rikey +
-            '&rikeyid=' + rikeyid,
+            '&rikeyid=' + rikeyid +
+            '&surroundAudioInfo=' + surroundAudioInfo,
             false
         ]).then(function (ret) {
             return true;

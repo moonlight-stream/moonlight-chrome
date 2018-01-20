@@ -598,12 +598,15 @@ function startGame(host, appID) {
 
             var rikey = generateRemoteInputKey();
             var rikeyid = generateRemoteInputKeyId();
+            var gamepadMask = getConnectedGamepadMask();
 
             $('#loadingMessage').text('Starting ' + appToStart.title + '...');
             playGameMode();
 
             if(host.currentGame == appID) { // if user wants to launch the already-running app, then we resume it.
-                return host.resumeApp(rikey, rikeyid).then(function (ret) {
+                return host.resumeApp(
+                    rikey, rikeyid, 0x030002 // Surround channel mask << 16 | Surround channel count
+                ).then(function (ret) {
                     sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
                             bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
                 }, function (failedResumeApp) {
@@ -619,7 +622,8 @@ function startGame(host, appID) {
                     optimize, // DON'T Allow GFE (0) to optimize game settings, or ALLOW (1) to optimize game settings
                     rikey, rikeyid,
                     remote_audio_enabled, // Play audio locally too?
-                    0x030002 // Surround channel mask << 16 | Surround channel count
+                    0x030002, // Surround channel mask << 16 | Surround channel count
+                    gamepadMask
                     ).then(function (ret) {
                 sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
                         bitrate.toString(), rikey, rikeyid.toString(), host.appVersion]);
