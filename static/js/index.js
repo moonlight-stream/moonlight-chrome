@@ -5,6 +5,7 @@ var myUniqueid;
 var api;  // `api` should only be set if we're in a host-specific screen. on the initial screen it should always be null.
 var isInGame = false; // flag indicating whether the game stream started
 var windowState = 'normal'; // chrome's windowState, possible values: 'normal' or 'fullscreen'
+var enableFullscreen = true;
 
 // Called by the common.js module.
 function attachListeners() {
@@ -643,8 +644,9 @@ function playGameMode() {
     $("#main-navigation").hide();
     $("#main-content").children().not("#listener, #loadingSpinner").hide();
     $("#main-content").addClass("fullscreen");
-
-    chrome.app.window.current().fullscreen();
+    if(enableFullscreen) {
+      chrome.app.window.current().fullscreen();
+    }
     fullscreenNaclModule();
     $('#loadingSpinner').css('display', 'inline-block');
 
