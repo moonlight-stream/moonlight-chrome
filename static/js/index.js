@@ -784,10 +784,6 @@ function saveFramerate() {
 // unfortunately, objects with function instances (classes) are stripped of their function instances when converted to a raw object
 // so we cannot forget to revive the object after we load it.
 function saveHosts() {
-    for(var hostUID in hosts) {
-        // slim the object down to only store the necessary bytes, because we have limited storage
-        hosts[hostUID]._prepareForStorage();
-    }
     storeData('hosts', hosts, null);
 }
 
