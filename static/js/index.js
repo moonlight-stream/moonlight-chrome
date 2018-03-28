@@ -222,6 +222,19 @@ function moduleDidLoad() {
                     console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
                 });
             }
+
+            // load previously connected hosts, which have been killed into an object, and revive them back into a class
+            chrome.storage.sync.get('hosts', function(previousValue) {
+                hosts = previousValue.hosts != null ? previousValue.hosts : {};
+                for(var hostUID in hosts) { // programmatically add each new host.
+                    var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
+                    revivedHost.serverUid = hosts[hostUID].serverUid;
+                    revivedHost.externalIP = hosts[hostUID].externalIP;
+                    revivedHost.hostname = hosts[hostUID].hostname;
+                    addHostToGrid(revivedHost);
+                }
+                console.log('%c[index.js]', 'color: green;', 'Loaded previously connected hosts');
+            });
         });
     });
 }
@@ -878,19 +891,6 @@ function onWindowLoad(){
         chrome.storage.sync.get('bitrate', function(previousValue) {
             $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
             updateBitrateField();
-        });
-
-        // load previously connected hosts, which have been killed into an object, and revive them back into a class
-        chrome.storage.sync.get('hosts', function(previousValue) {
-            hosts = previousValue.hosts != null ? previousValue.hosts : {};
-            for(var hostUID in hosts) { // programmatically add each new host.
-                var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
-                revivedHost.serverUid = hosts[hostUID].serverUid;
-                revivedHost.externalIP = hosts[hostUID].externalIP;
-                revivedHost.hostname = hosts[hostUID].hostname;
-                addHostToGrid(revivedHost);
-            }
-            console.log('%c[index.js]', 'color: green;', 'Loaded previously connected hosts');
         });
     }
 }
