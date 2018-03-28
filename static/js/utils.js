@@ -71,7 +71,6 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
     this.serverMajorVersion = 0;
     this.appVersion = '';
     this.clientUid = clientUid;
-    this._memCachedBoxArtArray = {};
     this._pollCount = 0;
     this._consecutivePollFailures = 0;
     this.online = false;
@@ -223,10 +222,6 @@ NvHTTP.prototype = {
         return string;
     },
 
-    _prepareForStorage: function() {
-        this._memCachedBoxArtArray = {};
-    },
-
     _parseServerInfo: function(xmlStr) {
         $xml = this._parseXML(xmlStr);
         $root = $xml.find('root');
@@ -354,77 +349,17 @@ NvHTTP.prototype = {
         return this.getAppListWithCacheFlush();
     },
 
-    // warms `this` _memCachedBoxArtArray with ALL box art from ALL servers
-    // this is inefficient, but works well.
-    warmBoxArtCache: function () {
-        if (!this.paired) {
-					console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Not warming box art cache for unpaired host');
-          return;
-        }
-        if (Object.keys(this._memCachedBoxArtArray).length != 0) {
-					console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache already warmed');
-          return;
-        }
-        if (chrome.storage) {
-            chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
-
-                var storedBoxArtArray;  // load cached data if it exists
-                if (JSONCachedBoxArtArray.boxArtCache != undefined) {
-                    storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
-                    for (var key in storedBoxArtArray) {
-                        this._memCachedBoxArtArray[key] = _base64ToArrayBuffer(storedBoxArtArray[key]);
-                    }
-										console.log('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'Box art cache warmed');
-                } else {
-									 console.warn('%c[utils.js, warmBoxArtCache]', 'color: grey;', 'No box art found in storage. Cannot warm cache!');
-                   return;
-                }
-            }.bind(this));
-        }
-    },
-
     // returns the box art of the given appID.
     // three layers of response time are possible: memory cached (in javascript), storage cached (in chrome.storage.local), and streamed (host sends binary over the network)
     getBoxArt: function (appId) {
-
-        // TODO: unfortunately we do N lookups from storage cache, each of them filling up the memory cache.
-        // once the first round of calls are all made, each subsequent request hits this and returns from memory cache
-        if (this._memCachedBoxArtArray[appId] === null) {
-            // This means a previous box art request failed, don't try again
-            return new Promise(function (resolve, reject) {
-							console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning cached box-art failure result')
-              reject(null);
-              return;
-            }.bind(this));
-        } else if (this._memCachedBoxArtArray[appId] !== undefined) {
-            return new Promise(function (resolve, reject) {
-                console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning memory-cached box-art');
-                resolve(this._memCachedBoxArtArray[appId]);
-                return;
-            }.bind(this));
-        }
-
         if (chrome.storage) {
             // This may be bad practice to push/pull this much data through local storage?
-
             return new Promise(function (resolve, reject) {
-                chrome.storage.local.get('boxArtCache', function(JSONCachedBoxArtArray) {
-
-                    var storedBoxArtArray;  // load cached data if it exists
-                    if (JSONCachedBoxArtArray.boxArtCache != undefined && JSONCachedBoxArtArray.boxArtCache[appId] != undefined) {
-                        storedBoxArtArray = JSONCachedBoxArtArray.boxArtCache;
-
-                        storedBoxArtArray[appId] = _base64ToArrayBuffer(storedBoxArtArray[appId]);
-                        this._memCachedBoxArtArray[appId] = storedBoxArtArray[appId];
-
-                    } else {
-                         storedBoxArtArray = {};
-                    }
-
+                chrome.storage.local.get('boxart-'+appId, function(storageData) {
                     // if we already have it, load it.
-                    if (storedBoxArtArray[appId] !== undefined && Object.keys(storedBoxArtArray).length !== 0 && storedBoxArtArray[appId].constructor !== Object) {
-                        console.log('%c[utils.js, getBoxArt]', 'color: gray;', 'Returning strage-cached box art for app: ', appId);
-                        resolve(storedBoxArtArray[appId]);
+                    if (storageData !== undefined && Object.keys(storageData).length !== 0 && storageData['boxart-'+appId].constructor !== Object) {
+                        console.log('%c[utils.js, getBoxArt]', 'color: gray;', 'Returning storage-cached box art for app: ', appId);
+                        resolve(storageData['boxart-'+appId]);
                         return;
                     }
 
@@ -435,24 +370,17 @@ NvHTTP.prototype = {
                         '&appid=' + appId +
                         '&AssetType=2&AssetIdx=0',
                         true
-                    ]).then(function(streamedBoxArt) {
-                        // the memcached data is global to all the async calls we're doing.  This way there's only one array that holds everything properly.
-                        this._memCachedBoxArtArray[appId] = streamedBoxArt;
-                        var obj = {};
-                        var arrayToStore = {}
-
-                        for (key in this._memCachedBoxArtArray) { // convert the arraybuffer into a string
-                            arrayToStore[key] = _arrayBufferToBase64(this._memCachedBoxArtArray[key]);
+                    ]).then(function(boxArtBuffer) {
+                        var reader = new FileReader();
+                        reader.onloadend = function() {
+                            var obj = {};
+                            obj['boxart-'+appId] = this.result;
+                            chrome.storage.local.set(obj, function(onSuccess) {});
+                            console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning network-fetched box art');
+                            resolve(this.result);
                         }
-
-                        obj['boxArtCache'] = arrayToStore;  // storage is in JSON format.  JSON does not support binary data.
-                        chrome.storage.local.set(obj, function(onSuccess) {});
-                        console.log('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Returning streamed box art');
-                        resolve(streamedBoxArt);
-                        return;
+                        reader.readAsDataURL(new Blob([boxArtBuffer], {type: "image/png"}));                         
                     }.bind(this), function(error) {
-                        // Cache the failure but not persistently
-                        this._memCachedBoxArtArray[appId] = null;
                         console.error('%c[utils.js, utils.js,  getBoxArt]', 'color: gray;', 'Box-art request failed!', error);
                         reject(error);
                         return;

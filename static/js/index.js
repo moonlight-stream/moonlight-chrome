@@ -117,7 +117,6 @@ function restoreUiAfterNaClLoad() {
 }
 
 function beginBackgroundPollingOfHost(host) {
-    host.warmBoxArtCache();
     if (host.online) {
         $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
         // The host was already online. Just start polling in the background now.
@@ -459,14 +458,11 @@ function showApps(host) {
                     // double clicking the button will cause multiple box arts to appear.
                     // to mitigate this we ensure we don't add a duplicate.
                     // This isn't perfect: there's lots of RTTs before the logic prevents anything
-                    var imageBlob =  new Blob([resolvedPromise], {type: "image/png"});
-                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: URL.createObjectURL(imageBlob), role: 'link', tabindex: 0, title: app.title, 'aria-label': app.title });
-                    $(outerDiv).append($("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }));
+                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: resolvedPromise, role: 'link', tabindex: 0, title: app.title, 'aria-label': app.title });
+                    $(outerDiv).append($("<img \>", {src: resolvedPromise, id: 'game-'+app.id, name: app.title }));
                     $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
                     $("#game-grid").append(outerDiv);
 
-
-                    // $("#gameList").append($("<div>", {html:$("<img \>", {src: URL.createObjectURL(imageBlob), id: 'game-'+app.id, name: app.title }), class: 'box-art mdl-cell mdl-cell--3-col'}).append($("<span>", {html: app.title, class:"game-title"})));
                     $('#game-'+app.id).on('click', function () {
                         startGame(host, app.id);
                     });
