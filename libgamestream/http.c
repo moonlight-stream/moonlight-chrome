@@ -86,6 +86,9 @@ int http_request(char* url, PHTTP_DATA data) {
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
   curl_easy_setopt(curl, CURLOPT_URL, url);
 
+  // HACK: Connecting with TLS v1.2 causes unexpected TLS alerts
+  curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_1);
+
   if (data->size > 0) {
     free(data->memory);
     data->memory = malloc(1);
