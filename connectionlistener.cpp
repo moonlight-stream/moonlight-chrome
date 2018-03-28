@@ -11,7 +11,12 @@ void MoonlightInstance::ClStageStarting(int stage) {
 }
 
 void MoonlightInstance::ClStageFailed(int stage, long errorCode) {
-    pp::Var response(std::string("Starting ") + std::string(LiGetStageName(stage)) + std::string("failed"));
+    pp::Var response(
+        std::string("DialogMsg: ") +
+        std::string(LiGetStageName(stage)) +
+        std::string(" failed (error ") +
+        std::to_string(errorCode) +
+        std::string(")"));
     g_Instance->PostMessage(response);
 }
 
