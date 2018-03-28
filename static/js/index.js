@@ -185,35 +185,45 @@ function updateBitrateField() {
 }
 
 function moduleDidLoad() {
-    if(!myUniqueid) {
-      console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to get uniqueId.  We should have already generated one.  Regenerating...');
-      myUniqueid = uniqueid();
-      storeData('uniqueid', myUniqueid, null);
-    }
+    // load the HTTP cert and unique ID if we have one.
+    chrome.storage.sync.get('cert', function(savedCert) {
+        if (savedCert.cert != null) { // we have a saved cert
+            pairingCert = savedCert.cert;
+        }
 
-    if(!pairingCert) { // we couldn't load a cert. Make one.
-      console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to load local cert. Generating new one');
-        sendMessage('makeCert', []).then(function (cert) {
-            storeData('cert', cert, null);
-            pairingCert = cert;
-            console.info('%c[index.js, moduleDidLoad]', 'color: green;', 'Generated new cert:', cert);
-        }, function (failedCert) {
-            console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to generate new cert! Returned error was: \n', failedCert);
-        }).then(function (ret) {
-            sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-                restoreUiAfterNaClLoad();
-            }, function (failedInit) {
-              console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
-            });
+        chrome.storage.sync.get('uniqueid', function(savedUniqueid) {
+            if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
+                myUniqueid = savedUniqueid.uniqueid;
+            } else {
+                myUniqueid = uniqueid();
+                storeData('uniqueid', myUniqueid, null);
+            }
+
+            if (!pairingCert) { // we couldn't load a cert. Make one.
+                console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to load local cert. Generating new one');
+                sendMessage('makeCert', []).then(function (cert) {
+                    storeData('cert', cert, null);
+                    pairingCert = cert;
+                    console.info('%c[index.js, moduleDidLoad]', 'color: green;', 'Generated new cert:', cert);
+                }, function (failedCert) {
+                    console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to generate new cert! Returned error was: \n', failedCert);
+                }).then(function (ret) {
+                    sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+                        restoreUiAfterNaClLoad();
+                    }, function (failedInit) {
+                        console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
+                    });
+                });
+            }
+            else {
+                sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
+                    restoreUiAfterNaClLoad();
+                }, function (failedInit) {
+                    console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
+                });
+            }
         });
-    }
-    else {
-        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function (ret) {
-            restoreUiAfterNaClLoad();
-        }, function (failedInit) {
-          console.error('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed httpInit! Returned error was: ', failedInit);
-        });
-    }
+    });
 }
 
 // pair to the given NvHTTP host object.  Returns whether pairing was successful.
@@ -868,22 +878,6 @@ function onWindowLoad(){
         chrome.storage.sync.get('bitrate', function(previousValue) {
             $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
             updateBitrateField();
-        });
-
-        // load the HTTP cert if we have one.
-        chrome.storage.sync.get('cert', function(savedCert) {
-            if (savedCert.cert != null) { // we have a saved cert
-                pairingCert = savedCert.cert;
-            }
-        });
-
-        chrome.storage.sync.get('uniqueid', function(savedUniqueid) {
-            if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
-                myUniqueid = savedUniqueid.uniqueid;
-            } else {
-                myUniqueid = uniqueid();
-                storeData('uniqueid', myUniqueid, null);
-            }
         });
 
         // load previously connected hosts, which have been killed into an object, and revive them back into a class
