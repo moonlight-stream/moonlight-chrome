@@ -475,49 +475,34 @@ function showApps(host) {
         const sortedAppList = sortTitles(appList, 'ASC');
 
         sortedAppList.forEach(function (app) {
+            if ($('#game-' + app.id).length === 0) {
+                // double clicking the button will cause multiple box arts to appear.
+                // to mitigate this we ensure we don't add a duplicate.
+                // This isn't perfect: there's lots of RTTs before the logic prevents anything
+                var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, role: 'link', tabindex: 0, title: app.title, 'aria-label': app.title });
+
+                $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
+                $("#game-grid").append(outerDiv);
+
+                $('#game-'+app.id).on('click', function () {
+                    startGame(host, app.id);
+                });
+                $('#game-'+app.id).keypress(function(e){
+                  if(e.keyCode == 13) {
+                    startGame(host, app.id);
+                  }
+                });
+
+                // apply CSS stylization to indicate whether the app is active
+                stylizeBoxArt(host, app.id);
+            }
             host.getBoxArt(app.id).then(function (resolvedPromise) {
                 // put the box art into the image holder
-                if ($('#game-' + app.id).length === 0) {
-                    // double clicking the button will cause multiple box arts to appear.
-                    // to mitigate this we ensure we don't add a duplicate.
-                    // This isn't perfect: there's lots of RTTs before the logic prevents anything
-                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: resolvedPromise, role: 'link', tabindex: 0, title: app.title, 'aria-label': app.title });
-                    $(outerDiv).append($("<img \>", {src: resolvedPromise, id: 'game-'+app.id, name: app.title }));
-                    $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
-                    $("#game-grid").append(outerDiv);
-
-                    $('#game-'+app.id).on('click', function () {
-                        startGame(host, app.id);
-                    });
-                    $('#game-'+app.id).keypress(function(e){
-                      if(e.keyCode == 13) {
-                        startGame(host, app.id);
-                      }
-                    });
-
-                    // apply CSS stylization to indicate whether the app is active
-                    stylizeBoxArt(host, app.id);
-                }
+                $(outerDiv).append($("<img \>", {src: resolvedPromise, name: app.title }));
 
             }, function (failedPromise) {
-              console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
-
-                if ($('#game-' + app.id).length === 0) {
-                    // double clicking the button will cause multiple box arts to appear.
-                    // to mitigate this we ensure we don't add a duplicate.
-                    // This isn't perfect: there's lots of RTTs before the logic prevents anything
-                    var outerDiv = $("<div>", {class: 'game-container mdl-card mdl-shadow--4dp', id: 'game-'+app.id, backgroundImage: "static/res/no_app_image.png" });
-                    $(outerDiv).append($("<img \>", {src: "static/res/no_app_image.png", id: 'game-'+app.id, name: app.title }));
-                    $(outerDiv).append($("<div>", {class: "game-title", html: $("<span>", {html: app.title} )}));
-                    $("#game-grid").append(outerDiv);
-
-                    $('#game-'+app.id).on('click', function () {
-                        startGame(host, app.id);
-                    });
-
-                    // apply CSS stylization to indicate whether the app is active
-                    stylizeBoxArt(host, app.id);
-                }
+                console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
+                $(outerDiv).append($("<img \>", {src: "static/res/no_app_image.png", name: app.title }));
             });
         });
     }, function (failedAppList) {
