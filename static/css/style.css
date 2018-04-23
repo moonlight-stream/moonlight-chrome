@@ -72,6 +72,7 @@ main {
 
 .nav-menu-parent {
     position: relative;
+    margin: 0 4px;
 }
 .mdl-menu__outline {
     background-color: #333846;
@@ -187,6 +188,7 @@ main {
     margin: 15px;
     cursor: pointer;
     transition: all .2s ease-in-out;
+    will-change: transform;
 }
 #host-grid .mdl-card:hover, #host-grid .mdl-card:focus, #host-grid .mdl-card:active, #game-grid .mdl-card:hover, #game-grid .mdl-card:focus, #game-grid .mdl-card:active {
     transform: scale(1.1);
