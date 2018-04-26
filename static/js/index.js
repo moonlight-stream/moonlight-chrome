@@ -537,11 +537,10 @@ function showApps(host) {
       }
       host.getBoxArt(app.id).then(function(resolvedPromise) {
         // put the box art into the image holder
-        $(outerDiv).append($("<img \>", {
-          src: resolvedPromise,
-          name: app.title
-        }));
-
+        var img = new Image();
+        img.src = resolvedPromise;
+        img.onload = e => img.classList.add('fade-in');
+        $(outerDiv).append(img);
       }, function(failedPromise) {
         console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
         $(outerDiv).append($("<img \>", {

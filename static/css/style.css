@@ -205,6 +205,12 @@ main {
 #game-grid .mdl-card img {
     height: 100%;
     width: 100%;
+    opacity: 0;
+    transition: opacity .3s;
+    z-index: -1;
+}
+#game-grid .mdl-card img.fade-in {
+    opacity: 1;
 }
 #game-grid .game-title {
     position: absolute;
