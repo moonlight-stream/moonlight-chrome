@@ -436,17 +436,9 @@ function removeClicked(host) {
 // the function was made like this so that we can remove duplicated code, but
 // not do N*N stylizations of the box art, or make the code not flow very well
 function stylizeBoxArt(freshApi, appIdToStylize) {
-  if (freshApi.currentGame === appIdToStylize) { // stylize the currently running game
-    // destylize it, if it has the not-current-game style
-    if ($('#game-' + appIdToStylize).hasClass("not-current-game")) $('#game-' + appIdToStylize).removeClass("not-current-game");
-    // add the current-game style
-    $('#game-' + appIdToStylize).addClass("current-game");
-  } else {
-    // destylize it, if it has the current-game style
-    if ($('#game-' + appIdToStylize).hasClass("current-game")) $('#game-' + appIdToStylize).removeClass("current-game");
-    // add the not-current-game style
-    $('#game-' + appIdToStylize).addClass('not-current-game');
-  }
+  // If the running game is the good one then style it
+  var el = document.querySelector("#game-" + appIdToStylize);
+  return (freshApi.currentGame === appIdToStylize) ? el.classList.add('current-game') : el.classList.remove('current-game')
 }
 
 function sortTitles(list, sortOrder) {
