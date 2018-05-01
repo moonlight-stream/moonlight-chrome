@@ -493,6 +493,11 @@ function showApps(host) {
   $('#naclSpinner').css('display', 'inline-block');
 
   host.getAppList().then(function(appList) {
+    if(appList.length == 0) { // TODO: Add placeholder graphic
+      console.error('%c[index.js, showApps]', 'User\'s applist is empty')
+      snackbarLog('Your game list is empty')
+      return; // We stop the function right here
+    }
     // if game grid is populated, empty it
     $("div.game-container").remove();
 
