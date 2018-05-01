@@ -5,7 +5,6 @@ var myUniqueid;
 var api;  // `api` should only be set if we're in a host-specific screen. on the initial screen it should always be null.
 var isInGame = false; // flag indicating whether the game stream started
 var windowState = 'normal'; // chrome's windowState, possible values: 'normal' or 'fullscreen'
-
 // Called by the common.js module.
 function attachListeners() {
     changeUiModeForNaClLoad();
@@ -16,6 +15,7 @@ function attachListeners() {
     //$('#bitrateSlider').on('change', saveBitrate); //FIXME: it seems not working
     $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
     $('#optimizeGamesSwitch').on('click', saveOptimize);
+    $('#enableFullscreenToggle').on('click', saveFullscreen);
     $('#addHostCell').on('click', addHost);
     $('#backIcon').on('click', showHostsAndSettingsMode);
     $('#quitCurrentApp').on('click', stopGameWithConfirmation);
@@ -662,8 +662,9 @@ function playGameMode() {
     $("#main-navigation").hide();
     $("#main-content").children().not("#listener, #loadingSpinner").hide();
     $("#main-content").addClass("fullscreen");
-
-    chrome.app.window.current().fullscreen();
+    if($("#enableFullscreenToggle").parent().hasClass('is-checked') ? 1 : 0) {
+      chrome.app.window.current().fullscreen();
+    }
     fullscreenNaclModule();
     $('#loadingSpinner').css('display', 'inline-block');
 
@@ -778,6 +779,15 @@ function saveFramerate() {
     updateDefaultBitrate();
 }
 
+function saveFullscreen() {
+  // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
+  // checking the new state
+  setTimeout(function() {
+      var enableFullscreen = $("#enableFullscreenToggle").parent().hasClass('is-checked');
+      console.log('%c[index.js, saveFullscreen]', 'color: green;', 'Saving fullscreen state : ' + enableFullscreen);
+      storeData('fullscreen', enableFullscreen, null);
+  }, 100);
+}
 
 
 // storing data in chrome.storage takes the data as an object, and shoves it into JSON to store
@@ -880,6 +890,16 @@ function onWindowLoad(){
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.uncheck();
             }  else {
                 document.querySelector('#optimizeGamesBtn').MaterialIconToggle.check();
+            }
+        });
+
+        chrome.storage.sync.get('fullscreen', function(previousValue) {
+            if (previousValue.fullscreen == null) {
+                document.querySelector('#enableFullscreenBtn').MaterialIconToggle.check();
+            } else if (previousValue.fullscreen == false) {
+                document.querySelector('#enableFullscreenBtn').MaterialIconToggle.uncheck();
+            }  else {
+                document.querySelector('#enableFullscreenBtn').MaterialIconToggle.check();
             }
         });
 
