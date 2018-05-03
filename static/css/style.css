@@ -178,7 +178,7 @@ main {
 }
 #game-grid .mdl-card {
     position: relative;
-    background: url(/icons/icon128.png) rgba(0, 0, 0, 0.5) center no-repeat;
+    background: url('../res/placeholder_game.svg') rgba(29, 29, 29, 1) center/cover no-repeat;
 }
 #host-grid .mdl-card, #game-grid .mdl-card {
     text-align: center;
