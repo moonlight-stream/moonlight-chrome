@@ -532,19 +532,15 @@ function showApps(host) {
         // apply CSS stylization to indicate whether the app is active
         stylizeBoxArt(host, app.id);
       }
+      var img = new Image();
       host.getBoxArt(app.id).then(function(resolvedPromise) {
-        // put the box art into the image holder
-        var img = new Image();
         img.src = resolvedPromise;
-        img.onload = e => img.classList.add('fade-in');
-        $(outerDiv).append(img);
       }, function(failedPromise) {
         console.log('%c[index.js, showApps]', 'color: green;', 'Error! Failed to retrieve box art for app ID: ' + app.id + '. Returned value was: ' + failedPromise, '\n Host object:', host, host.toString());
-        $(outerDiv).append($("<img \>", {
-          src: "static/res/no_app_image.png",
-          name: app.title
-        }));
+        img.src = 'static/res/placeholder_error.svg'
       });
+      img.onload = e => img.classList.add('fade-in');
+      $(outerDiv).append(img);
     });
   }, function(failedAppList) {
     $('#naclSpinner').hide();
