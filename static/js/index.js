@@ -543,9 +543,9 @@ function showApps(host) {
       $(outerDiv).append(img);
     });
   }, function(failedAppList) {
-    $('#naclSpinner').hide();
-
-    console.log('%c[index.js, showApps]', 'color: green;', 'Failed to get applist from host: ' + host.hostname, '\n Host object:', host, host.toString());
+    $('#naclSpinner').hide(); // TODO: Add placeholder graphic
+    snackbarLog('Unable to get your games')
+    console.error('%c[index.js, showApps]', 'Failed to get applist from host: ' + host.hostname, '\n Host object:', host, host.toString());
   });
 
   showAppsMode();
