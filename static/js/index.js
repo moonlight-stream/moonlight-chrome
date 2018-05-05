@@ -484,6 +484,8 @@ function showApps(host) {
   $('#naclSpinnerMessage').text('Loading apps...');
   $('#naclSpinner').css('display', 'inline-block');
 
+  $("div.game-container").remove();
+
   host.getAppList().then(function(appList) {
     if(appList.length == 0) { // TODO: Add placeholder graphic
       console.error('%c[index.js, showApps]', 'User\'s applist is empty')
@@ -491,7 +493,6 @@ function showApps(host) {
       return; // We stop the function right here
     }
     // if game grid is populated, empty it
-    $("div.game-container").remove();
 
     $('#naclSpinner').hide();
     $("#game-grid").show();
@@ -543,7 +544,10 @@ function showApps(host) {
       $(outerDiv).append(img);
     });
   }, function(failedAppList) {
-    $('#naclSpinner').hide(); // TODO: Add placeholder graphic
+    $('#naclSpinner').hide();
+    var img = new Image();
+    img.src = 'static/res/applist_error.svg'
+    $("#game-grid").html(img)
     snackbarLog('Unable to get your games')
     console.error('%c[index.js, showApps]', 'Failed to get applist from host: ' + host.hostname, '\n Host object:', host, host.toString());
   });
