@@ -494,7 +494,7 @@ function showApps(host) {
       console.error('%c[index.js, showApps]', 'User\'s applist is empty')
       var img = new Image()
       img.src = 'static/res/applist_empty.svg'
-      document.getElementById('game-grid').appendChild(img)
+      $('#game-grid').html(img)
       snackbarLog('Your game list is empty')
       return; // We stop the function right here
     }
