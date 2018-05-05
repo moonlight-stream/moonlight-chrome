@@ -487,16 +487,18 @@ function showApps(host) {
   $("div.game-container").remove();
 
   host.getAppList().then(function(appList) {
-    if(appList.length == 0) { // TODO: Add placeholder graphic
+    $('#naclSpinner').hide();
+    $("#game-grid").show();
+    
+    if(appList.length == 0) {
       console.error('%c[index.js, showApps]', 'User\'s applist is empty')
+      var img = new Image()
+      img.src = 'static/res/applist_empty.svg'
+      document.getElementById('game-grid').appendChild(img)
       snackbarLog('Your game list is empty')
       return; // We stop the function right here
     }
     // if game grid is populated, empty it
-
-    $('#naclSpinner').hide();
-    $("#game-grid").show();
-
     const sortedAppList = sortTitles(appList, 'ASC');
 
     sortedAppList.forEach(function(app) {
