@@ -192,6 +192,7 @@ main {
 }
 #host-grid .mdl-card:hover, #host-grid .mdl-card:focus, #host-grid .mdl-card:active, #game-grid .mdl-card:hover, #game-grid .mdl-card:focus, #game-grid .mdl-card:active {
     transform: scale(1.1);
+    outline-color: #00A3C6;
 }
 #host-grid .mdl-card__title {
     padding: 0;
