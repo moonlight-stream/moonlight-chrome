@@ -506,32 +506,24 @@ function showApps(host) {
         // double clicking the button will cause multiple box arts to appear.
         // to mitigate this we ensure we don't add a duplicate.
         // This isn't perfect: there's lots of RTTs before the logic prevents anything
-        var outerDiv = $("<div>", {
-          class: 'game-container mdl-card mdl-shadow--4dp',
-          id: 'game-' + app.id,
-          role: 'link',
-          tabindex: 0,
-          title: app.title,
-          'aria-label': app.title
-        });
+        var gameCard = document.createElement('div')
+        gameCard.id = 'game-' + app.id
+        gameCard.className = 'game-container mdl-card mdl-shadow--4dp'
+        gameCard.setAttribute('role', 'link')
+        gameCard.tabIndex = 0
+        gameCard.title = app.title
 
-        $(outerDiv).append($("<div>", {
-          class: "game-title",
-          html: $("<span>", {
-            html: app.title
-          })
-        }));
-        $("#game-grid").append(outerDiv);
+        gameCard.innerHTML = `<div class="game-title">${app.title}</div>`
 
-        $('#game-' + app.id).on('click', function() {
-          startGame(host, app.id);
-        });
-        $('#game-' + app.id).keypress(function(e) {
-          if (e.keyCode == 13) {
+        gameCard.addEventListener('click', e => {
+          startGame(host, app.id)
+        })
+        gameCard.addEventListener('keydown', e => {
+          if(e.key == "Enter") {
             startGame(host, app.id);
           }
-        });
-
+        })
+        document.querySelector('#game-grid').appendChild(gameCard);
         // apply CSS stylization to indicate whether the app is active
         stylizeBoxArt(host, app.id);
       }
@@ -543,7 +535,7 @@ function showApps(host) {
         img.src = 'static/res/placeholder_error.svg'
       });
       img.onload = e => img.classList.add('fade-in');
-      $(outerDiv).append(img);
+      $(gameCard).append(img);
     });
   }, function(failedAppList) {
     $('#naclSpinner').hide();
