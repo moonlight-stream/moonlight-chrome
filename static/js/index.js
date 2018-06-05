@@ -119,27 +119,28 @@ function restoreUiAfterNaClLoad() {
 }
 
 function beginBackgroundPollingOfHost(host) {
+  var el = document.querySelector('#hostgrid-' + host.serverUid)
   if (host.online) {
-    $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+    el.classList.remove('host-cell-inactive')
     // The host was already online. Just start polling in the background now.
     activePolls[host.serverUid] = window.setInterval(function() {
       // every 5 seconds, poll at the address we know it was live at
       host.pollServer(function() {
         if (host.online) {
-          $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+          el.classList.remove('host-cell-inactive')
         } else {
-          $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+          el.classList.add('host-cell-inactive')
         }
       });
     }, 5000);
   } else {
-    $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+    el.classList.add('host-cell-inactive')
     // The host was offline, so poll immediately.
     host.pollServer(function() {
       if (host.online) {
-        $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+        el.classList.remove('host-cell-inactive')
       } else {
-        $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+        el.classList.add('host-cell-inactive')
       }
 
       // Now start background polling
@@ -147,9 +148,9 @@ function beginBackgroundPollingOfHost(host) {
         // every 5 seconds, poll at the address we know it was live at
         host.pollServer(function() {
           if (host.online) {
-            $("#hostgrid-" + host.serverUid).removeClass('host-cell-inactive');
+            el.classList.remove('host-cell-inactive')
           } else {
-            $("#hostgrid-" + host.serverUid).addClass('host-cell-inactive');
+            el.classList.add('host-cell-inactive')
           }
         });
       }, 5000);
