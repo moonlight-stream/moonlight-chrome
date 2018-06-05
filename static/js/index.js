@@ -489,7 +489,7 @@ function showApps(host) {
   host.getAppList().then(function(appList) {
     $('#naclSpinner').hide();
     $("#game-grid").show();
-    
+
     if(appList.length == 0) {
       console.error('%c[index.js, showApps]', 'User\'s applist is empty')
       var img = new Image()
@@ -518,9 +518,24 @@ function showApps(host) {
         gameCard.addEventListener('click', e => {
           startGame(host, app.id)
         })
+        gameCard.addEventListener('mouseover', e => {
+          gameCard.focus();
+        });
         gameCard.addEventListener('keydown', e => {
           if(e.key == "Enter") {
             startGame(host, app.id);
+          }
+          if(e.key == "ArrowLeft") {
+            let prev = gameCard.previousSibling
+            if(prev !== null)
+              gameCard.previousSibling.focus()
+            // TODO: Add a sound when limit reached
+          }
+          if(e.key == "ArrowRight") {
+            let next = gameCard.nextSibling
+            if(next !== null)
+              gameCard.nextSibling.focus()
+            // TODO: Add a sound when limit reached
           }
         })
         document.querySelector('#game-grid').appendChild(gameCard);
