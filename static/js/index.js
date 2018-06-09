@@ -439,7 +439,13 @@ function removeClicked(host) {
 function stylizeBoxArt(freshApi, appIdToStylize) {
   // If the running game is the good one then style it
   var el = document.querySelector("#game-" + appIdToStylize);
-  return (freshApi.currentGame === appIdToStylize) ? el.classList.add('current-game') : el.classList.remove('current-game')
+  if(freshApi.currentGame === appIdToStylize) {
+    el.classList.add('current-game')
+    el.title += ' (Running)'
+  } else {
+    el.classList.remove('current-game')
+    el.title.replace(' (Running)', '') // TODO: Replace with localized string so make it e.title = game_title
+  }
 }
 
 function sortTitles(list, sortOrder) {
