@@ -299,10 +299,10 @@ main {
     border: none !important;
 }
 .current-game {
-    border: 2px solid #00A3C6;
+    outline: auto #8BC34A;
 }
 .host-cell-inactive {
-    border: 3px solid #8e0000;
+    outline: auto #F44336;
 }
 .host-cell:hover {
     cursor: pointer;
