@@ -485,10 +485,13 @@ function showApps(host) {
   }
   console.log('%c[index.js, showApps]', 'color: green;', 'Current host object:', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
   $('#quitCurrentApp').show();
+  $("#gameList .game-container").remove();
 
   // Show a spinner while the applist loads
   $('#naclSpinnerMessage').text('Loading apps...');
   $('#naclSpinner').css('display', 'inline-block');
+
+  $("div.game-container").remove();
 
   host.getAppList().then(function(appList) {
     $('#naclSpinner').hide();
@@ -874,6 +877,8 @@ function updateDefaultBitrate() {
 
 function onWindowLoad() {
   console.log('%c[index.js]', 'color: green;', 'Moonlight\'s main window loaded');
+  // don't show the game selection div
+  $('#gameSelection').css('display', 'none');
 
   loadWindowState();
 
