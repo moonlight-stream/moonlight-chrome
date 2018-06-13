@@ -108,8 +108,9 @@ function restoreUiAfterNaClLoad() {
               // if we're seeing a host we've already seen before, update it for the current local IP.
               hosts[returneMdnsDiscoveredHost.serverUid].address = returneMdnsDiscoveredHost.address;
             } else {
-              beginBackgroundPollingOfHost(returneMdnsDiscoveredHost);
+              // Host must be in the grid before starting background polling
               addHostToGrid(returneMdnsDiscoveredHost, true);
+              beginBackgroundPollingOfHost(returneMdnsDiscoveredHost);
             }
           });
         }
@@ -348,8 +349,9 @@ function addHost() {
         hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
         hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
       } else {
-        beginBackgroundPollingOfHost(_nvhttpHost);
+        // Host must be in the grid before starting background polling
         addHostToGrid(_nvhttpHost);
+        beginBackgroundPollingOfHost(_nvhttpHost);
       }
       saveHosts();
     }, function() {
