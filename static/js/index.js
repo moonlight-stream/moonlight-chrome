@@ -253,7 +253,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
 
   nvhttpHost.pollServer(function(ret) {
     if (!nvhttpHost.online) {
-      snackbarLog('Failed to connect to ' + nvhttpHost.hostname + '! Are you sure the host is on?');
+      snackbarLog('Failed to connect to ' + nvhttpHost.hostname + '! Ensure that GameStream is enabled in GeForce Experience.');
       console.error('%c[index.js]', 'color: green;', 'Host declared as offline:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
       onFailure();
       return;
@@ -354,8 +354,6 @@ function addHost() {
         beginBackgroundPollingOfHost(_nvhttpHost);
       }
       saveHosts();
-    }, function() {
-      snackbarLog('pairing to ' + inputHost + ' failed!');
     });
     modal.close();
   });
@@ -566,7 +564,7 @@ function showApps(host) {
     var img = new Image();
     img.src = 'static/res/applist_error.svg'
     $("#game-grid").html(img)
-    snackbarLog('Unable to get your games')
+    snackbarLog('Unable to retrieve your games')
     console.error('%c[index.js, showApps]', 'Failed to get applist from host: ' + host.hostname, '\n Host object:', host, host.toString());
   });
 
@@ -590,7 +588,7 @@ function showHostsAndSettingsMode() {
 }
 
 function showAppsMode() {
-  console.log('%c[index.js]', 'color: green;', 'Entrering "Show apps" mode');
+  console.log('%c[index.js]', 'color: green;', 'Entering "Show apps" mode');
   $('#backIcon').show();
   $("#main-navigation").show();
   $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
@@ -601,6 +599,15 @@ function showAppsMode() {
   $("#settings").hide();
   $("#main-content").removeClass("fullscreen");
   $("#listener").removeClass("fullscreen");
+  $('#loadingSpinner').css('display', 'none');
+  $('body').css('backgroundColor', '#282C38');
+
+  // Restore back to a window
+  if (windowState == 'normal') {
+    chrome.app.window.current().restore();
+  }
+
+  isInGame = false;
 
   // FIXME: We want to eventually poll on the app screen but we can't now
   // because it slows down box art loading and we don't update the UI live
@@ -669,7 +676,16 @@ function startGame(host, appID) {
       if (host.currentGame == appID) { // if user wants to launch the already-running app, then we resume it.
         return host.resumeApp(
           rikey, rikeyid, 0x030002 // Surround channel mask << 16 | Surround channel count
-        ).then(function(ret) {
+        ).then(function(launchResult) {
+          $xml = $($.parseXML(launchResult.toString()));
+          $root = $xml.find('root');
+
+          if ($root.attr('status_code') != 200) {
+            snackbarLog('Error ' + $root.attr('status_code') + ': ' + $root.attr('status_message'));
+            showApps(host);
+            return;
+          }
+
           sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
             bitrate.toString(), rikey, rikeyid.toString(), host.appVersion
           ]);
@@ -688,7 +704,16 @@ function startGame(host, appID) {
         remote_audio_enabled, // Play audio locally too?
         0x030002, // Surround channel mask << 16 | Surround channel count
         gamepadMask
-      ).then(function(ret) {
+      ).then(function(launchResult) {
+        $xml = $($.parseXML(launchResult.toString()));
+        $root = $xml.find('root');
+
+        if ($root.attr('status_code') != 200) {
+          snackbarLog('Error ' + $root.attr('status_code') + ': ' + $root.attr('status_message'));
+          showApps(host);
+          return;
+        }
+
         sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
           bitrate.toString(), rikey, rikeyid.toString(), host.appVersion
         ]);
@@ -776,8 +801,7 @@ function stopGame(host, callbackFunction) {
       snackbarLog('Stopping ' + appName);
       host.quitApp().then(function(ret2) {
         host.refreshServerInfo().then(function(ret3) { // refresh to show no app is currently running.
-          showAppsMode();
-          stylizeBoxArt(host, runningApp.id);
+          showApps(host);
           if (typeof(callbackFunction) === "function") callbackFunction();
         }, function(failedRefreshInfo2) {
           console.error('%c[index.js, stopGame]', 'color:green;', 'Failed to refresh server info! Returned error was:' + failedRefreshInfo + ' and failed server was:', host, host.toString());

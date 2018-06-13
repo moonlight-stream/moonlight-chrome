@@ -417,9 +417,7 @@ NvHTTP.prototype = {
       '&remoteControllersBitmap=' + gamepadMask +
       '&gcmap=' + gamepadMask,
       false
-    ]).then(function(ret) {
-      return true;
-    });
+    ]);
   },
 
   resumeApp: function(rikey, rikeyid, surroundAudioInfo) {
@@ -430,9 +428,7 @@ NvHTTP.prototype = {
       '&rikeyid=' + rikeyid +
       '&surroundAudioInfo=' + surroundAudioInfo,
       false
-    ]).then(function(ret) {
-      return true;
-    });
+    ]);
   },
 
   quitApp: function() {

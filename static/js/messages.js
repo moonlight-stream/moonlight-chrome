@@ -37,26 +37,16 @@ function handleMessage(msg) {
   } else { // else, it's just info, or an event
     console.log('%c[messages.js, handleMessage]', 'color:gray;', 'Message data: ', msg.data)
     if (msg.data === 'streamTerminated') { // if it's a recognized event, notify the appropriate function
-      $('#loadingSpinner').css('display', 'none'); // This is a fallback for RTSP handshake failing, which immediately terminates the stream.
-      $('body').css('backgroundColor', '#282C38');
-
       // Release our keep awake request
       chrome.power.releaseKeepAwake();
 
-      api.refreshServerInfo().then(function(ret) { // refresh the serverinfo to acknowledge the currently running app
-        api.getAppList().then(function(appList) {
-          appList.forEach(function(app) {
-            stylizeBoxArt(api, app.id); // and reapply stylization to indicate what's currently running
-          });
-        });
+      api.refreshServerInfo().then(function(ret) {
+        // Return to app list with new currentgame
         showApps(api);
-
-        isInGame = false;
-
-        // restore main window from 'fullscreen' to 'normal' mode (if required)
-        (windowState == 'normal') && chrome.app.window.current().restore();
+      }, function() {
+        // Return to app list anyway
+        showApps(api);
       });
-
     } else if (msg.data === 'Connection Established') {
       $('#loadingSpinner').css('display', 'none');
       $('body').css('backgroundColor', 'black');
