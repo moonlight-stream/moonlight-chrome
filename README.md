@@ -28,6 +28,7 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 * [GameStream-compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600+ series desktop or mobile GPU (for the PC from which you're streaming)
 * High-end wireless router (802.11n dual-band recommended) or wired network
 * Hardware acceleration enabled under `chrome://settings`
+* (P)NaCL enabled (required for streaming)
 
 ## Building
 1. Install the Chrome Native Client SDK and download the current Pepper SDK
