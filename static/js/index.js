@@ -12,8 +12,7 @@ function attachListeners() {
 
   $('.resolutionMenu li').on('click', saveResolution);
   $('.framerateMenu li').on('click', saveFramerate);
-  $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
-  //$('#bitrateSlider').on('change', saveBitrate); //FIXME: it seems not working
+  $('#bitrateSlider').on('input', e => changeBitrate(e.target.value)); // input occurs every notch you slide
   $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
   $('#optimizeGamesSwitch').on('click', saveOptimize);
   $('#addHostCell').on('click', addHost);
@@ -63,6 +62,25 @@ function onBoundsChanged() {
     storeData('windowState', 'normal', null);
     windowState = 'normal';
   }
+}
+
+/**
+ * changeBitrate - Changes the bitrate value
+ *
+ * @param  {Number} value The bitrate value
+ * @return {Number}       The bitrate value
+ */
+function changeBitrate(value) {
+  // First, change UI
+  var slider = document.querySelector('#bitrateSlider')
+  slider.MaterialSlider.change(value)
+  var field = document.querySelector('#bitrateField')
+  field.innerText = value + "Mbps"
+  // Second, save to storage
+  storeData('bitrate', value, null)
+  window.currentBitrate = value; // DEBUG: This is meant for debugging
+  // Third, return value
+  return value
 }
 
 function changeUiModeForNaClLoad() {
@@ -181,11 +199,6 @@ function snackbarLogLong(givenMessage) {
     timeout: 5000
   };
   document.querySelector('#snackbar').MaterialSnackbar.showSnackbar(data);
-}
-
-function updateBitrateField() {
-  $('#bitrateField').html($('#bitrateSlider').val() + " Mbps");
-  saveBitrate();
 }
 
 function moduleDidLoad() {
@@ -857,10 +870,6 @@ function saveHosts() {
   storeData('hosts', hosts, null);
 }
 
-function saveBitrate() {
-  storeData('bitrate', $('#bitrateSlider').val(), null);
-}
-
 function saveRemoteAudio() {
   // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
   // checking the new state
@@ -877,28 +886,25 @@ function updateDefaultBitrate() {
 
   if (res === "1920:1080") {
     if (frameRate === "30") { // 1080p, 30fps
-      $('#bitrateSlider')[0].MaterialSlider.change('10');
+      changeBitrate(10)
     } else { // 1080p, 60fps
-      $('#bitrateSlider')[0].MaterialSlider.change('20');
+      changeBitrate(20)
     }
   } else if (res === "1280:720") {
     if (frameRate === "30") { // 720, 30fps
-      $('#bitrateSlider')[0].MaterialSlider.change('5');
+      changeBitrate(5)
     } else { // 720, 60fps
-      $('#bitrateSlider')[0].MaterialSlider.change('10');
+      changeBitrate(10)
     }
   } else if (res === "3840:2160") {
     if (frameRate === "30") { // 2160p, 30fps
-      $('#bitrateSlider')[0].MaterialSlider.change('40');
+      changeBitrate(40)
     } else { // 2160p, 60fps
-      $('#bitrateSlider')[0].MaterialSlider.change('80');
+      changeBitrate(80)
     }
   } else { // unrecognized option. In case someone screws with the JS to add custom resolutions
-    $('#bitrateSlider')[0].MaterialSlider.change('10');
+    changeBitrate(10)
   }
-
-  updateBitrateField();
-  saveBitrate();
 }
 
 function onWindowLoad() {
