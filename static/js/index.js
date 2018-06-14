@@ -13,6 +13,7 @@ function attachListeners() {
   $('.resolutionMenu li').on('click', saveResolution);
   $('.framerateMenu li').on('click', saveFramerate);
   $('#bitrateSlider').on('input', e => changeBitrate(e.target.value)); // input occurs every notch you slide
+  $('#bitrateInput').on('input', e => changeBitrate(e.target.value));
   $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
   $('#optimizeGamesSwitch').on('click', saveOptimize);
   $('#addHostCell').on('click', addHost);
@@ -76,6 +77,8 @@ function changeBitrate(value) {
   slider.MaterialSlider.change(value)
   var field = document.querySelector('#bitrateField')
   field.innerText = value + "Mbps"
+  var input = document.querySelector('#bitrateInput')
+  input.value = value;
   // Second, save to storage
   storeData('bitrate', value, null)
   window.currentBitrate = value; // DEBUG: This is meant for debugging
@@ -961,8 +964,8 @@ function onWindowLoad() {
 
     // load stored bitrate prefs
     chrome.storage.sync.get('bitrate', function(previousValue) {
-      $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
-      updateBitrateField();
+      var value = previousValue.bitrate != null ? previousValue.bitrate : '10'
+      changeBitrate(value)
     });
   }
 }
