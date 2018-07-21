@@ -963,6 +963,23 @@ function onWindowLoad() {
   loadWindowState();
 
   if (chrome.storage) {
+    // Load stored customResolutions prefs
+    chrome.storage.sync.get('customResolutions', function(previousValue) {
+      if (previousValue.customResolutions != null) {
+        previousValue.customResolutions.forEach(item => {
+          console.log(item);
+          var child = document.createElement('li')
+          child.className = 'mdl-menu__item'
+          child.dataset.value = item.width + ':' + item.height
+          child.innerText = item.name||item.height + 'p'
+          $(child).on('click', saveResolution);
+          document.querySelector('.resolutionMenu').appendChild(child)
+        })
+      } else {
+        console.info('No custom resolutions found')
+      }
+    });
+
     // load stored resolution prefs
     chrome.storage.sync.get('resolution', function(previousValue) {
       if (previousValue.resolution != null) {
