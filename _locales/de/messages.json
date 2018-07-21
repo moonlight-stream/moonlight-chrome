@@ -1,0 +1,56 @@
+{
+  "loading_plugin": {
+    "message": "L�dt Moonlight Plugin..."
+  },
+  "loading_apps": {
+    "message": "L�dt Anwendungen..."
+  },
+  "stopping_game": {
+    "message": "Stoppe $1"
+  },
+  "error": {
+    "message": "Fehler"
+  },
+  "cert_error": {
+    "message": "Zertifikat ist noch nicht generiert worden. Ist NaCl aktiviert?"
+  },
+  "busy_error": {
+    "message": "Dein Computer ist besch�ftigt. Halte den Stream an, um dich zu verbinden."
+  },
+  "pair_error": {
+    "message": "Verbindung mit $1 fehlgeschlagen."
+  },
+  "remove_host": {
+    "message": "Host entfernen"
+  },
+  "delete_host": {
+    "message": "Bist du sicher, dass du $1 entfernen m�chtest?"
+  },
+  "add_host": {
+    "message": "Host hinzuf�gen"
+  },
+  "gamelist_empty": {
+    "message": "Deine Spieleliste ist leer."
+  },
+  "game_running": {
+    "message": "$1 l�uft bereits. M�chtest du es beenden? Jeder ungespeicherte Fortschritt geht verloren."
+  },
+  "quit_current_app": {
+    "message": "Beende die aktuelle Anwendung"
+  },
+  "option_resolution": {
+    "message": "Auflösung"
+  },
+  "option_framerate": {
+    "message": "Framerate"
+  },
+  "option_bandwidth": {
+    "message": "Bandbreite"
+  },
+  "option_audio": {
+    "message": "Audio auf Host-PC abspielen"
+  },
+  "option_optimisations": {
+    "message": "Optimierungen aktivieren"
+  }
+}
