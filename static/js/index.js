@@ -6,7 +6,9 @@ var api; // `api` should only be set if we're in a host-specific screen. on the 
 var isInGame = false; // flag indicating whether the game stream started
 var windowState = 'normal'; // chrome's windowState, possible values: 'normal' or 'fullscreen'
 
-// Called by the common.js module.
+/**
+ * attachListeners - Gets called to attach listeners. Called by the common.js module.
+ */
 function attachListeners() {
   changeUiModeForNaClLoad();
 
@@ -23,6 +25,9 @@ function attachListeners() {
   chrome.app.window.current().onMaximized.addListener(fullscreenChromeWindow);
 }
 
+/**
+ * fullscreenChromeWindow - Fullscreens the chrome window
+ */
 function fullscreenChromeWindow() {
   // when the user clicks the maximize button on the window,
   // FIRST restore it to the previous size, then fullscreen it to the whole screen
@@ -34,6 +39,11 @@ function fullscreenChromeWindow() {
   chrome.app.window.current().fullscreen();
 }
 
+/**
+ * loadWindowState - Loads the window state: windowed, fullscreen...
+ *
+ * @return {Void}  If chrome.storage is not avaliable
+ */
 function loadWindowState() {
   if (!chrome.storage) {
     return;
@@ -51,6 +61,9 @@ function loadWindowState() {
   });
 }
 
+/**
+ * onFullscreened - Gets called when window is fullscreened
+ */
 function onFullscreened() {
   if (!isInGame && windowState == 'normal') {
     storeData('windowState', 'fullscreen', null);
@@ -58,6 +71,9 @@ function onFullscreened() {
   }
 }
 
+/**
+ * onBoundsChanged - Gets called when window's bounds changed
+ */
 function onBoundsChanged() {
   if (!isInGame && windowState == 'fullscreen') {
     storeData('windowState', 'normal', null);
@@ -97,7 +113,7 @@ class Resolution {
    * @param  {Number} width  Resolution width
    * @param  {Number} height Resolution height
    * @param  {String} name   Resolution name
-   * @return {Object}        The corresponding object
+   * @return {NvHTTP}        The corresponding object
    */
   constructor(width, height, name = null) {
     this.width = width
@@ -131,6 +147,11 @@ class Resolution {
   }
 }
 
+/**
+ * changeUiModeForNaClLoad - Changes the view to NaCL loading
+ *
+ * @return {type}  description
+ */
 function changeUiModeForNaClLoad() {
   $('#main-navigation').children().hide();
   $("#main-content").children().not("#listener, #naclSpinner").hide();
@@ -138,12 +159,18 @@ function changeUiModeForNaClLoad() {
   $('#naclSpinner').css('display', 'inline-block');
 }
 
+/**
+ * startPollingHosts - Start polling the hosts
+ */
 function startPollingHosts() {
   for (var hostUID in hosts) {
     beginBackgroundPollingOfHost(hosts[hostUID]);
   }
 }
 
+/**
+ * stopPollingHosts - Stops polling the hosts
+ */
 function stopPollingHosts() {
   for (var hostUID in hosts) {
     stopBackgroundPollingOfHost(hosts[hostUID]);
@@ -185,6 +212,11 @@ function restoreUiAfterNaClLoad() {
   });
 }
 
+/**
+ * beginBackgroundPollingOfHost - Starts the polling of the host
+ *
+ * @param  {NvHTTP} host The host object
+ */
 function beginBackgroundPollingOfHost(host) {
   var el = document.querySelector('#hostgrid-' + host.serverUid)
   if (host.online) {
@@ -225,6 +257,11 @@ function beginBackgroundPollingOfHost(host) {
   }
 }
 
+/**
+ * stopBackgroundPollingOfHost - Stops the background polling of the host
+ *
+ * @param  {NvHTTP} host The host object
+ */
 function stopBackgroundPollingOfHost(host) {
   console.log('%c[index.js, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
   window.clearInterval(activePolls[host.serverUid]);
@@ -249,6 +286,11 @@ function snackbarLogLong(givenMessage) {
   document.querySelector('#snackbar').MaterialSnackbar.showSnackbar(data);
 }
 
+/**
+ * moduleDidLoad - Gets called when the NaCL module is loaded
+ *
+ * @return {type}  description
+ */
 function moduleDidLoad() {
   // load the HTTP cert and unique ID if we have one.
   chrome.storage.sync.get('cert', function(savedCert) {
@@ -303,7 +345,14 @@ function moduleDidLoad() {
   });
 }
 
-// pair to the given NvHTTP host object.  Returns whether pairing was successful.
+/**
+ * pairTo - description
+ *
+ * @param  {NvHTTP} nvhttpHost The host object
+ * @param  {Function} onSuccess  Callback on success
+ * @param  {Function} onFailure  Callback on faillure
+ * @return {Void}
+ */
 function pairTo(nvhttpHost, onSuccess, onFailure) {
   if (!pairingCert) {
     snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
@@ -360,6 +409,11 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
   });
 }
 
+/**
+ * hostChosen - Gets called when a host is chosen
+ *
+ * @param  {NvHTTP} host The host object
+ */
 function hostChosen(host) {
 
   if (!host.online) {
@@ -420,8 +474,12 @@ function addHost() {
   });
 }
 
-
-// host is an NvHTTP object
+/**
+ * addHostToGrid - description
+ *
+ * @param  {NvHTTP} host              The host object
+ * @param  {Boolean} ismDNSDiscovered Whether or not host was mDNS discovered
+ */
 function addHostToGrid(host, ismDNSDiscovered) {
 
   var outerDiv = $("<div>", {
@@ -538,7 +596,11 @@ function sortTitles(list, sortOrder) {
   });
 }
 
-// show the app list
+/**
+ * showApps - Shows the app list view
+ *
+ * @param  {NvHTTP} host The host object
+ */
 function showApps(host) {
   if (!host || !host.paired) { // safety checking. shouldn't happen.
     console.log('%c[index.js, showApps]', 'color: green;', 'Moved into showApps, but `host` did not initialize properly! Failing.');
@@ -632,7 +694,9 @@ function showApps(host) {
   showAppsMode();
 }
 
-// set the layout to the initial mode you see when you open moonlight
+/**
+ * showHostsAndSettingsMode - Changes the view to list hosts and settings (initial view)
+ */
 function showHostsAndSettingsMode() {
   console.log('%c[index.js]', 'color: green;', 'Entering "Show apps and hosts" mode');
   $("#main-navigation").show();
@@ -648,6 +712,9 @@ function showHostsAndSettingsMode() {
   startPollingHosts();
 }
 
+/**
+ * showAppsMode - Changes the view to list apps
+ */
 function showAppsMode() {
   console.log('%c[index.js]', 'color: green;', 'Entering "Show apps" mode');
   $('#backIcon').show();
@@ -676,9 +743,13 @@ function showAppsMode() {
   stopPollingHosts();
 }
 
-
-// start the given appID.  if another app is running, offer to quit it.
-// if the given app is already running, just resume it.
+/**
+ * startGame - Start the given appID. If another app is running, offer to quit it. If the given app is already running, just resume it.
+ *
+ * @param  {NvHTTP} host  description
+ * @param  {Number} appID The ID of the app to start
+ * @return {type}       description
+ */
 function startGame(host, appID) {
   if (!host || !host.paired) {
     console.error('%c[index.js, startGame]', 'color: green;', 'Attempted to start a game, but `host` did not initialize properly. Host object: ', host);
@@ -787,6 +858,9 @@ function startGame(host, appID) {
   });
 }
 
+/**
+ * playGameMode - Change the view to streaming mode
+ */
 function playGameMode() {
   console.log('%c[index.js, playGameMode]', 'color:green;', 'Entering play game mode');
   isInGame = true;
@@ -802,6 +876,9 @@ function playGameMode() {
 }
 
 // Maximize the size of the nacl module by scaling and resizing appropriately
+/**
+ * fullscreenNaclModule - Fullscreens the NaCL module
+ */
 function fullscreenNaclModule() {
   var streamWidth = $('#selectResolution').data('value').split(':')[0];
   var streamHeight = $('#selectResolution').data('value').split(':')[1];
@@ -819,6 +896,9 @@ function fullscreenNaclModule() {
   module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
 }
 
+/**
+ * stopGameWithConfirmation - Stops the game after user confirmation
+ */
 function stopGameWithConfirmation() {
   if (api.currentGame === 0) {
     snackbarLog('Nothing was running');
@@ -845,6 +925,12 @@ function stopGameWithConfirmation() {
   }
 }
 
+/**
+ * stopGame - Stops the currently running game
+ *
+ * @param  {NvHTTP} host             The host object
+ * @param  {Function} callbackFunction The callback function
+ */
 function stopGame(host, callbackFunction) {
   isInGame = false;
 
@@ -885,6 +971,9 @@ function storeData(key, data, callbackFunction) {
     chrome.storage.sync.set(obj, callbackFunction);
 }
 
+/**
+ * saveResolution - Saves the option for resolution to storage
+ */
 function saveResolution() {
   var chosenResolution = $(this).data('value');
   $('#selectResolution').text($(this).text()).data('value', chosenResolution);
@@ -892,6 +981,9 @@ function saveResolution() {
   updateDefaultBitrate();
 }
 
+/**
+ * saveOptimize - Saves the option for optimisations to storage
+ */
 function saveOptimize() {
   // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
   // checking the new state
@@ -902,6 +994,9 @@ function saveOptimize() {
   }, 100);
 }
 
+/**
+ * saveFramerate - Saves the option for framerate to storage
+ */
 function saveFramerate() {
   var chosenFramerate = $(this).data('value');
   $('#selectFramerate').text($(this).text()).data('value', chosenFramerate);
@@ -909,15 +1004,19 @@ function saveFramerate() {
   updateDefaultBitrate();
 }
 
-
-
 // storing data in chrome.storage takes the data as an object, and shoves it into JSON to store
 // unfortunately, objects with function instances (classes) are stripped of their function instances when converted to a raw object
 // so we cannot forget to revive the object after we load it.
+/**
+ * saveHosts - Saves the hosts to storage
+ */
 function saveHosts() {
   storeData('hosts', hosts, null);
 }
 
+/**
+ * saveRemoteAudio - Saves the option for remote audio to storage
+ */
 function saveRemoteAudio() {
   // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
   // checking the new state
@@ -928,6 +1027,11 @@ function saveRemoteAudio() {
   }, 100);
 }
 
+/**
+ * updateDefaultBitrate - Updates the bitrate according to the resolution and framerate
+ *
+ * @return {Void}
+ */
 function updateDefaultBitrate() {
   var res = $('#selectResolution').data('value');
   var frameRate = $('#selectFramerate').data('value').toString();
@@ -955,6 +1059,11 @@ function updateDefaultBitrate() {
   }
 }
 
+/**
+ * onWindowLoad - Gets clalled when the main window loads
+ *
+ * @return {type}  description
+ */
 function onWindowLoad() {
   console.log('%c[index.js]', 'color: green;', 'Moonlight\'s main window loaded');
   // don't show the game selection div
