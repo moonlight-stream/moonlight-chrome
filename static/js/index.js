@@ -1141,6 +1141,12 @@ function onWindowLoad() {
       var value = previousValue.bitrate != null ? previousValue.bitrate : '10'
       changeBitrate(value)
     });
+
+    document.querySelectorAll('.localize').forEach(item => {
+      var message = item.dataset.message
+      var localized = chrome.i18n.getMessage(message)
+      item.innerText = localized
+    })
   }
 }
 

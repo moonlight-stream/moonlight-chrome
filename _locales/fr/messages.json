@@ -34,5 +34,23 @@
   },
   "game_running": {
     "message": "$1 est en cours d'execution. Voulez-vous quitter? Toute progression non enregistrée sera perdue"
+  },
+  "quit_current_app": {
+    "message": "Quitter l'application en cours"
+  },
+  "option_resolution": {
+    "message": "Resolution"
+  },
+  "option_framerate": {
+    "message": "Taux de rafraichissement"
+  },
+  "option_bandwidth": {
+    "message": "Bande passante"
+  },
+  "option_audio": {
+    "message": "Jouer l'audio sur l'ordinateur"
+  },
+  "option_optimisations": {
+    "message": "Activer les optimisations"
   }
 }

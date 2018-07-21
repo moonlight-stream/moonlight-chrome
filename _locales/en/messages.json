@@ -34,5 +34,23 @@
   },
   "game_running": {
     "message": "$1 is already running. Would you like to quit? All unsaved progress will be lost"
+  },
+  "quit_current_app": {
+    "message": "Quit current app"
+  },
+  "option_resolution": {
+    "message": "Resolution"
+  },
+  "option_framerate": {
+    "message": "Framerate"
+  },
+  "option_bandwidth": {
+    "message": "Bandwidth"
+  },
+  "option_audio": {
+    "message": "Play audio on host"
+  },
+  "option_optimisations": {
+    "message": "Enable optimisations"
   }
 }
