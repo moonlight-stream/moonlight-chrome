@@ -11,17 +11,20 @@ var windowState = 'normal'; // chrome's windowState, possible values: 'normal' o
  */
 function attachListeners() {
   changeUiModeForNaClLoad();
-
+  // Streaming controls handlers
   $('.resolutionMenu li').on('click', saveResolution);
   $('.framerateMenu li').on('click', saveFramerate);
-  $('#bitrateSlider').on('input', e => changeBitrate(e.target.value)); // input occurs every notch you slide
-  $('#bitrateInput').on('input', e => changeBitrate(e.target.value));
   $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
   $('#optimizeGamesSwitch').on('click', saveOptimize);
-  $('#addHostCell').on('click', addHost);
-  $('#backIcon').on('click', showHostsAndSettingsMode);
-  $('#quitCurrentApp').on('click', stopGameWithConfirmation);
-  $(window).resize(fullscreenNaclModule);
+  // Inputs handlers
+  document.querySelector('#bitrateSlider').oninput = e => changeBitrate(e.target.value)
+  document.querySelector('#bitrateInput').oninput = e => changeBitrate(e.target.value)
+  // Controls handler
+  document.querySelector('#addHostCell').onclick = () => addHost()
+  document.querySelector('#backIcon').onclick = () => showHostsAndSettingsMode()
+  document.querySelector('#quitCurrentApp').onclick = () => stopGameWithConfirmation()
+  // Resize handlers
+  window.onresize = () => fullscreenNaclModule()
   chrome.app.window.current().onMaximized.addListener(fullscreenChromeWindow);
 }
 
@@ -964,6 +967,13 @@ function stopGame(host, callbackFunction) {
   });
 }
 
+/**
+ * storeData - Stores data into chrome.storage.sync
+ *
+ * @param  {String} key                 The key for the storage
+ * @param  {Object|String|Number} data  The data to store
+ * @param  {Function} callbackFunction  The callback function
+ */
 function storeData(key, data, callbackFunction) {
   var obj = {};
   obj[key] = data;
@@ -1076,7 +1086,6 @@ function onWindowLoad() {
     chrome.storage.sync.get('customResolutions', function(previousValue) {
       if (previousValue.customResolutions != null) {
         previousValue.customResolutions.forEach(item => {
-          console.log(item);
           var child = document.createElement('li')
           child.className = 'mdl-menu__item'
           child.dataset.value = item.width + ':' + item.height
