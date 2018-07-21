@@ -1,0 +1,38 @@
+{
+  "loading_plugin": {
+    "message": "Loading Moonlight plugin..."
+  },
+  "loading_apps": {
+    "message": "Loading apps..."
+  },
+  "stopping_game": {
+    "message": "Stopping $1"
+  },
+  "error": {
+    "message": "Error"
+  },
+  "cert_error": {
+    "message": "Cert has not been generated yet. Is NaCl initialized?"
+  },
+  "busy_error": {
+    "message": "Your computer is busy. Stop streaming to pair"
+  },
+  "pair_error": {
+    "message": "Failed to pair with $1"
+  },
+  "remove_host": {
+    "message": "Remove host"
+  },
+  "delete_host": {
+    "message": "Are you sure you want to delete $1?"
+  },
+  "add_host": {
+    "message": "Add host"
+  },
+  "gamelist_empty": {
+    "message": "Your game list is empty"
+  },
+  "game_running": {
+    "message": "$1 is already running. Would you like to quit? All unsaved progress will be lost"
+  }
+}

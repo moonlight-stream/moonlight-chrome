@@ -158,7 +158,7 @@ class Resolution {
 function changeUiModeForNaClLoad() {
   $('#main-navigation').children().hide();
   $("#main-content").children().not("#listener, #naclSpinner").hide();
-  $('#naclSpinnerMessage').text('Loading Moonlight plugin...');
+  $('#naclSpinnerMessage').text(chrome.i18n.getMessage('loading_plugin'));
   $('#naclSpinner').css('display', 'inline-block');
 }
 
@@ -358,7 +358,7 @@ function moduleDidLoad() {
  */
 function pairTo(nvhttpHost, onSuccess, onFailure) {
   if (!pairingCert) {
-    snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
+    snackbarLog(chrome.i18n.getMessage('cert_error'));
     console.warn('%c[index.js]', 'color: green;', 'User wants to pair, and we still have no cert. Problem = very yes.');
     onFailure();
     return;
@@ -379,7 +379,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
 
     var randomNumber = String("0000" + (Math.random() * 10000 | 0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
-    $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
+    pairingDialog.innerText = 'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete'
     pairingDialog.showModal();
 
     $('#cancelPairingDialog').off('click');
@@ -390,10 +390,11 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
     console.log('%c[index.js]', 'color: green;', 'Sending pairing request to ' + nvhttpHost.hostname + ' with random number' + randomNumber);
     nvhttpHost.pair(randomNumber).then(function(paired) {
       if (!paired) {
+        var pairingDialogText = document.querySelector('#pairingDialogText')
         if (nvhttpHost.currentGame != 0) {
-          $('#pairingDialogText').html('Error: ' + nvhttpHost.hostname + ' is busy.  Stop streaming to pair.');
+          pairingDialogText.innerText = chrome.i18n.getMessage('busy_error')
         } else {
-          $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.hostname + '.');
+          pairingDialogText.innerText = chrome.i18n.getMessage('pair_error', nvhttpHost.hostname)
         }
         console.log('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
         onFailure();
@@ -404,7 +405,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
       pairingDialog.close();
       onSuccess();
     }, function(failedPairing) {
-      snackbarLog('Failed pairing to: ' + nvhttpHost.hostname);
+      snackbarLog(chrome.i18n.getMessage('pair_error', nvhttpHost.hostname));
       console.error('%c[index.js]', 'color: green;', 'Pairing failed, and returned:', failedPairing);
       console.error('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
       onFailure();
@@ -457,7 +458,7 @@ function addHost() {
   // try to pair if they continue
   $('#continueAddHost').off('click');
   $('#continueAddHost').on('click', function() {
-    var inputHost = $('#dialogInputHost').val();
+    var inputHost = document.querySelector('#dialogInputHost').value;
     var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
 
     pairTo(_nvhttpHost, function() {
@@ -483,15 +484,13 @@ function addHost() {
  * @param  {NvHTTP} host              The host object
  * @param  {Boolean} ismDNSDiscovered Whether or not host was mDNS discovered
  */
-function addHostToGrid(host, ismDNSDiscovered) {
-
-  var outerDiv = $("<div>", {
-    class: 'host-container mdl-card mdl-shadow--4dp',
-    id: 'host-container-' + host.serverUid,
-    role: 'link',
-    tabindex: 0,
-    'aria-label': host.hostname
-  });
+function addHostToGrid(host, ismDNSDiscovered = false) {
+  var outerDiv = document.createElement('div')
+  outerDiv.className = 'host-container mdl-card mdl-shadow--4dp'
+  outerDiv.id = 'host-container-' + host.serverUid
+  outerDiv.setAttribute('role', 'link')
+  outerDiv.tabIndex = 0
+  outerDiv.setAttribute('aria-label', host.hostname)
   var cell = $("<div>", {
     class: 'mdl-card__title mdl-card--expand',
     id: 'hostgrid-' + host.serverUid
@@ -505,7 +504,7 @@ function addHostToGrid(host, ismDNSDiscovered) {
     id: "removeHostButton-" + host.serverUid,
     role: 'button',
     tabindex: 0,
-    'aria-label': 'Remove host ' + host.hostname
+    'aria-label': chrome.i18n.getMessage('remove_error')
   });
   removalButton.off('click');
   removalButton.click(function() {
@@ -515,7 +514,7 @@ function addHostToGrid(host, ismDNSDiscovered) {
   cell.click(function() {
     hostChosen(host);
   });
-  outerDiv.keypress(function(e) {
+  $(outerDiv).keypress(function(e) {
     if (e.keyCode == 13) {
       hostChosen(host);
     }
@@ -531,8 +530,7 @@ function addHostToGrid(host, ismDNSDiscovered) {
 
 function removeClicked(host) {
   var deleteHostDialog = document.querySelector('#deleteHostDialog');
-  document.getElementById('deleteHostDialogText').innerHTML =
-    ' Are you sure you want to delete ' + host.hostname + '?';
+  document.getElementById('deleteHostDialogText').innerHTML = chrome.i18n.getMessage('delete_host', host.hostname);
   deleteHostDialog.showModal();
 
   $('#cancelDeleteHost').off('click');
@@ -614,7 +612,7 @@ function showApps(host) {
   $("#gameList .game-container").remove();
 
   // Show a spinner while the applist loads
-  $('#naclSpinnerMessage').text('Loading apps...');
+  $('#naclSpinnerMessage').text(chrome.i18n.getMessage('loading_apps'));
   $('#naclSpinner').css('display', 'inline-block');
 
   $("div.game-container").remove();
@@ -628,7 +626,7 @@ function showApps(host) {
       var img = new Image()
       img.src = 'static/res/applist_empty.svg'
       $('#game-grid').html(img)
-      snackbarLog('Your game list is empty')
+      snackbarLog(chrome.i18n.getMessage('gamelist_empty'))
       return; // We stop the function right here
     }
     // if game grid is populated, empty it
@@ -766,9 +764,7 @@ function startGame(host, appID) {
       if (host.currentGame != 0 && host.currentGame != appID) {
         host.getAppById(host.currentGame).then(function(currentApp) {
           var quitAppDialog = document.querySelector('#quitAppDialog');
-          document.getElementById('quitAppDialogText').innerHTML =
-            currentApp.title + ' is already running. Would you like to quit ' +
-            currentApp.title + '?';
+          document.getElementById('quitAppDialogText').innerHTML = chrome.i18n.getMessage('game_running', currentApp.title);
           quitAppDialog.showModal();
           $('#cancelQuitApp').off('click');
           $('#cancelQuitApp').on('click', function() {
@@ -908,9 +904,7 @@ function stopGameWithConfirmation() {
   } else {
     api.getAppById(api.currentGame).then(function(currentGame) {
       var quitAppDialog = document.querySelector('#quitAppDialog');
-      document.getElementById('quitAppDialogText').innerHTML =
-        ' Are you sure you would like to quit ' +
-        currentGame.title + '?  Unsaved progress will be lost.';
+      document.getElementById('quitAppDialogText').innerHTML = chrome.i18n.getMessage('game_running', currentGame.title)
       quitAppDialog.showModal();
       $('#cancelQuitApp').off('click');
       $('#cancelQuitApp').on('click', function() {
@@ -948,7 +942,7 @@ function stopGame(host, callbackFunction) {
         return;
       }
       var appName = runningApp.title;
-      snackbarLog('Stopping ' + appName);
+      snackbarLog(chrome.i18n.getMessage('stopping_game', runningApp.title));
       host.quitApp().then(function(ret2) {
         host.refreshServerInfo().then(function(ret3) { // refresh to show no app is currently running.
           showApps(host);

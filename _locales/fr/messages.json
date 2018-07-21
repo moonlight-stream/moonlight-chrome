@@ -1,0 +1,38 @@
+{
+  "loading_plugin": {
+    "message": "Chargement du plugin..."
+  },
+  "loading_apps": {
+    "message": "Chargement des applications..."
+  },
+  "stopping_game": {
+    "message": "Arrêt de $1"
+  },
+  "error": {
+    "message": "Erreur"
+  },
+  "cert_error": {
+    "message": "Le certificat n'a pas été généré. Est-ce que NaCL est activé?"
+  },
+  "busy_error": {
+    "message": "Votre ordinateur est occupé. Arrêter de streamer pour appareiller"
+  },
+  "pair_error": {
+    "message": "Impossible d'appareiller $1"
+  },
+  "remove_host": {
+    "message": "Supprimer l'ordinateur"
+  },
+  "delete_host": {
+    "message": "Voulez-vous vraiement enlever $1?"
+  },
+  "add_host": {
+    "message": "Ajouter un ordinateur"
+  },
+  "gamelist_empty": {
+    "message": "Votre liste d'applications est vide"
+  },
+  "game_running": {
+    "message": "$1 est en cours d'execution. Voulez-vous quitter? Toute progression non enregistrée sera perdue"
+  }
+}
