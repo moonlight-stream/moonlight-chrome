@@ -86,6 +86,51 @@ function changeBitrate(value) {
   return value
 }
 
+/**
+ * Resolution - Represents a resolution
+ */
+class Resolution {
+
+  /**
+   * constructor - Creates a new Resolution object
+   *
+   * @param  {Number} width  Resolution width
+   * @param  {Number} height Resolution height
+   * @param  {String} name   Resolution name
+   * @return {Object}        The corresponding object
+   */
+  constructor(width, height, name = null) {
+    this.width = width
+    this.height = height
+    if(name === null)
+      this.name = this.height + 'p'
+    else
+      this.name = name
+  }
+
+  /**
+   * getObject - Returns the corresponding object
+   *
+   * @return {type}  description
+   */
+  getObject() {
+    return { width, height, name } = this
+  }
+
+  /**
+   * getChildren - Returns an item
+   *
+   * @return {HTMLElement}  The chooser
+   */
+  getChildren() {
+    var child = document.createElement('li')
+    child.className = 'mdl-menu__item'
+    child.dataset.value = this.width + ':' + thids.height
+    child.innerText = this.name
+    return child
+  }
+}
+
 function changeUiModeForNaClLoad() {
   $('#main-navigation').children().hide();
   $("#main-content").children().not("#listener, #naclSpinner").hide();
