@@ -17,8 +17,7 @@ function createWindow(state) {
   });
 }
 
-chrome.app.runtime.onLaunched.addListener(function() {
-  console.log('Chrome app runtime launched.');
+function launchApp() {
   var windowState = 'normal';
 
   if (chrome.storage) {
@@ -32,4 +31,21 @@ chrome.app.runtime.onLaunched.addListener(function() {
   } else {
     createWindow(windowState);
   }
+}
+
+chrome.app.runtime.onLaunched.addListener(function() {
+  console.log('Chrome app runtime launched.');
+  launchApp()
 });
+
+chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
+  if(request && request.message) {
+    if(request.message == 'VERSION') {
+      var manifestData = chrome.runtime.getManifest();
+      sendResponse({name: 'moonlight-chrome', version: manifestData.version})
+    }
+    if(request.message == 'LAUNCH') {
+      launchApp()
+    }
+  }
+})

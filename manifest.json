@@ -18,6 +18,9 @@
             "scripts": ["static/js/jquery-2.2.0.min.js", "static/js/material.min.js", "static/js/common.js", "static/js/background.js"]
         }
     },
+    "externally_connectable": {
+      "matches": ["*://localhost:*/*", "*://moonlight-stream.com:*/*", "*://moonlight-stream.github.io:*/*"]
+    },
     "sockets": {
         "udp": { "bind": "*", "send": "*" }
     },
