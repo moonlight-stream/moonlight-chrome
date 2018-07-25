@@ -29,6 +29,9 @@
   "add_host": {
     "message": "Ajouter un ordinateur"
   },
+  "offline_host": {
+    "message": "L'ordinateur est hors-ligne"
+  },
   "gamelist_empty": {
     "message": "Votre liste d'applications est vide"
   },

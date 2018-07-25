@@ -421,6 +421,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
 function hostChosen(host) {
 
   if (!host.online) {
+    snackbarLog(chrome.i18n.getMessage('offline_host'))
     return;
   }
 

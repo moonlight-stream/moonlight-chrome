@@ -29,6 +29,9 @@
   "add_host": {
     "message": "Add host"
   },
+  "offline_host": {
+    "message": "Host is offline"
+  },
   "gamelist_empty": {
     "message": "Your game list is empty"
   },

@@ -29,6 +29,9 @@
   "add_host": {
     "message": "Host hinzuf�gen"
   },
+  "offline_host": {
+    "message": "Der Computer ist offline"
+  },
   "gamelist_empty": {
     "message": "Deine Spieleliste ist leer."
   },
