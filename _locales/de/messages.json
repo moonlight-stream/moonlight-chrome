@@ -55,5 +55,11 @@
   },
   "option_optimisations": {
     "message": "Optimierungen aktivieren"
+  },
+  "pairing": {
+    "message": "Paarung"
+  },
+  "pairing_dialog": {
+    "message": "Bitte geben Sie $1 auf Ihrem Computer ein. Dieser Dialog wird einmal beendet"
   }
 }

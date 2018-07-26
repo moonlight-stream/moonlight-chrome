@@ -379,8 +379,8 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
 
     var randomNumber = String("0000" + (Math.random() * 10000 | 0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
-    pairingDialog.innerText = 'Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete'
     pairingDialog.showModal();
+    pairingDialog.querySelector('#pairingDialogText').innerText = chrome.i18n.getMessage('pairing_dialog', randomNumber)
 
     $('#cancelPairingDialog').off('click');
     $('#cancelPairingDialog').on('click', function() {

@@ -55,5 +55,11 @@
   },
   "option_optimisations": {
     "message": "Activer les optimisations"
+  },
+  "pairing": {
+    "message": "Appareillage"
+  },
+  "pairing_dialog": {
+    "message": "Veuillez entrer $1 sur votre ordinateur. Cette fenètre se fermera ensuite"
   }
 }
