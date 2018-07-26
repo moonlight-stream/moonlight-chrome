@@ -73,5 +73,8 @@
   },
   "continue": {
     "message": "Continue"
+  },
+  "host_ip": {
+    "message": "IP address or hostname of the PC"
   }
 }
