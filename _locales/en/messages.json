@@ -61,5 +61,17 @@
   },
   "pairing_dialog": {
     "message": "Please enter $1 on your computer. This dialog will dismiss once complete"
+  },
+  "no": {
+    "message": "Non"
+  },
+  "yes": {
+    "message": "Yes"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "continue": {
+    "message": "Continue"
   }
 }

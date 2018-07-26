@@ -61,5 +61,17 @@
   },
   "pairing_dialog": {
     "message": "Veuillez entrer $1 sur votre ordinateur. Cette fenètre se fermera ensuite"
+  },
+  "no": {
+    "message": "Non"
+  },
+  "yes": {
+    "message": "Oui"
+  },
+  "cancel": {
+    "message": "Anuler"
+  },
+  "continue": {
+    "message": "Continuer"
   }
 }

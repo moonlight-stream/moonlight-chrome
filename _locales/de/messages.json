@@ -61,5 +61,17 @@
   },
   "pairing_dialog": {
     "message": "Bitte geben Sie $1 auf Ihrem Computer ein. Dieser Dialog wird einmal beendet"
+  },
+  "no": {
+    "message": "Nein"
+  },
+  "yes": {
+    "message": "Ja"
+  },
+  "cancel": {
+    "message": "Stornieren"
+  },
+  "continue": {
+    "message": "Weiter"
   }
 }
