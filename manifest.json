@@ -2,13 +2,13 @@
     "manifest_version": 2,
     "name": "Moonlight Game Streaming",
     "short_name": "Moonlight",
-    "version": "0.9.0",
+    "version": "0.9.1",
     "description": "Open-source client for NVIDIA GameStream",
     "icons": {
         "128": "icons/icon128.png",
         "48": "icons/icon48.png",
         "32": "icons/icon32.png",
-        "16": "icons/icon16.png"    
+        "16": "icons/icon16.png"
     },
     "app": {
         "background": {
@@ -29,9 +29,9 @@
         "power",
         "overrideEscFullscreen", {
         "socket": [
-            "tcp-connect", 
-            "resolve-host", 
-            "udp-bind:*:*", 
+            "tcp-connect",
+            "resolve-host",
+            "udp-bind:*:*",
             "udp-send-to:*:*"
         ] }
     ],
