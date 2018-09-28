@@ -24,7 +24,10 @@ static short GetActiveGamepadMask(PP_GamepadsSampleData& gamepadData) {
 
     for (unsigned int p = 0; p < gamepadData.length; p++) {
         PP_GamepadSampleData& padData = gamepadData.items[p];
-        
+
+        // See logic in getConnectedGamepadMask() (utils.js)
+        // These must stay in sync!
+
         if (!padData.connected) {
             // Not connected
             continue;

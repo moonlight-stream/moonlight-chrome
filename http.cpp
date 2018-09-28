@@ -62,7 +62,7 @@ void MoonlightInstance::LoadCert(const char* certStr, const char* keyStr)
     BIO_free_all(bio);
     
     bio = BIO_new_mem_buf(_keyStr, -1);
-    if(PEM_read_bio_PrivateKey(bio, &g_PrivateKey, NULL, NULL) == NULL) {
+    if (!(g_PrivateKey = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL))) {
         PostMessage(pp::Var("Error loading private key into memory"));
     }
     BIO_free_all(bio);

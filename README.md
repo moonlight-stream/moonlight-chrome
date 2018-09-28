@@ -2,7 +2,9 @@
 
 [Moonlight for Chrome](http://moonlight-stream.com) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield, but built to run in the Chrome browser.
 
-Moonlight for Chrome allows you to stream your full collection of games from your powerful desktop to another PC or laptop running Windows, Mac OS X, Linux, or Chrome OS.
+Moonlight for Chrome allows you to stream your full collection of games from your powerful desktop to another PC or laptop running Chrome OS.
+
+For Windows, Mac, and Linux, we recommend running the [new PC port](https://github.com/moonlight-stream/moonlight-qt) for maximum performance.
 
 Moonlight also has mobile versions for [Android](https://github.com/moonlight-stream/moonlight-android) and  [iOS](https://github.com/moonlight-stream/moonlight-ios).
 
@@ -24,9 +26,11 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 * Install the [latest release](https://github.com/moonlight-stream/moonlight-chrome/releases)
 
 ## Requirements
-* Chrome browser on Windows, Mac OS X, Linux, or Chrome OS
+* Chrome browser
 * [GameStream-compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600+ series desktop or mobile GPU (for the PC from which you're streaming)
 * High-end wireless router (802.11n dual-band recommended) or wired network
+* Hardware acceleration enabled under `chrome://settings/system`
+* For Linux users, ensure your Chrome/Chromium package was built with NaCl support. Google's official packages are, but your distro's packages may not be.
 
 ## Building
 1. Install the Chrome Native Client SDK and download the current Pepper SDK

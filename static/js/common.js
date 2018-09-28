@@ -35,7 +35,7 @@ var common = (function() {
     } else if (tool == 'pnacl') {
       mimetype = 'application/x-pnacl';
     }
-      console.log('%c[updateStatus, common.js]', 'color: gray;', 'mimetype: ' + mimetype);
+    console.log('%c[updateStatus, common.js]', 'color: gray;', 'mimetype: ' + mimetype);
     return mimetype;
   }
 
@@ -72,7 +72,7 @@ var common = (function() {
    */
   function createNaClModule(name, tool, path, width, height, attrs) {
     console.log('%c[createNaClModule, common.js]', 'color: gray;', "name: " + name + ", tool: " + tool + ", path: " + path + ", width: " + width +
-        ", height: " + height + ", attrs: " + JSON.stringify(attrs));
+      ", height: " + height + ", attrs: " + JSON.stringify(attrs));
     var moduleEl = document.createElement('embed');
     moduleEl.setAttribute('name', 'nacl_module');
     moduleEl.setAttribute('id', 'nacl_module');
@@ -115,7 +115,7 @@ var common = (function() {
         moduleEl.readyState = 4;
         moduleEl.dispatchEvent(new CustomEvent('load'));
         moduleEl.dispatchEvent(new CustomEvent('loadend'));
-      }, 100);  // 100 ms
+      }, 100); // 100 ms
     }
   }
 
@@ -158,7 +158,7 @@ var common = (function() {
    * This event listener is registered in attachDefaultListeners above.
    */
   function handleCrash(event) {
-      console.log('%c[handleCrash, common.js]', 'color: red;', event);
+    console.log('%c[handleCrash, common.js]', 'color: red;', event);
     if (common.naclModule.exitStatus == -1) {
       updateStatus('CRASHED');
     } else {
@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
       for (var key_ix = 0; key_ix < pairs.length; key_ix++) {
         var keyValue = pairs[key_ix].split('=');
         searchVars[unescape(keyValue[0])] =
-            keyValue.length > 1 ? unescape(keyValue[1]) : '';
+          keyValue.length > 1 ? unescape(keyValue[1]) : '';
       }
     }
 
@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       var tc = toolchains.indexOf(searchVars.tc) !== -1 ?
-          searchVars.tc : toolchains[0];
+        searchVars.tc : toolchains[0];
 
       // If the config value is included in the search vars, use that.
       // Otherwise default to Release if it is valid, or the first value if
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
       isRelease = path.toLowerCase().indexOf('release') != -1;
 
       loadFunction(body.dataset.name, tc, path, body.dataset.width,
-                   body.dataset.height, attrs);
+        body.dataset.height, attrs);
     }
   }
 });
