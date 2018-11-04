@@ -36,6 +36,7 @@ COMMON_C_SOURCE := \
 	$(COMMON_C_DIR)/RtspConnection.c      \
 	$(COMMON_C_DIR)/RtspParser.c          \
 	$(COMMON_C_DIR)/SdpGenerator.c        \
+	$(COMMON_C_DIR)/SimpleStun.c          \
 	$(COMMON_C_DIR)/VideoDepacketizer.c   \
 	$(COMMON_C_DIR)/VideoStream.c         \
     $(ENET_SOURCE)                        \
