@@ -142,13 +142,13 @@ ServiceFinder.prototype.onReceive_ = function(info) {
     byIP[ptr] = true;
   }.bind(this));
 
-  // Ping! Something new is here. Only update every 25ms.
+  // Ping! Something new is here. Only update every 500ms.
   if (!this.callback_pending_) {
     this.callback_pending_ = true;
     setTimeout(function() {
       this.callback_pending_ = undefined;
       this.callback_();
-    }.bind(this), 25);
+    }.bind(this), 500);
   }
 };
 
