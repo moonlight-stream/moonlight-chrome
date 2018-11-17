@@ -99,8 +99,8 @@ void* MoonlightInstance::InputThreadFunc(void* context) {
         me->PollGamepads();
         me->ReportMouseMovement();
         
-        // Poll every 10 ms
-        usleep(10 * 1000);
+        // Poll every 5 ms
+        usleep(5 * 1000);
     }
     
     return NULL;
