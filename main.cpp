@@ -10,6 +10,8 @@
 #include "ppapi/cpp/input_event.h"
 
 #include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 // Requests the NaCl module to connection to the server specified after the :
 #define MSG_START_REQUEST "startRequest"
@@ -162,6 +164,8 @@ void MoonlightInstance::HandleMessage(const pp::Var& var_message) {
         MakeCert(callbackId, params);
     } else if (strcmp(method.c_str(), "pair") == 0) {
         HandlePair(callbackId, params);
+    } else if (strcmp(method.c_str(), "STUN") == 0) {
+        HandleSTUN(callbackId, params);
     } else {
         pp::Var response("Unhandled message received: " + method);
         PostMessage(response);
@@ -274,6 +278,29 @@ void MoonlightInstance::PairCallback(int32_t /*result*/, int32_t callbackId, pp:
     ret.Set("callbackId", pp::Var(callbackId));
     ret.Set("type", pp::Var("resolve"));
     ret.Set("ret", pp::Var(err));
+    PostMessage(ret);
+}
+
+void MoonlightInstance::HandleSTUN(int32_t callbackId, pp::VarArray args) {
+     m_HttpThreadPool[m_HttpThreadPoolSequence++ % HTTP_HANDLER_THREADS]->message_loop().PostWork(
+         m_CallbackFactory.NewCallback(&MoonlightInstance::STUNCallback, callbackId, args));
+}
+
+void MoonlightInstance::STUNCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args) {
+    unsigned int wanAddr;
+    char addrStr[128] = {};
+    
+    pp::VarDictionary ret;
+    ret.Set("callbackId", pp::Var(callbackId));
+    ret.Set("type", pp::Var("resolve"));
+
+    if (LiFindExternalAddressIP4("stun.stunprotocol.org", 3478, &wanAddr) == 0) {
+        inet_ntop(AF_INET, &wanAddr, addrStr, sizeof(addrStr));
+        ret.Set("ret", pp::Var(addrStr));
+    } else {
+        ret.Set("ret", pp::Var());
+    }
+
     PostMessage(ret);
 }
 

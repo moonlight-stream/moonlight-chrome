@@ -244,7 +244,14 @@ NvHTTP.prototype = {
     this.serverMajorVersion = parseInt(this.appVersion.substring(0, 1), 10);
     this.serverUid = $root.find('uniqueid').text().trim();
     this.hostname = $root.find('hostname').text().trim();
-    this.externalIP = $root.find('ExternalIP').text().trim();
+
+    var externIP = $root.find('ExternalIP').text().trim();
+    if (externIP) {
+      // New versions of GFE don't have this field, so don't overwrite
+      // the one we found via STUN
+      this.externalIP = externIP;
+    }
+
     try { //  these aren't critical for functionality, and don't necessarily exist in older GFE versions.
       this.GfeVersion = $root.find('GfeVersion').text().trim();
       this.gputype = $root.find('gputype').text().trim();
@@ -437,6 +444,18 @@ NvHTTP.prototype = {
       // session belongs to a different client.
       // TODO: We should probably bubble this up to our caller.
       .then(this.refreshServerInfo());
+  },
+
+  updateExternalAddressIP4: function() {
+    console.log('%c[utils.js, updateExternalAddressIP4]', 'color: gray;', 'Finding external IPv4 address for ' + this.hostname);
+    return sendMessage('STUN').then(function(addr) {
+      if (addr) {
+        this.externalIP = addr
+        console.log('%c[utils.js, updateExternalAddressIP4]', 'color: gray;', 'Found external IPv4 address: ' + this.hostname + ' -> ' + this.externalIP);
+      } else {
+        console.log('%c[utils.js, updateExternalAddressIP4]', 'color: gray;', 'External IPv4 address lookup failed');
+      }
+    }.bind(this))
   },
 
   pair: function(randomNumber) {

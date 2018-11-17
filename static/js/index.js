@@ -107,6 +107,7 @@ function restoreUiAfterNaClLoad() {
             if (hosts[returneMdnsDiscoveredHost.serverUid] != null) {
               // if we're seeing a host we've already seen before, update it for the current local IP.
               hosts[returneMdnsDiscoveredHost.serverUid].address = returneMdnsDiscoveredHost.address;
+              hosts[returneMdnsDiscoveredHost.serverUid].updateExternalAddressIP4();
             } else {
               // Host must be in the grid before starting background polling
               addHostToGrid(returneMdnsDiscoveredHost, true);
@@ -405,6 +406,9 @@ function addHostToGrid(host, ismDNSDiscovered) {
   }
   $('#host-grid').append(outerDiv);
   hosts[host.serverUid] = host;
+  if (ismDNSDiscovered) {
+    hosts[host.serverUid].updateExternalAddressIP4();
+  }
 }
 
 function removeClicked(host) {
