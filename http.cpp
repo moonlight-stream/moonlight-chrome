@@ -10,6 +10,8 @@
 #include <openssl/bio.h>
 #include <openssl/pem.h>
 
+#include <curl/curl.h>
+
 X509 *g_Cert;
 EVP_PKEY *g_PrivateKey;
 char *g_UniqueId;
@@ -85,11 +87,13 @@ void MoonlightInstance::NvHTTPInit(int32_t callbackId, pp::VarArray args)
     
     LoadCert(_cert.c_str(), _key.c_str());
     g_UniqueId = strdup(_uniqueId.c_str());
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
     
     pp::VarDictionary ret;
     ret.Set("callbackId", pp::Var(callbackId));
     ret.Set("type", pp::Var("resolve"));
-    ret.Set("ret", pp::Var(""));
+    ret.Set("ret", pp::Var());
     PostMessage(ret);
 }
 
