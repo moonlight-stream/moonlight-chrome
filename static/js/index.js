@@ -113,6 +113,8 @@ function restoreUiAfterNaClLoad() {
               addHostToGrid(returneMdnsDiscoveredHost, true);
               beginBackgroundPollingOfHost(returneMdnsDiscoveredHost);
             }
+
+            saveHosts();
           });
         }
       }
