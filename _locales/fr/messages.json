@@ -1,0 +1,80 @@
+{
+  "loading_plugin": {
+    "message": "Chargement du plugin..."
+  },
+  "loading_apps": {
+    "message": "Chargement des applications..."
+  },
+  "stopping_game": {
+    "message": "Arrêt de $1"
+  },
+  "error": {
+    "message": "Erreur"
+  },
+  "cert_error": {
+    "message": "Le certificat n'a pas été généré. Est-ce que NaCL est activé?"
+  },
+  "busy_error": {
+    "message": "Votre ordinateur est occupé. Arrêter de streamer pour appareiller"
+  },
+  "pair_error": {
+    "message": "Impossible d'appareiller $1"
+  },
+  "remove_host": {
+    "message": "Supprimer l'ordinateur"
+  },
+  "delete_host": {
+    "message": "Voulez-vous vraiement enlever $1?"
+  },
+  "add_host": {
+    "message": "Ajouter un ordinateur"
+  },
+  "offline_host": {
+    "message": "L'ordinateur est hors-ligne"
+  },
+  "gamelist_empty": {
+    "message": "Votre liste d'applications est vide"
+  },
+  "game_running": {
+    "message": "$1 est en cours d'execution. Voulez-vous quitter? Toute progression non enregistrée sera perdue"
+  },
+  "quit_current_app": {
+    "message": "Quitter l'application en cours"
+  },
+  "option_resolution": {
+    "message": "Resolution"
+  },
+  "option_framerate": {
+    "message": "Taux de rafraichissement"
+  },
+  "option_bandwidth": {
+    "message": "Bande passante"
+  },
+  "option_audio": {
+    "message": "Jouer l'audio sur l'ordinateur"
+  },
+  "option_optimisations": {
+    "message": "Activer les optimisations"
+  },
+  "pairing": {
+    "message": "Appareillage"
+  },
+  "pairing_dialog": {
+    "message": "Veuillez entrer $1 sur votre ordinateur. Cette fenètre se fermera ensuite"
+  },
+  "no": {
+    "message": "Non"
+  },
+  "yes": {
+    "message": "Oui"
+  },
+  "cancel": {
+    "message": "Anuler"
+  },
+  "continue": {
+    "message": "Continuer"
+  },
+  "host_ip": {
+    "message": "Addresse IP ou nom d'hote de l'ordinateur"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "loading_plugin": {
+    "message": "Loading Moonlight plugin..."
+  },
+  "loading_apps": {
+    "message": "Loading apps..."
+  },
+  "stopping_game": {
+    "message": "Stopping $1"
+  },
+  "error": {
+    "message": "Error"
+  },
+  "cert_error": {
+    "message": "Cert has not been generated yet. Is NaCl initialized?"
+  },
+  "busy_error": {
+    "message": "Your computer is busy. Stop streaming to pair"
+  },
+  "pair_error": {
+    "message": "Failed to pair with $1"
+  },
+  "remove_host": {
+    "message": "Remove host"
+  },
+  "delete_host": {
+    "message": "Are you sure you want to delete $1?"
+  },
+  "add_host": {
+    "message": "Add host"
+  },
+  "offline_host": {
+    "message": "Host is offline"
+  },
+  "gamelist_empty": {
+    "message": "Your game list is empty"
+  },
+  "game_running": {
+    "message": "$1 is already running. Would you like to quit? All unsaved progress will be lost"
+  },
+  "quit_current_app": {
+    "message": "Quit current app"
+  },
+  "option_resolution": {
+    "message": "Resolution"
+  },
+  "option_framerate": {
+    "message": "Framerate"
+  },
+  "option_bandwidth": {
+    "message": "Bandwidth"
+  },
+  "option_audio": {
+    "message": "Play audio on host"
+  },
+  "option_optimisations": {
+    "message": "Enable optimizations"
+  },
+  "pairing": {
+    "message": "Pairing"
+  },
+  "pairing_dialog": {
+    "message": "Please enter $1 on your computer. This dialog will dismiss once complete"
+  },
+  "no": {
+    "message": "Non"
+  },
+  "yes": {
+    "message": "Yes"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "continue": {
+    "message": "Continue"
+  },
+  "host_ip": {
+    "message": "IP address or hostname of the PC"
+  }
+}

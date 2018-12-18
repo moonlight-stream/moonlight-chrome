@@ -35,7 +35,7 @@
             </ul>
 
             <div id="resolutionTooltip" class="mdl-tooltip" for="resolutionMenu">
-              Resolution
+              <span class="localize" data-message="option_resolution">Resolution</span>
             </div>
           </div>
           <div class="nav-menu-parent">
@@ -51,7 +51,7 @@
             </ul>
 
             <div id="framerateTooltip" class="mdl-tooltip" for="framerateMenu">
-              Framerate
+              <span class="localize" data-message="option_framerate">Framerate</span>
             </div>
           </div>
 
@@ -62,10 +62,11 @@
 
             <div class="bitrateMenu mdl-menu mdl-js-menu mdl-js-ripple-effect" for="bandwidthMenu">
               <input id="bitrateSlider" class="mdl-slider mdl-js-slider" type="range" min="0" max="100" step="0.5" value="10">
+              <input id="bitrateInput" class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?">
             </div>
 
             <div id="bandwidthTooltip" class="mdl-tooltip" for="bandwidthMenu">
-              Bandwidth
+              <span class="localize" data-message="option_bandwidth">Bandwidth</span>
             </div>
           </div>
 
@@ -75,7 +76,7 @@
                             <i class="mdl-icon-toggle__label material-icons">volume_up</i>
                         </label>
             <div id="externalAudioTooltip" class="mdl-tooltip" for="externalAudioBtn">
-              Play audio on the host
+              <span class="localize" data-message="option_audio">Play audio on the host</span>
             </div>
           </div>
 
@@ -85,13 +86,13 @@
                             <i class="mdl-icon-toggle__label material-icons">timeline</i>
                         </label>
             <div id="optimizeGamesTooltip" class="mdl-tooltip" for="optimizeGamesBtn">
-              Allow game optimisations
+              <span class="localize" data-message="option_optimisations">Allow game optimisations</span>
             </div>
           </div>
 
           <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="quitCurrentApp" aria-label="Quit current app">
                         <i class="material-icons">remove_circle_outline</i>
-                        Quit Current App
+                        <span class="localize" data-message="quit_current_app">Quit Current App</span>
                     </button>
         </nav>
       </div>
@@ -100,7 +101,7 @@
       <div id="host-grid">
         <div class="add-host-card mdl-card mdl-shadow--4dp" id="addHostCell">
           <div class="mdl-card__title mdl-card--expand" id="addHostIcon" role="link" tabindex="0" aria-label="Add Host">
-            <h2 class="mdl-card__title-text">Add Host</h2>
+            <h2 class="mdl-card__title-text"><span class="localize" data-message="add_host">Add Host</span></h2>
           </div>
         </div>
       </div>
@@ -124,7 +125,7 @@
   <script type="text/javascript" src="static/js/mdns-browser/dns.js"></script>
   <script type="text/javascript" src="static/js/mdns-browser/main.js"></script>
   <dialog id="pairingDialog" class="mdl-dialog">
-    <h3 class="mdl-dialog__title">Pairing</h3>
+    <h3 class="mdl-dialog__title"><span class="localize" data-message="pairing">Pairing</span></h3>
     <div class="mdl-dialog__content">
       <p id="pairingDialogText">
         Please enter the number XXXX on the GFE dialog on the computer. This dialog will be dismissed once complete
@@ -142,8 +143,8 @@
       </p>
     </div>
     <div class="mdl-dialog__actions">
-      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelQuitApp">No</button>
-      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueQuitApp">Yes</button>
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelQuitApp"><span class="localize" data-message="no">No</span></button>
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueQuitApp"><span class="localize" data-message="yes">Yes</span></button>
     </div>
   </dialog>
   <dialog id="deleteHostDialog" class="mdl-dialog">
@@ -154,8 +155,8 @@
       </p>
     </div>
     <div class="mdl-dialog__actions">
-      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelDeleteHost">No</button>
-      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueDeleteHost">Yes</button>
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelDeleteHost"><span class="localize" data-message="no">No</span></button>
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueDeleteHost"><span class="localize" data-message="yes">Yes</span></button>
     </div>
   </dialog>
   <dialog id="addHostDialog" class="mdl-dialog">
@@ -163,12 +164,12 @@
     <div class="mdl-dialog__content">
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
         <input class="mdl-textfield__input" type="text" id="dialogInputHost" />
-        <label class="mdl-textfield__label" for="dialogInputHost">IP Address or Hostname of GeForce PC</label>
+        <label class="mdl-textfield__label" for="dialogInputHost"><span class="localize" data-message="host_ip">IP Address or Hostname of GeForce PC</span></label>
       </div>
     </div>
     <div class="mdl-dialog__actions">
-      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelAddHost">Cancel</button>
-      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueAddHost">Continue</button>
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="cancelAddHost"><span class="localize" data-message="cancel">Cancel</span></button>
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" id="continueAddHost"><span class="localize" data-message="continue">Continue</span></button>
     </div>
   </dialog>
   <div id="snackbar" class="mdl-snackbar mdl-js-snackbar">

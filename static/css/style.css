@@ -91,7 +91,13 @@ main {
     text-transform: none;
 }
 .bitrateMenu {
-    width: 170px;
+    width: auto;
+    display: flex;
+    align-items: center;
+    padding: 8px;
+}
+#bitrateInput {
+  width: 50%;
 }
 
 .mdl-button {
@@ -128,6 +134,7 @@ main {
 }
 .mdl-textfield__input {
     border-bottom: 1px solid rgba(255, 255, 255, 0.90);
+    width: 25%;
 }
 .mdl-textfield__label {
     color: rgba(255, 255, 255, 0.90);

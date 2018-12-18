@@ -6,23 +6,31 @@ var api; // `api` should only be set if we're in a host-specific screen. on the 
 var isInGame = false; // flag indicating whether the game stream started
 var windowState = 'normal'; // chrome's windowState, possible values: 'normal' or 'fullscreen'
 
-// Called by the common.js module.
+/**
+ * attachListeners - Gets called to attach listeners. Called by the common.js module.
+ */
 function attachListeners() {
   changeUiModeForNaClLoad();
-
+  // Streaming controls handlers
   $('.resolutionMenu li').on('click', saveResolution);
   $('.framerateMenu li').on('click', saveFramerate);
-  $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
-  //$('#bitrateSlider').on('change', saveBitrate); //FIXME: it seems not working
   $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
   $('#optimizeGamesSwitch').on('click', saveOptimize);
-  $('#addHostCell').on('click', addHost);
-  $('#backIcon').on('click', showHostsAndSettingsMode);
-  $('#quitCurrentApp').on('click', stopGameWithConfirmation);
-  $(window).resize(fullscreenNaclModule);
+  // Inputs handlers
+  document.querySelector('#bitrateSlider').oninput = e => changeBitrate(e.target.value)
+  document.querySelector('#bitrateInput').oninput = e => changeBitrate(e.target.value)
+  // Controls handler
+  document.querySelector('#addHostCell').onclick = () => addHost()
+  document.querySelector('#backIcon').onclick = () => showHostsAndSettingsMode()
+  document.querySelector('#quitCurrentApp').onclick = () => stopGameWithConfirmation()
+  // Resize handlers
+  window.onresize = () => fullscreenNaclModule()
   chrome.app.window.current().onMaximized.addListener(fullscreenChromeWindow);
 }
 
+/**
+ * fullscreenChromeWindow - Fullscreens the chrome window
+ */
 function fullscreenChromeWindow() {
   // when the user clicks the maximize button on the window,
   // FIRST restore it to the previous size, then fullscreen it to the whole screen
@@ -34,6 +42,11 @@ function fullscreenChromeWindow() {
   chrome.app.window.current().fullscreen();
 }
 
+/**
+ * loadWindowState - Loads the window state: windowed, fullscreen...
+ *
+ * @return {Void}  If chrome.storage is not avaliable
+ */
 function loadWindowState() {
   if (!chrome.storage) {
     return;
@@ -51,6 +64,9 @@ function loadWindowState() {
   });
 }
 
+/**
+ * onFullscreened - Gets called when window is fullscreened
+ */
 function onFullscreened() {
   if (!isInGame && windowState == 'normal') {
     storeData('windowState', 'fullscreen', null);
@@ -58,6 +74,9 @@ function onFullscreened() {
   }
 }
 
+/**
+ * onBoundsChanged - Gets called when window's bounds changed
+ */
 function onBoundsChanged() {
   if (!isInGame && windowState == 'fullscreen') {
     storeData('windowState', 'normal', null);
@@ -65,19 +84,96 @@ function onBoundsChanged() {
   }
 }
 
+/**
+ * changeBitrate - Changes the bitrate value
+ *
+ * @param  {Number} value The bitrate value
+ * @return {Number}       The bitrate value
+ */
+function changeBitrate(value) {
+  // First, change UI
+  var slider = document.querySelector('#bitrateSlider')
+  slider.MaterialSlider.change(value)
+  var field = document.querySelector('#bitrateField')
+  field.innerText = value + "Mbps"
+  var input = document.querySelector('#bitrateInput')
+  input.value = value;
+  // Second, save to storage
+  storeData('bitrate', value, null)
+  window.currentBitrate = value; // DEBUG: This is meant for debugging
+  // Third, return value
+  return value
+}
+
+/**
+ * Resolution - Represents a resolution
+ */
+class Resolution {
+
+  /**
+   * constructor - Creates a new Resolution object
+   *
+   * @param  {Number} width  Resolution width
+   * @param  {Number} height Resolution height
+   * @param  {String} name   Resolution name
+   * @return {NvHTTP}        The corresponding object
+   */
+  constructor(width, height, name = null) {
+    this.width = width
+    this.height = height
+    if(name === null)
+      this.name = this.height + 'p'
+    else
+      this.name = name
+  }
+
+  /**
+   * getObject - Returns the corresponding object
+   *
+   * @return {type}  description
+   */
+  getObject() {
+    return { width, height, name } = this
+  }
+
+  /**
+   * getChildren - Returns an item
+   *
+   * @return {HTMLElement}  The chooser
+   */
+  getChildren() {
+    var child = document.createElement('li')
+    child.className = 'mdl-menu__item'
+    child.dataset.value = this.width + ':' + thids.height
+    child.innerText = this.name
+    return child
+  }
+}
+
+/**
+ * changeUiModeForNaClLoad - Changes the view to NaCL loading
+ *
+ * @return {type}  description
+ */
 function changeUiModeForNaClLoad() {
   $('#main-navigation').children().hide();
   $("#main-content").children().not("#listener, #naclSpinner").hide();
-  $('#naclSpinnerMessage').text('Loading Moonlight plugin...');
+  $('#naclSpinnerMessage').text(chrome.i18n.getMessage('loading_plugin'));
   $('#naclSpinner').css('display', 'inline-block');
 }
 
+/**
+ * startPollingHosts - Start polling the hosts
+ */
 function startPollingHosts() {
   for (var hostUID in hosts) {
     beginBackgroundPollingOfHost(hosts[hostUID]);
   }
 }
 
+/**
+ * stopPollingHosts - Stops polling the hosts
+ */
 function stopPollingHosts() {
   for (var hostUID in hosts) {
     stopBackgroundPollingOfHost(hosts[hostUID]);
@@ -122,6 +218,11 @@ function restoreUiAfterNaClLoad() {
   });
 }
 
+/**
+ * beginBackgroundPollingOfHost - Starts the polling of the host
+ *
+ * @param  {NvHTTP} host The host object
+ */
 function beginBackgroundPollingOfHost(host) {
   var el = document.querySelector('#hostgrid-' + host.serverUid)
   if (host.online) {
@@ -162,6 +263,11 @@ function beginBackgroundPollingOfHost(host) {
   }
 }
 
+/**
+ * stopBackgroundPollingOfHost - Stops the background polling of the host
+ *
+ * @param  {NvHTTP} host The host object
+ */
 function stopBackgroundPollingOfHost(host) {
   console.log('%c[index.js, backgroundPolling]', 'color: green;', 'Stopping background polling of host ' + host.serverUid + '\n', host, host.toString()); //Logging both object (for console) and toString-ed object (for text logs)
   window.clearInterval(activePolls[host.serverUid]);
@@ -186,11 +292,11 @@ function snackbarLogLong(givenMessage) {
   document.querySelector('#snackbar').MaterialSnackbar.showSnackbar(data);
 }
 
-function updateBitrateField() {
-  $('#bitrateField').html($('#bitrateSlider').val() + " Mbps");
-  saveBitrate();
-}
-
+/**
+ * moduleDidLoad - Gets called when the NaCL module is loaded
+ *
+ * @return {type}  description
+ */
 function moduleDidLoad() {
   // load the HTTP cert and unique ID if we have one.
   chrome.storage.sync.get('cert', function(savedCert) {
@@ -245,10 +351,17 @@ function moduleDidLoad() {
   });
 }
 
-// pair to the given NvHTTP host object.  Returns whether pairing was successful.
+/**
+ * pairTo - description
+ *
+ * @param  {NvHTTP} nvhttpHost The host object
+ * @param  {Function} onSuccess  Callback on success
+ * @param  {Function} onFailure  Callback on faillure
+ * @return {Void}
+ */
 function pairTo(nvhttpHost, onSuccess, onFailure) {
   if (!pairingCert) {
-    snackbarLog('ERROR: cert has not been generated yet. Is NaCl initialized?');
+    snackbarLog(chrome.i18n.getMessage('cert_error'));
     console.warn('%c[index.js]', 'color: green;', 'User wants to pair, and we still have no cert. Problem = very yes.');
     onFailure();
     return;
@@ -269,8 +382,8 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
 
     var randomNumber = String("0000" + (Math.random() * 10000 | 0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
-    $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
     pairingDialog.showModal();
+    pairingDialog.querySelector('#pairingDialogText').innerText = chrome.i18n.getMessage('pairing_dialog', randomNumber)
 
     $('#cancelPairingDialog').off('click');
     $('#cancelPairingDialog').on('click', function() {
@@ -280,10 +393,11 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
     console.log('%c[index.js]', 'color: green;', 'Sending pairing request to ' + nvhttpHost.hostname + ' with random number' + randomNumber);
     nvhttpHost.pair(randomNumber).then(function(paired) {
       if (!paired) {
+        var pairingDialogText = document.querySelector('#pairingDialogText')
         if (nvhttpHost.currentGame != 0) {
-          $('#pairingDialogText').html('Error: ' + nvhttpHost.hostname + ' is busy.  Stop streaming to pair.');
+          pairingDialogText.innerText = chrome.i18n.getMessage('busy_error')
         } else {
-          $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.hostname + '.');
+          pairingDialogText.innerText = chrome.i18n.getMessage('pair_error', nvhttpHost.hostname)
         }
         console.log('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
         onFailure();
@@ -294,7 +408,7 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
       pairingDialog.close();
       onSuccess();
     }, function(failedPairing) {
-      snackbarLog('Failed pairing to: ' + nvhttpHost.hostname);
+      snackbarLog(chrome.i18n.getMessage('pair_error', nvhttpHost.hostname));
       console.error('%c[index.js]', 'color: green;', 'Pairing failed, and returned:', failedPairing);
       console.error('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
       onFailure();
@@ -302,9 +416,15 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
   });
 }
 
+/**
+ * hostChosen - Gets called when a host is chosen
+ *
+ * @param  {NvHTTP} host The host object
+ */
 function hostChosen(host) {
 
   if (!host.online) {
+    snackbarLog(chrome.i18n.getMessage('offline_host'))
     return;
   }
 
@@ -342,7 +462,7 @@ function addHost() {
   // try to pair if they continue
   $('#continueAddHost').off('click');
   $('#continueAddHost').on('click', function() {
-    var inputHost = $('#dialogInputHost').val();
+    var inputHost = document.querySelector('#dialogInputHost').value;
     var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
 
     pairTo(_nvhttpHost, function() {
@@ -362,17 +482,19 @@ function addHost() {
   });
 }
 
-
-// host is an NvHTTP object
-function addHostToGrid(host, ismDNSDiscovered) {
-
-  var outerDiv = $("<div>", {
-    class: 'host-container mdl-card mdl-shadow--4dp',
-    id: 'host-container-' + host.serverUid,
-    role: 'link',
-    tabindex: 0,
-    'aria-label': host.hostname
-  });
+/**
+ * addHostToGrid - description
+ *
+ * @param  {NvHTTP} host              The host object
+ * @param  {Boolean} ismDNSDiscovered Whether or not host was mDNS discovered
+ */
+function addHostToGrid(host, ismDNSDiscovered = false) {
+  var outerDiv = document.createElement('div')
+  outerDiv.className = 'host-container mdl-card mdl-shadow--4dp'
+  outerDiv.id = 'host-container-' + host.serverUid
+  outerDiv.setAttribute('role', 'link')
+  outerDiv.tabIndex = 0
+  outerDiv.setAttribute('aria-label', host.hostname)
   var cell = $("<div>", {
     class: 'mdl-card__title mdl-card--expand',
     id: 'hostgrid-' + host.serverUid
@@ -386,7 +508,7 @@ function addHostToGrid(host, ismDNSDiscovered) {
     id: "removeHostButton-" + host.serverUid,
     role: 'button',
     tabindex: 0,
-    'aria-label': 'Remove host ' + host.hostname
+    'aria-label': chrome.i18n.getMessage('remove_error')
   });
   removalButton.off('click');
   removalButton.click(function() {
@@ -396,7 +518,7 @@ function addHostToGrid(host, ismDNSDiscovered) {
   cell.click(function() {
     hostChosen(host);
   });
-  outerDiv.keypress(function(e) {
+  $(outerDiv).keypress(function(e) {
     if (e.keyCode == 13) {
       hostChosen(host);
     }
@@ -415,8 +537,7 @@ function addHostToGrid(host, ismDNSDiscovered) {
 
 function removeClicked(host) {
   var deleteHostDialog = document.querySelector('#deleteHostDialog');
-  document.getElementById('deleteHostDialogText').innerHTML =
-    ' Are you sure you want to delete ' + host.hostname + '?';
+  document.getElementById('deleteHostDialogText').innerHTML = chrome.i18n.getMessage('delete_host', host.hostname);
   deleteHostDialog.showModal();
 
   $('#cancelDeleteHost').off('click');
@@ -483,7 +604,11 @@ function sortTitles(list, sortOrder) {
   });
 }
 
-// show the app list
+/**
+ * showApps - Shows the app list view
+ *
+ * @param  {NvHTTP} host The host object
+ */
 function showApps(host) {
   if (!host || !host.paired) { // safety checking. shouldn't happen.
     console.log('%c[index.js, showApps]', 'color: green;', 'Moved into showApps, but `host` did not initialize properly! Failing.');
@@ -494,7 +619,7 @@ function showApps(host) {
   $("#gameList .game-container").remove();
 
   // Show a spinner while the applist loads
-  $('#naclSpinnerMessage').text('Loading apps...');
+  $('#naclSpinnerMessage').text(chrome.i18n.getMessage('loading_apps'));
   $('#naclSpinner').css('display', 'inline-block');
 
   $("div.game-container").remove();
@@ -508,7 +633,7 @@ function showApps(host) {
       var img = new Image()
       img.src = 'static/res/applist_empty.svg'
       $('#game-grid').html(img)
-      snackbarLog('Your game list is empty')
+      snackbarLog(chrome.i18n.getMessage('gamelist_empty'))
       return; // We stop the function right here
     }
     // if game grid is populated, empty it
@@ -577,7 +702,9 @@ function showApps(host) {
   showAppsMode();
 }
 
-// set the layout to the initial mode you see when you open moonlight
+/**
+ * showHostsAndSettingsMode - Changes the view to list hosts and settings (initial view)
+ */
 function showHostsAndSettingsMode() {
   console.log('%c[index.js]', 'color: green;', 'Entering "Show apps and hosts" mode');
   $("#main-navigation").show();
@@ -593,6 +720,9 @@ function showHostsAndSettingsMode() {
   startPollingHosts();
 }
 
+/**
+ * showAppsMode - Changes the view to list apps
+ */
 function showAppsMode() {
   console.log('%c[index.js]', 'color: green;', 'Entering "Show apps" mode');
   $('#backIcon').show();
@@ -621,9 +751,13 @@ function showAppsMode() {
   stopPollingHosts();
 }
 
-
-// start the given appID.  if another app is running, offer to quit it.
-// if the given app is already running, just resume it.
+/**
+ * startGame - Start the given appID. If another app is running, offer to quit it. If the given app is already running, just resume it.
+ *
+ * @param  {NvHTTP} host  description
+ * @param  {Number} appID The ID of the app to start
+ * @return {type}       description
+ */
 function startGame(host, appID) {
   if (!host || !host.paired) {
     console.error('%c[index.js, startGame]', 'color: green;', 'Attempted to start a game, but `host` did not initialize properly. Host object: ', host);
@@ -637,9 +771,7 @@ function startGame(host, appID) {
       if (host.currentGame != 0 && host.currentGame != appID) {
         host.getAppById(host.currentGame).then(function(currentApp) {
           var quitAppDialog = document.querySelector('#quitAppDialog');
-          document.getElementById('quitAppDialogText').innerHTML =
-            currentApp.title + ' is already running. Would you like to quit ' +
-            currentApp.title + '?';
+          document.getElementById('quitAppDialogText').innerHTML = chrome.i18n.getMessage('game_running', currentApp.title);
           quitAppDialog.showModal();
           $('#cancelQuitApp').off('click');
           $('#cancelQuitApp').on('click', function() {
@@ -732,6 +864,9 @@ function startGame(host, appID) {
   });
 }
 
+/**
+ * playGameMode - Change the view to streaming mode
+ */
 function playGameMode() {
   console.log('%c[index.js, playGameMode]', 'color:green;', 'Entering play game mode');
   isInGame = true;
@@ -747,6 +882,9 @@ function playGameMode() {
 }
 
 // Maximize the size of the nacl module by scaling and resizing appropriately
+/**
+ * fullscreenNaclModule - Fullscreens the NaCL module
+ */
 function fullscreenNaclModule() {
   var streamWidth = $('#selectResolution').data('value').split(':')[0];
   var streamHeight = $('#selectResolution').data('value').split(':')[1];
@@ -764,15 +902,16 @@ function fullscreenNaclModule() {
   module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
 }
 
+/**
+ * stopGameWithConfirmation - Stops the game after user confirmation
+ */
 function stopGameWithConfirmation() {
   if (api.currentGame === 0) {
     snackbarLog('Nothing was running');
   } else {
     api.getAppById(api.currentGame).then(function(currentGame) {
       var quitAppDialog = document.querySelector('#quitAppDialog');
-      document.getElementById('quitAppDialogText').innerHTML =
-        ' Are you sure you would like to quit ' +
-        currentGame.title + '?  Unsaved progress will be lost.';
+      document.getElementById('quitAppDialogText').innerHTML = chrome.i18n.getMessage('game_running', currentGame.title)
       quitAppDialog.showModal();
       $('#cancelQuitApp').off('click');
       $('#cancelQuitApp').on('click', function() {
@@ -790,6 +929,12 @@ function stopGameWithConfirmation() {
   }
 }
 
+/**
+ * stopGame - Stops the currently running game
+ *
+ * @param  {NvHTTP} host             The host object
+ * @param  {Function} callbackFunction The callback function
+ */
 function stopGame(host, callbackFunction) {
   isInGame = false;
 
@@ -804,7 +949,7 @@ function stopGame(host, callbackFunction) {
         return;
       }
       var appName = runningApp.title;
-      snackbarLog('Stopping ' + appName);
+      snackbarLog(chrome.i18n.getMessage('stopping_game', runningApp.title));
       host.quitApp().then(function(ret2) {
         host.refreshServerInfo().then(function(ret3) { // refresh to show no app is currently running.
           showApps(host);
@@ -823,6 +968,13 @@ function stopGame(host, callbackFunction) {
   });
 }
 
+/**
+ * storeData - Stores data into chrome.storage.sync
+ *
+ * @param  {String} key                 The key for the storage
+ * @param  {Object|String|Number} data  The data to store
+ * @param  {Function} callbackFunction  The callback function
+ */
 function storeData(key, data, callbackFunction) {
   var obj = {};
   obj[key] = data;
@@ -830,6 +982,9 @@ function storeData(key, data, callbackFunction) {
     chrome.storage.sync.set(obj, callbackFunction);
 }
 
+/**
+ * saveResolution - Saves the option for resolution to storage
+ */
 function saveResolution() {
   var chosenResolution = $(this).data('value');
   $('#selectResolution').text($(this).text()).data('value', chosenResolution);
@@ -837,6 +992,9 @@ function saveResolution() {
   updateDefaultBitrate();
 }
 
+/**
+ * saveOptimize - Saves the option for optimisations to storage
+ */
 function saveOptimize() {
   // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
   // checking the new state
@@ -847,6 +1005,9 @@ function saveOptimize() {
   }, 100);
 }
 
+/**
+ * saveFramerate - Saves the option for framerate to storage
+ */
 function saveFramerate() {
   var chosenFramerate = $(this).data('value');
   $('#selectFramerate').text($(this).text()).data('value', chosenFramerate);
@@ -854,19 +1015,19 @@ function saveFramerate() {
   updateDefaultBitrate();
 }
 
-
-
 // storing data in chrome.storage takes the data as an object, and shoves it into JSON to store
 // unfortunately, objects with function instances (classes) are stripped of their function instances when converted to a raw object
 // so we cannot forget to revive the object after we load it.
+/**
+ * saveHosts - Saves the hosts to storage
+ */
 function saveHosts() {
   storeData('hosts', hosts, null);
 }
 
-function saveBitrate() {
-  storeData('bitrate', $('#bitrateSlider').val(), null);
-}
-
+/**
+ * saveRemoteAudio - Saves the option for remote audio to storage
+ */
 function saveRemoteAudio() {
   // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
   // checking the new state
@@ -877,36 +1038,43 @@ function saveRemoteAudio() {
   }, 100);
 }
 
+/**
+ * updateDefaultBitrate - Updates the bitrate according to the resolution and framerate
+ *
+ * @return {Void}
+ */
 function updateDefaultBitrate() {
   var res = $('#selectResolution').data('value');
   var frameRate = $('#selectFramerate').data('value').toString();
 
   if (res === "1920:1080") {
     if (frameRate === "30") { // 1080p, 30fps
-      $('#bitrateSlider')[0].MaterialSlider.change('10');
+      changeBitrate(10)
     } else { // 1080p, 60fps
-      $('#bitrateSlider')[0].MaterialSlider.change('20');
+      changeBitrate(20)
     }
   } else if (res === "1280:720") {
     if (frameRate === "30") { // 720, 30fps
-      $('#bitrateSlider')[0].MaterialSlider.change('5');
+      changeBitrate(5)
     } else { // 720, 60fps
-      $('#bitrateSlider')[0].MaterialSlider.change('10');
+      changeBitrate(10)
     }
   } else if (res === "3840:2160") {
     if (frameRate === "30") { // 2160p, 30fps
-      $('#bitrateSlider')[0].MaterialSlider.change('40');
+      changeBitrate(40)
     } else { // 2160p, 60fps
-      $('#bitrateSlider')[0].MaterialSlider.change('80');
+      changeBitrate(80)
     }
   } else { // unrecognized option. In case someone screws with the JS to add custom resolutions
-    $('#bitrateSlider')[0].MaterialSlider.change('10');
+    changeBitrate(10)
   }
-
-  updateBitrateField();
-  saveBitrate();
 }
 
+/**
+ * onWindowLoad - Gets clalled when the main window loads
+ *
+ * @return {type}  description
+ */
 function onWindowLoad() {
   console.log('%c[index.js]', 'color: green;', 'Moonlight\'s main window loaded');
   // don't show the game selection div
@@ -915,6 +1083,22 @@ function onWindowLoad() {
   loadWindowState();
 
   if (chrome.storage) {
+    // Load stored customResolutions prefs
+    chrome.storage.sync.get('customResolutions', function(previousValue) {
+      if (previousValue.customResolutions != null) {
+        previousValue.customResolutions.forEach(item => {
+          var child = document.createElement('li')
+          child.className = 'mdl-menu__item'
+          child.dataset.value = item.width + ':' + item.height
+          child.innerText = item.name||item.height + 'p'
+          $(child).on('click', saveResolution);
+          document.querySelector('.resolutionMenu').appendChild(child)
+        })
+      } else {
+        console.info('No custom resolutions found')
+      }
+    });
+
     // load stored resolution prefs
     chrome.storage.sync.get('resolution', function(previousValue) {
       if (previousValue.resolution != null) {
@@ -961,9 +1145,15 @@ function onWindowLoad() {
 
     // load stored bitrate prefs
     chrome.storage.sync.get('bitrate', function(previousValue) {
-      $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '10');
-      updateBitrateField();
+      var value = previousValue.bitrate != null ? previousValue.bitrate : '10'
+      changeBitrate(value)
     });
+
+    document.querySelectorAll('.localize').forEach(item => {
+      var message = item.dataset.message
+      var localized = chrome.i18n.getMessage(message)
+      item.innerText = localized
+    })
   }
 }
 
