@@ -1,7 +1,7 @@
 var hosts = {}; // hosts is an associative array of NvHTTP objects, keyed by server UID
 var activePolls = {}; // hosts currently being polled.  An associated array of polling IDs, keyed by server UID
 var pairingCert;
-var myUniqueid;
+var myUniqueid = '0123456789ABCDEF'; // Use the same UID as other Moonlight clients to allow them to quit each other's games
 var api; // `api` should only be set if we're in a host-specific screen. on the initial screen it should always be null.
 var isInGame = false; // flag indicating whether the game stream started
 var windowState = 'normal'; // chrome's windowState, possible values: 'normal' or 'fullscreen'
@@ -199,12 +199,13 @@ function moduleDidLoad() {
     }
 
     chrome.storage.sync.get('uniqueid', function(savedUniqueid) {
-      if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
+      // See comment on myUniqueid
+      /*if (savedUniqueid.uniqueid != null) { // we have a saved uniqueid
         myUniqueid = savedUniqueid.uniqueid;
       } else {
         myUniqueid = uniqueid();
         storeData('uniqueid', myUniqueid, null);
-      }
+      }*/
 
       if (!pairingCert) { // we couldn't load a cert. Make one.
         console.warn('%c[index.js, moduleDidLoad]', 'color: green;', 'Failed to load local cert. Generating new one');
