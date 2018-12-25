@@ -67,6 +67,7 @@ String.prototype.toHex = function() {
 function NvHTTP(address, clientUid, userEnteredAddress = '') {
   console.log('%c[utils.js, NvHTTP Object]', 'color: gray;', this);
   this.address = address;
+  this.ppkstr = null;
   this.paired = false;
   this.currentGame = 0;
   this.serverMajorVersion = 0;
@@ -111,29 +112,60 @@ function _base64ToArrayBuffer(base64) {
 
 NvHTTP.prototype = {
   refreshServerInfo: function() {
+    if (this.ppkstr == null) {
+      return sendMessage('openUrl', [this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
+        this._parseServerInfo(retHttp);
+      }.bind(this));
+    }
+
     // try HTTPS first
-    return sendMessage('openUrl', [this._baseUrlHttps + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
+    return sendMessage('openUrl', [this._baseUrlHttps + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(ret) {
       if (!this._parseServerInfo(ret)) { // if that fails
         // try HTTP as a failover.  Useful to clients who aren't paired yet
-        return sendMessage('openUrl', [this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
+        return sendMessage('openUrl', [this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
           this._parseServerInfo(retHttp);
         }.bind(this));
       }
-    }.bind(this));
+    }.bind(this),
+      function(error) {
+        if (error == -100) { // GS_CERT_MISMATCH
+          // Retry over HTTP
+          console.warn('%c[utils.js, utils.js, refreshServerInfo]', 'color: gray;', 'Certificate mismatch. Retrying over HTTP', this);
+          return sendMessage('openUrl', [this._baseUrlHttp + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
+            this._parseServerInfo(retHttp);
+          }.bind(this));
+        }
+      }.bind(this));
   },
 
   // refreshes the server info using a given address.  This is useful for testing whether we can successfully ping a host at a given address
   refreshServerInfoAtAddress: function(givenAddress) {
+    if (this.ppkstr == null) {
+      // Use HTTP if we have no pinned cert
+      return sendMessage('openUrl', ['http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
+          return this._parseServerInfo(retHttp);
+      }.bind(this));
+    }
+
     // try HTTPS first
-    return sendMessage('openUrl', ['https://' + givenAddress + ':47984' + '/serverinfo?' + this._buildUidStr(), false]).then(function(ret) {
+    return sendMessage('openUrl', ['https://' + givenAddress + ':47984' + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(ret) {
       if (!this._parseServerInfo(ret)) { // if that fails
-        console.log('%c[utils.js, utils.js,  refreshServerInfoAtAddress]', 'color: gray;', 'Failed to parse serverinfo from HTTPS, falling back to HTTP');
+        console.log('%c[utils.js, utils.js, refreshServerInfoAtAddress]', 'color: gray;', 'Failed to parse serverinfo from HTTPS, falling back to HTTP');
         // try HTTP as a failover.  Useful to clients who aren't paired yet
-        return sendMessage('openUrl', ['http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), false]).then(function(retHttp) {
+        return sendMessage('openUrl', ['http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
           return this._parseServerInfo(retHttp);
         }.bind(this));
       }
-    }.bind(this));
+    }.bind(this),
+      function(error) {
+        if (error == -100) { // GS_CERT_MISMATCH
+          // Retry over HTTP
+          console.warn('%c[utils.js, utils.js, refreshServerInfoAtAddress]', 'color: gray;', 'Certificate mismatch. Retrying over HTTP', this);
+          return sendMessage('openUrl', ['http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
+            return this._parseServerInfo(retHttp);
+          }.bind(this));
+        }
+      }.bind(this));
   },
 
   // called every few seconds to poll the server for updated info
@@ -157,7 +189,7 @@ NvHTTP.prototype = {
       // Poll for the app list every 10 successful serverinfo polls.
       // Not including the first one to avoid PCs taking a while to show
       // as online initially
-      if (this._pollCount++ % 10 == 1) {
+      if (this.paired && this._pollCount++ % 10 == 1) {
         this.getAppListWithCacheFlush();
       }
 
@@ -318,7 +350,7 @@ NvHTTP.prototype = {
   },
 
   getAppListWithCacheFlush: function() {
-    return sendMessage('openUrl', [this._baseUrlHttps + '/applist?' + this._buildUidStr(), false]).then(function(ret) {
+    return sendMessage('openUrl', [this._baseUrlHttps + '/applist?' + this._buildUidStr(), this.ppkstr, false]).then(function(ret) {
       $xml = this._parseXML(ret);
       $root = $xml.find("root");
 
@@ -377,6 +409,7 @@ NvHTTP.prototype = {
             '/appasset?' + this._buildUidStr() +
             '&appid=' + appId +
             '&AssetType=2&AssetIdx=0',
+            this.ppkstr,
             true
           ]).then(function(boxArtBuffer) {
             var reader = new FileReader();
@@ -405,6 +438,7 @@ NvHTTP.prototype = {
         '/appasset?' + this._buildUidStr() +
         '&appid=' + appId +
         '&AssetType=2&AssetIdx=0',
+        this.ppkstr,
         true
       ]);
     }
@@ -423,6 +457,7 @@ NvHTTP.prototype = {
       '&surroundAudioInfo=' + surroundAudioInfo +
       '&remoteControllersBitmap=' + gamepadMask +
       '&gcmap=' + gamepadMask,
+      this.ppkstr,
       false
     ]);
   },
@@ -434,12 +469,13 @@ NvHTTP.prototype = {
       '&rikey=' + rikey +
       '&rikeyid=' + rikeyid +
       '&surroundAudioInfo=' + surroundAudioInfo,
+      this.ppkstr,
       false
     ]);
   },
 
   quitApp: function() {
-    return sendMessage('openUrl', [this._baseUrlHttps + '/cancel?' + this._buildUidStr(), false])
+    return sendMessage('openUrl', [this._baseUrlHttps + '/cancel?' + this._buildUidStr(), this.ppkstr,  false])
       // Refresh server info after quitting because it may silently fail if the
       // session belongs to a different client.
       // TODO: We should probably bubble this up to our caller.
@@ -460,14 +496,12 @@ NvHTTP.prototype = {
 
   pair: function(randomNumber) {
     return this.refreshServerInfo().then(function() {
-      if (this.paired)
+      if (this.paired && this.ppkstr)
         return true;
 
-      if (this.currentGame != 0)
-        return false;
-
-      return sendMessage('pair', [this.serverMajorVersion.toString(), this.address, randomNumber]).then(function(pairStatus) {
-        return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', false]).then(function(ret) {
+      return sendMessage('pair', [this.serverMajorVersion.toString(), this.address, randomNumber]).then(function(ppkstr) {
+        this.ppkstr = ppkstr;
+        return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', this.ppkstr, false]).then(function(ret) {
           $xml = this._parseXML(ret);
           this.paired = $xml.find('paired').html() == "1";
           return this.paired;

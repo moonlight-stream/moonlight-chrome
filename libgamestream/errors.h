@@ -27,3 +27,4 @@
 #define GS_IO_ERROR -5
 #define GS_NOT_SUPPORTED_4K -6
 
+#define GS_CERT_MISMATCH -100

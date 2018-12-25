@@ -237,6 +237,7 @@ function moduleDidLoad() {
           revivedHost.serverUid = hosts[hostUID].serverUid;
           revivedHost.externalIP = hosts[hostUID].externalIP;
           revivedHost.hostname = hosts[hostUID].hostname;
+          revivedHost.ppkstr = hosts[hostUID].ppkstr;
           addHostToGrid(revivedHost);
         }
         console.log('%c[index.js]', 'color: green;', 'Loaded previously connected hosts');
@@ -277,26 +278,19 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
       pairingDialog.close();
     });
 
-    console.log('%c[index.js]', 'color: green;', 'Sending pairing request to ' + nvhttpHost.hostname + ' with random number' + randomNumber);
-    nvhttpHost.pair(randomNumber).then(function(paired) {
-      if (!paired) {
-        if (nvhttpHost.currentGame != 0) {
-          $('#pairingDialogText').html('Error: ' + nvhttpHost.hostname + ' is busy.  Stop streaming to pair.');
-        } else {
-          $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.hostname + '.');
-        }
-        console.log('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
-        onFailure();
-        return;
-      }
-
+    console.log('%c[index.js]', 'color: green;', 'Sending pairing request to ' + nvhttpHost.hostname + ' with PIN: ' + randomNumber);
+    nvhttpHost.pair(randomNumber).then(function() {
       snackbarLog('Pairing successful');
       pairingDialog.close();
       onSuccess();
     }, function(failedPairing) {
       snackbarLog('Failed pairing to: ' + nvhttpHost.hostname);
-      console.error('%c[index.js]', 'color: green;', 'Pairing failed, and returned:', failedPairing);
-      console.error('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
+      if (nvhttpHost.currentGame != 0) {
+        $('#pairingDialogText').html('Error: ' + nvhttpHost.hostname + ' is busy.  Stop streaming to pair.');
+      } else {
+        $('#pairingDialogText').html('Error: failed to pair with ' + nvhttpHost.hostname + '.');
+      }
+      console.log('%c[index.js]', 'color: green;', 'Failed API object:', nvhttpHost, nvhttpHost.toString()); //Logging both the object and the toString version for text logs
       onFailure();
     });
   });

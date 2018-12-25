@@ -59,7 +59,7 @@ static CURLcode sslctx_function(CURL * curl, void * sslctx, void * parm)
     return CURLE_OK;
 }
 
-int http_request(char* url, PHTTP_DATA data) {
+int http_request(const char* url, const char* ppkstr, PHTTP_DATA data) {
   int ret;
   CURL *curl;
 
@@ -67,12 +67,10 @@ int http_request(char* url, PHTTP_DATA data) {
   if (!curl)
     return GS_FAILED;
 
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
   curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
   curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
   curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE,"PEM");
   curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _write_curl);
   curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
   curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, *sslctx_function);
@@ -86,8 +84,12 @@ int http_request(char* url, PHTTP_DATA data) {
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
   curl_easy_setopt(curl, CURLOPT_URL, url);
 
-  // HACK: Connecting with TLS v1.2 causes unexpected TLS alerts
-  curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_1);
+  // Use the pinned certificate for HTTPS
+  if (ppkstr != NULL) {
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_PINNEDPUBLICKEY, ppkstr);
+  }
 
   if (data->size > 0) {
     free(data->memory);
@@ -102,7 +104,9 @@ int http_request(char* url, PHTTP_DATA data) {
 
   CURLcode res = curl_easy_perform(curl);
   
-  if(res != CURLE_OK) {
+  if (res == CURLE_SSL_PINNEDPUBKEYNOTMATCH) {
+    ret = GS_CERT_MISMATCH;
+  } else if (res != CURLE_OK) {
     ret = GS_FAILED;
   } else if (data->memory == NULL) {
     ret = GS_OUT_OF_MEMORY;

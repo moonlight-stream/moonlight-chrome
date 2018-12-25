@@ -257,13 +257,8 @@ void MoonlightInstance::HandleStopStream(int32_t callbackId, pp::VarArray args) 
 }
 
 void MoonlightInstance::HandleOpenURL(int32_t callbackId, pp::VarArray args) {
-    std::string url = args.Get(0).AsString();
-    bool binaryResponse = args.Get(1).AsBool();
-    
     m_HttpThreadPool[m_HttpThreadPoolSequence++ % HTTP_HANDLER_THREADS]->message_loop().PostWork(
-        m_CallbackFactory.NewCallback(&MoonlightInstance::NvHTTPRequest, callbackId, url, binaryResponse));
-    
-    PostMessage(pp::Var (url.c_str()));
+        m_CallbackFactory.NewCallback(&MoonlightInstance::NvHTTPRequest, callbackId, args));
 }
 
 void MoonlightInstance::HandlePair(int32_t callbackId, pp::VarArray args) {
@@ -272,12 +267,21 @@ void MoonlightInstance::HandlePair(int32_t callbackId, pp::VarArray args) {
 }
 
 void MoonlightInstance::PairCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args) {
-    int err = gs_pair(atoi(args.Get(0).AsString().c_str()), args.Get(1).AsString().c_str(), args.Get(2).AsString().c_str());
+    char* ppkstr;
+    int err = gs_pair(atoi(args.Get(0).AsString().c_str()), args.Get(1).AsString().c_str(), args.Get(2).AsString().c_str(), &ppkstr);
     
     pp::VarDictionary ret;
     ret.Set("callbackId", pp::Var(callbackId));
-    ret.Set("type", pp::Var("resolve"));
-    ret.Set("ret", pp::Var(err));
+    if (err == 0) {
+        ret.Set("type", pp::Var("resolve"));
+        ret.Set("ret", pp::Var(ppkstr));
+        free(ppkstr);
+    }
+    else {
+        ret.Set("type", pp::Var("reject"));
+        ret.Set("ret", pp::Var(err));
+    }
+
     PostMessage(ret);
 }
 

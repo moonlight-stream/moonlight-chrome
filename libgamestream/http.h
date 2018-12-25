@@ -31,7 +31,7 @@ typedef struct _HTTP_DATA {
 } HTTP_DATA, *PHTTP_DATA;
 
 PHTTP_DATA http_create_data();
-int http_request(char* url, PHTTP_DATA data);
+int http_request(const char* url, const char* ppkstr, PHTTP_DATA data);
 void http_free_data(PHTTP_DATA data);
 
 #ifdef __cplusplus

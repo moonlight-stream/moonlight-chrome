@@ -54,11 +54,13 @@ static int xml_search(char* data, size_t len, char* node, char** result) {
     
     startOffset = strstr(data, startTag);
     if (startOffset == NULL) {
+        free(data);
         return GS_FAILED;
     }
     
     endOffset = strstr(data, endTag);
     if (endOffset == NULL) {
+        free(data);
         return GS_FAILED;
     }
     
@@ -67,6 +69,7 @@ static int xml_search(char* data, size_t len, char* node, char** result) {
     *result = malloc(strlen(startOffset + strlen(startTag)) + 1);
     strcpy(*result, startOffset + strlen(startTag));
     
+    free(data);
     return GS_OK;
 }
 
@@ -141,22 +144,71 @@ static bool verifySignature(const unsigned char *data, int dataLength, unsigned 
 }
 
 X509* get_cert(PHTTP_DATA data) {
-    char *result;
+    char *pemcerthex;
 
-    if (xml_search(data->memory, data->size, "plaincert", &result) != GS_OK)
+    if (xml_search(data->memory, data->size, "plaincert", &pemcerthex) != GS_OK)
         return NULL;
 
-    BIO* bio = BIO_new_mem_buf(result, -1);
-    free(result);
+    // Convert cert from hex string to the PEM string and null terminate
+    int hexstrlen = strlen(pemcerthex);
+    char *pemcert = malloc(hexstrlen / 2 + 1);
+    for (int count = 0; count < hexstrlen; count += 2) {
+        sscanf(&pemcerthex[count], "%2hhx", &pemcert[count / 2]);
+    }
+    pemcert[hexstrlen / 2] = 0;
+    free(pemcerthex);
+
+    // pemcert is referenced, but NOT copied!
+    BIO* bio = BIO_new_mem_buf(pemcert, -1);
 
     if (bio) {
         X509* cert = PEM_read_bio_X509(bio, NULL, NULL, NULL);
         BIO_free_all(bio);
+        free(pemcert);
         return cert;
     }
     else {
+        free(pemcert);
         return NULL;
     }
+}
+
+static char* x509_to_curl_ppk_string(X509* x509) {
+    BIO* bio = BIO_new(BIO_s_mem());
+
+    // Get x509 public key alone in DER format
+    EVP_PKEY* pubkey = X509_get_pubkey(x509);
+    i2d_PUBKEY_bio(bio, pubkey);
+    EVP_PKEY_free(pubkey);
+
+    BUF_MEM* mem;
+    BIO_get_mem_ptr(bio, &mem);
+
+    // SHA256 hash the resulting DER string
+    unsigned char pubkeyhash[32];
+    SHA256((unsigned char*)mem->data, mem->length, pubkeyhash);
+    BIO_free(bio);
+
+    // Base64-encode the resulting SHA256 hash
+    bio = BIO_new(BIO_s_mem());
+    BIO* b64 = BIO_new(BIO_f_base64());
+    bio = BIO_push(b64, bio);
+    BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
+    BIO_write(bio, pubkeyhash, sizeof(pubkeyhash));
+    BIO_flush(bio);
+
+    BIO_get_mem_ptr(bio, &mem);
+
+    // Assemble the final curl PPK string
+    const char* prefix = "sha256//";
+    char* ret = malloc(strlen(prefix) + mem->length + 1);
+    memcpy(ret, prefix, strlen(prefix));
+    memcpy(&ret[strlen(prefix)], mem->data, mem->length);
+    ret[strlen(prefix) + mem->length] = 0;
+
+    BIO_free_all(bio);
+
+    return ret;
 }
 
 int gs_unpair(const char* address) {
@@ -167,13 +219,13 @@ int gs_unpair(const char* address) {
     return GS_OUT_OF_MEMORY;
 
   snprintf(url, sizeof(url), "http://%s:47989/unpair?uniqueid=%s", address, g_UniqueId);
-  ret = http_request(url, data);
+  ret = http_request(url, NULL, data);
 
   http_free_data(data);
   return ret;
 }
 
-int gs_pair(int serverMajorVersion, const char* address, const char* pin) {
+int gs_pair(int serverMajorVersion, const char* address, const char* pin, char** curl_ppk_string) {
   int ret = GS_OK;
   char* result = NULL;
   X509* server_cert = NULL;
@@ -188,7 +240,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* pin) {
   PHTTP_DATA data = http_create_data();
   if (data == NULL)
     return GS_OUT_OF_MEMORY;
-  else if ((ret = http_request(url, data)) != GS_OK)
+  else if ((ret = http_request(url, NULL, data)) != GS_OK)
     goto cleanup;
 
   if ((ret = xml_search(data->memory, data->size, "paired", &result)) != GS_OK)
@@ -230,7 +282,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* pin) {
   bytes_to_hex(challenge_enc, challenge_hex, 16);
 
   snprintf(url, sizeof(url), "http://%s:47989/pair?uniqueid=%s&devicename=roth&updateState=1&clientchallenge=%s", address, g_UniqueId, challenge_hex);
-  if ((ret = http_request(url, data)) != GS_OK)
+  if ((ret = http_request(url, NULL, data)) != GS_OK)
     goto cleanup;
 
   free(result);
@@ -284,7 +336,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* pin) {
   bytes_to_hex(challenge_response_hash_enc, challenge_response_hex, 32);
 
   snprintf(url, sizeof(url), "http://%s:47989/pair?uniqueid=%s&devicename=roth&updateState=1&serverchallengeresp=%s", address, g_UniqueId, challenge_response_hex);
-  if ((ret = http_request(url, data)) != GS_OK)
+  if ((ret = http_request(url, NULL, data)) != GS_OK)
     goto cleanup;
 
   free(result);
@@ -328,7 +380,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* pin) {
   bytes_to_hex(client_pairing_secret, client_pairing_secret_hex, 16 + 256);
 
   snprintf(url, sizeof(url), "http://%s:47989/pair?uniqueid=%s&devicename=roth&updateState=1&clientpairingsecret=%s", address, g_UniqueId, client_pairing_secret_hex);
-  if ((ret = http_request(url, data)) != GS_OK)
+  if ((ret = http_request(url, NULL, data)) != GS_OK)
     goto cleanup;
 
   free(result);
@@ -340,6 +392,8 @@ int gs_pair(int serverMajorVersion, const char* address, const char* pin) {
     ret = GS_FAILED;
     goto cleanup;
   }
+
+  *curl_ppk_string = x509_to_curl_ppk_string(server_cert);
 
   cleanup:
   if (ret != GS_OK)

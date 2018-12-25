@@ -97,12 +97,17 @@ void MoonlightInstance::NvHTTPInit(int32_t callbackId, pp::VarArray args)
     PostMessage(ret);
 }
 
-void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, std::string url, bool binaryResponse)
+void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, pp::VarArray args)
 {
-    char* _url = strdup(url.c_str());
+    std::string url = args.Get(0).AsString();
+    std::string ppkstr = args.Get(1).AsString();
+    bool binaryResponse = args.Get(2).AsBool();
+
+    PostMessage(pp::Var(url.c_str()));
+
     PHTTP_DATA data = http_create_data();
     int err;
-    
+
     if (data == NULL) {
         pp::VarDictionary ret;
         ret.Set("callbackId", pp::Var(callbackId));
@@ -112,7 +117,7 @@ void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, st
         goto clean_data;
     }
     
-    err = http_request(_url , data);
+    err = http_request(url.c_str(), ppkstr.c_str(), data);
     if (err) {
         pp::VarDictionary ret;
         ret.Set("callbackId", pp::Var(callbackId));
@@ -148,5 +153,4 @@ void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, st
     
 clean_data:
     http_free_data(data);
-    free(_url);
 }
