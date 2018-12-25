@@ -339,20 +339,30 @@ function addHost() {
     var inputHost = $('#dialogInputHost').val();
     var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
 
-    pairTo(_nvhttpHost, function() {
-      // Check if we already have record of this host
+    _nvhttpHost.refreshServerInfoAtAddress(inputHost).then(function(success) {
       if (hosts[_nvhttpHost.serverUid] != null) {
-        // Just update the addresses
-        hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
-        hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
-      } else {
-        // Host must be in the grid before starting background polling
-        addHostToGrid(_nvhttpHost);
-        beginBackgroundPollingOfHost(_nvhttpHost);
+        _nvhttpHost.ppkstr = hosts[_nvhttpHost.serverUid].ppkstr;
       }
-      saveHosts();
-    });
-    modal.close();
+
+      modal.close();
+
+      pairTo(_nvhttpHost, function() {
+        // Check if we already have record of this host
+        if (hosts[_nvhttpHost.serverUid] != null) {
+          // Just update the addresses
+          hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
+          hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
+        } else {
+          // Host must be in the grid before starting background polling
+          addHostToGrid(_nvhttpHost);
+          beginBackgroundPollingOfHost(_nvhttpHost);
+        }
+        saveHosts();
+      });
+    }.bind(this),
+    function(failure) {
+      snackbarLog('Failed to connect to ' + _nvhttpHost.hostname + '! Ensure that GameStream is enabled in GeForce Experience.');
+    }.bind(this));
   });
 }
 
