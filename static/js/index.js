@@ -340,25 +340,28 @@ function addHost() {
     var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
 
     _nvhttpHost.refreshServerInfoAtAddress(inputHost).then(function(success) {
-      if (hosts[_nvhttpHost.serverUid] != null) {
-        _nvhttpHost.ppkstr = hosts[_nvhttpHost.serverUid].ppkstr;
-      }
-
       modal.close();
 
-      pairTo(_nvhttpHost, function() {
-        // Check if we already have record of this host
-        if (hosts[_nvhttpHost.serverUid] != null) {
-          // Just update the addresses
-          hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
-          hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
-        } else {
+      // Check if we already have record of this host. If so,
+      // we'll need the PPK string to ensure our pairing status is accurate.
+      if (hosts[_nvhttpHost.serverUid] != null) {
+        // Update the addresses
+        hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
+        hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
+
+        // Use the host in the array directly to ensure the PPK propagates after pairing
+        pairTo(hosts[_nvhttpHost.serverUid], function() {
+          saveHosts();
+        });
+      }
+      else {
+        pairTo(_nvhttpHost, function() {
           // Host must be in the grid before starting background polling
           addHostToGrid(_nvhttpHost);
           beginBackgroundPollingOfHost(_nvhttpHost);
-        }
-        saveHosts();
-      });
+          saveHosts();
+        });
+      }
     }.bind(this),
     function(failure) {
       snackbarLog('Failed to connect to ' + _nvhttpHost.hostname + '! Ensure that GameStream is enabled in GeForce Experience.');
@@ -701,6 +704,7 @@ function startGame(host, appID) {
           ]);
         }, function(failedResumeApp) {
           console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
+          showApps(host);
           return;
         });
       }
@@ -729,6 +733,7 @@ function startGame(host, appID) {
         ]);
       }, function(failedLaunchApp) {
         console.error('%c[index.js, launchApp]', 'color: green;', 'Failed to launch app width id: ' + appID + '\nReturned error was: ' + failedLaunchApp);
+        showApps(host);
         return;
       });
 
