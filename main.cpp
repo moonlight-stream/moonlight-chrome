@@ -211,13 +211,8 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_StreamConfig.height = stoi(height);
     m_StreamConfig.fps = stoi(fps);
     m_StreamConfig.bitrate = stoi(bitrate); // kilobits per second
-    m_StreamConfig.streamingRemotely = 0;
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
-    
-    // The overhead of receiving a packet is much higher in NaCl because we must
-    // pass through various layers of abstraction on each recv() call. We're using a
-    // higher than normal default video packet size here to reduce CPU cycles wasted
-    // receiving packets. The possible cost is greater network losses.
+    m_StreamConfig.streamingRemotely = STREAM_CFG_AUTO;
     m_StreamConfig.packetSize = 1392;
     
     // Load the rikey and rikeyid into the stream configuration
