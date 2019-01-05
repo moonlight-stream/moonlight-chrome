@@ -298,7 +298,7 @@ void MoonlightInstance::STUNCallback(int32_t /*result*/, int32_t callbackId, pp:
     ret.Set("callbackId", pp::Var(callbackId));
     ret.Set("type", pp::Var("resolve"));
 
-    if (LiFindExternalAddressIP4("stun.stunprotocol.org", 3478, &wanAddr) == 0) {
+    if (LiFindExternalAddressIP4("stun.moonlight-stream.org", 3478, &wanAddr) == 0) {
         inet_ntop(AF_INET, &wanAddr, addrStr, sizeof(addrStr));
         ret.Set("ret", pp::Var(addrStr));
     } else {
