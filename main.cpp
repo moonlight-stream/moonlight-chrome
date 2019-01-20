@@ -80,6 +80,14 @@ void* MoonlightInstance::StopThreadFunc(void* context) {
     // not be invoked during LiStartConnection.
     pthread_join(g_Instance->m_ConnectionThread, NULL);
 
+    // Force raise all modifier keys to avoid leaving them down after disconnecting
+    LiSendKeyboardEvent(0xA0, KEY_ACTION_UP, 0);
+    LiSendKeyboardEvent(0xA1, KEY_ACTION_UP, 0);
+    LiSendKeyboardEvent(0xA2, KEY_ACTION_UP, 0);
+    LiSendKeyboardEvent(0xA3, KEY_ACTION_UP, 0);
+    LiSendKeyboardEvent(0xA4, KEY_ACTION_UP, 0);
+    LiSendKeyboardEvent(0xA5, KEY_ACTION_UP, 0);
+
     // Not running anymore
     g_Instance->m_Running = false;
 
