@@ -21,7 +21,8 @@ CHROME_ARGS += --allow-nacl-socket-api=localhost
 
 LIBS = ppapi_gles2 ppapi ppapi_cpp pthread curl z ssl crypto nacl_io
 
-CFLAGS = -Wall $(COMMON_C_C_FLAGS) $(OPUS_C_FLAGS)
+CFLAGS += -Wall $(COMMON_C_C_FLAGS) $(OPUS_C_FLAGS)
+CXXFLAGS += -Wall
 
 SOURCES = \
     $(OPUS_SOURCE)           \
