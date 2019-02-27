@@ -116,6 +116,12 @@ void MoonlightInstance::ReportMouseMovement() {
         LiSendMouseMoveEvent(m_MouseDeltaX, m_MouseDeltaY);
         m_MouseDeltaX = m_MouseDeltaY = 0;
     }
+    if (m_AccumulatedTicks != 0) {
+        // We can have fractional ticks here, so multiply by WHEEL_DELTA
+        // to get actual scroll distance and use the high-res variant.
+        LiSendHighResScrollEvent(m_AccumulatedTicks * 120);
+        m_AccumulatedTicks = 0;
+    }
 }
 
 bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
@@ -163,8 +169,6 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_WHEEL: {
-            signed char fullTicks;
-            
             if (!m_MouseLocked) {
                 return false;
             }
@@ -173,15 +177,6 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             
             // Accumulate the current tick value
             m_AccumulatedTicks += wheelEvent.GetTicks().y();
-            
-            // Compute the number of full ticks
-            fullTicks = (signed char) m_AccumulatedTicks;
-            
-            // Send a scroll event if we've completed a full tick
-            if (fullTicks != 0) {
-                LiSendScrollEvent(fullTicks);
-                m_AccumulatedTicks -= fullTicks;
-            }
             return true;
         }
         
