@@ -126,6 +126,7 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
     LiInitializeServerInformation(&serverInfo);
     serverInfo.address = me->m_Host.c_str();
     serverInfo.serverInfoAppVersion = me->m_AppVersion.c_str();
+    serverInfo.serverInfoGfeVersion = me->m_GfeVersion.c_str();
     
     err = LiStartConnection(&serverInfo,
                             &me->m_StreamConfig,
@@ -195,6 +196,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     std::string rikey = args.Get(5).AsString();
     std::string rikeyid = args.Get(6).AsString();
     std::string appversion = args.Get(7).AsString();
+    std::string gfeversion = args.Get(8).AsString();
     
     pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
@@ -211,6 +213,8 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     response = ("Setting rikeyid to: " + rikeyid);
     PostMessage(response);
     response = ("Setting appversion to: " + appversion);
+    PostMessage(response);
+    response = ("Setting gfeversion to: " + gfeversion);
     PostMessage(response);
     
     // Populate the stream configuration
@@ -231,6 +235,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     // Store the parameters from the start message
     m_Host = host;
     m_AppVersion = appversion;
+    m_GfeVersion = gfeversion;
     
     // Initialize the rendering surface before starting the connection
     if (InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height)) {

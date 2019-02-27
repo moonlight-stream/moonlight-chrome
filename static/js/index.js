@@ -701,7 +701,7 @@ function startGame(host, appID) {
           }
 
           sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-            bitrate.toString(), rikey, rikeyid.toString(), host.appVersion
+            bitrate.toString(), rikey, rikeyid.toString(), host.appVersion, host.gfeVersion
           ]);
         }, function(failedResumeApp) {
           console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
