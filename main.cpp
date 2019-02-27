@@ -18,7 +18,7 @@
 // Requests the NaCl module stop streaming
 #define MSG_STOP_REQUEST "stopRequest"
 // Sent by the NaCl module when the stream has stopped whether user-requested or not
-#define MSG_STREAM_TERMINATED "streamTerminated"
+#define MSG_STREAM_TERMINATED "streamTerminated: "
 
 #define MSG_OPENURL "openUrl"
 
@@ -59,7 +59,7 @@ void MoonlightInstance::OnConnectionStopped(uint32_t error) {
     UnlockMouse();
     
     // Notify the JS code that the stream has ended
-    pp::Var response(MSG_STREAM_TERMINATED);
+    pp::Var response(std::string(MSG_STREAM_TERMINATED) + std::to_string((int)error));
     PostMessage(response);
 }
 
@@ -137,7 +137,9 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
                             NULL, 0);
     if (err != 0) {
         // Notify the JS code that the stream has ended
-        pp::Var response(MSG_STREAM_TERMINATED);
+        // NB: We pass error code 0 here to avoid triggering a "Connection terminated"
+        // warning message.
+        pp::Var response(MSG_STREAM_TERMINATED + std::to_string(0));
         me->PostMessage(response);
         return NULL;
     }

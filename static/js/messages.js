@@ -36,9 +36,15 @@ function handleMessage(msg) {
     delete callbacks[msg.data.callbackId]
   } else { // else, it's just info, or an event
     console.log('%c[messages.js, handleMessage]', 'color:gray;', 'Message data: ', msg.data)
-    if (msg.data === 'streamTerminated') { // if it's a recognized event, notify the appropriate function
+    if (msg.data.indexOf('streamTerminated: ') === 0) { // if it's a recognized event, notify the appropriate function
       // Release our keep awake request
       chrome.power.releaseKeepAwake();
+
+      // Show a termination snackbar message if the termination was unexpected
+      var errorCode = parseInt(msg.data.replace('streamTerminated: ', ''));
+      if (errorCode !== 0) {
+        snackbarLogLong("Connection terminated");
+      }
 
       api.refreshServerInfo().then(function(ret) {
         // Return to app list with new currentgame
