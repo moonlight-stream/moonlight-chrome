@@ -55,7 +55,5 @@ CONNECTION_LISTENER_CALLBACKS MoonlightInstance::s_ClCallbacks = {
     .stageFailed = MoonlightInstance::ClStageFailed,
     .connectionStarted = MoonlightInstance::ClConnectionStarted,
     .connectionTerminated = MoonlightInstance::ClConnectionTerminated,
-    .displayMessage = MoonlightInstance::ClDisplayMessage,
-    .displayTransientMessage = MoonlightInstance::ClDisplayTransientMessage,
     .logMessage = MoonlightInstance::ClLogMessage,
 };
