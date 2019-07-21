@@ -16,6 +16,7 @@ X509 *g_Cert;
 EVP_PKEY *g_PrivateKey;
 char *g_UniqueId;
 char *g_CertHex;
+pthread_mutex_t *g_OSSLMutexes;
 
 void MoonlightInstance::MakeCert(int32_t callbackId, pp::VarArray args)
 {
@@ -79,16 +80,40 @@ void MoonlightInstance::LoadCert(const char* certStr, const char* keyStr)
     free(_keyStr);
 }
 
+void MoonlightInstance::OSSLThreadLock(int mode, int n, const char *, int)
+{
+    if (mode & CRYPTO_LOCK) {
+        pthread_mutex_lock(&g_OSSLMutexes[n]);
+    }
+    else {
+        pthread_mutex_unlock(&g_OSSLMutexes[n]);
+    }
+}
+
+unsigned long MoonlightInstance::OSSLThreadId(void)
+{
+    return (unsigned long)pthread_self();
+}
+
 void MoonlightInstance::NvHTTPInit(int32_t callbackId, pp::VarArray args)
 {
     std::string _cert = args.Get(0).AsString();
     std::string _key = args.Get(1).AsString();
     std::string _uniqueId = args.Get(2).AsString();
-    
+
+    // This will initialize OpenSSL
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
     LoadCert(_cert.c_str(), _key.c_str());
     g_UniqueId = strdup(_uniqueId.c_str());
 
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+    g_OSSLMutexes = new pthread_mutex_t[CRYPTO_num_locks()];
+    for (int i = 0; i < CRYPTO_num_locks(); i++) {
+        pthread_mutex_init(&g_OSSLMutexes[i], NULL);
+    }
+
+    CRYPTO_set_id_callback(OSSLThreadId);
+    CRYPTO_set_locking_callback(OSSLThreadLock);
     
     pp::VarDictionary ret;
     ret.Set("callbackId", pp::Var(callbackId));

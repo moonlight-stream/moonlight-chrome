@@ -155,6 +155,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void MakeCert(int32_t callbackId, pp::VarArray args);
         void LoadCert(const char* certStr, const char* keyStr);
         
+        static void OSSLThreadLock(int mode, int n, const char *, int);
+        static unsigned long OSSLThreadId(void);
         void NvHTTPInit(int32_t callbackId, pp::VarArray args);
         void NvHTTPRequest(int32_t, int32_t callbackId, pp::VarArray args);
         
