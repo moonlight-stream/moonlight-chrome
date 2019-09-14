@@ -269,6 +269,12 @@ function pairTo(nvhttpHost, onSuccess, onFailure) {
       return;
     }
 
+    if (nvhttpHost.currentGame != 0) {
+      snackbarLog(nvhttpHost.hostname + ' is currently in game. Quit the running app or restart the computer, then try again.');
+      onFailure();
+      return;
+    }
+
     var randomNumber = String("0000" + (Math.random() * 10000 | 0)).slice(-4);
     var pairingDialog = document.querySelector('#pairingDialog');
     $('#pairingDialogText').html('Please enter the number ' + randomNumber + ' on the GFE dialog on the computer.  This dialog will be dismissed once complete');
