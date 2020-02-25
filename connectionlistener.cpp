@@ -10,7 +10,7 @@ void MoonlightInstance::ClStageStarting(int stage) {
     g_Instance->PostMessage(response);
 }
 
-void MoonlightInstance::ClStageFailed(int stage, long errorCode) {
+void MoonlightInstance::ClStageFailed(int stage, int errorCode) {
     pp::Var response(
         std::string("DialogMsg: ") +
         std::string(LiGetStageName(stage)) +
@@ -25,7 +25,7 @@ void MoonlightInstance::ClConnectionStarted(void) {
         g_Instance->m_CallbackFactory.NewCallback(&MoonlightInstance::OnConnectionStarted));
 }
 
-void MoonlightInstance::ClConnectionTerminated(long errorCode) {
+void MoonlightInstance::ClConnectionTerminated(int errorCode) {
     // Teardown the connection
     LiStopConnection();
     

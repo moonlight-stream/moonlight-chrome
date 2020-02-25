@@ -127,9 +127,9 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void* StopThreadFunc(void* context);
         
         static void ClStageStarting(int stage);
-        static void ClStageFailed(int stage, long errorCode);
+        static void ClStageFailed(int stage, int errorCode);
         static void ClConnectionStarted(void);
-        static void ClConnectionTerminated(long errorCode);
+        static void ClConnectionTerminated(int errorCode);
         static void ClDisplayMessage(const char* message);
         static void ClDisplayTransientMessage(const char* message);
         static void ClLogMessage(const char* format, ...);
