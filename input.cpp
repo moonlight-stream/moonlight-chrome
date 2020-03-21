@@ -201,6 +201,10 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
                 }
             }
             
+            if (event.GetModifiers() & PP_INPUTEVENT_MODIFIER_ISAUTOREPEAT) {
+                return true;
+            }
+
             LiSendKeyboardEvent(KEY_PREFIX << 8 | keyCode,
                                 KEY_ACTION_DOWN, modifiers);
             return true;
