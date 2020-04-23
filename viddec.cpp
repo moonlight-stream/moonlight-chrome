@@ -66,6 +66,10 @@ void MoonlightInstance::DidChangeFocus(bool got_focus) {
     }
 }
 
+void MoonlightInstance::DidChangeView(const pp::View& view) {
+    m_PluginRect = view.GetRect();
+}
+
 bool MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     if (!glInitializePPAPI(pp::Module::Get()->get_browser_interface())) {
         return false;

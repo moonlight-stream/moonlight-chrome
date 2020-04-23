@@ -143,6 +143,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void PaintPicture(void);
         bool InitializeRenderingSurface(int width, int height);
         void DidChangeFocus(bool got_focus);
+        void DidChangeView(const pp::View& view);
         
         static int VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags);
         static void VidDecCleanup(void);
@@ -184,6 +185,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         PP_VideoPicture m_CurrentPicture;
         bool m_IsPainting;
         bool m_RequestIdrFrame;
+
+        pp::Rect m_PluginRect;
     
         OpusMSDecoder* m_OpusDecoder;
         pp::Audio m_AudioPlayer;

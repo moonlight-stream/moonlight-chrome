@@ -40,7 +40,7 @@ void MoonlightInstance::OnConnectionStarted(uint32_t unused) {
     PostMessage(response);
     
     // Start receiving input events
-    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL);
+    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_TOUCH);
     
     // Filtering is suboptimal but it ensures that we can pass keyboard events
     // to the browser when mouse lock is disabled. This is neccessary for Esc
@@ -53,7 +53,10 @@ void MoonlightInstance::OnConnectionStopped(uint32_t error) {
     m_Running = false;
     
     // Stop receiving input events
-    ClearInputEventRequest(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_KEYBOARD);
+    ClearInputEventRequest(PP_INPUTEVENT_CLASS_MOUSE |
+                           PP_INPUTEVENT_CLASS_WHEEL |
+                           PP_INPUTEVENT_CLASS_KEYBOARD |
+                           PP_INPUTEVENT_CLASS_TOUCH);
     
     // Unlock the mouse
     UnlockMouse();
