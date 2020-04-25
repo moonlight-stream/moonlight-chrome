@@ -729,8 +729,16 @@ function startGame(host, appID) {
         $xml = $($.parseXML(launchResult.toString()));
         $root = $xml.find('root');
 
-        if ($root.attr('status_code') != 200) {
-          snackbarLog('Error ' + $root.attr('status_code') + ': ' + $root.attr('status_message'));
+        var status_code = $root.attr('status_code')
+        if (status_code != 200) {
+          var status_message = $root.attr('status_message')
+          if (status_code == 4294967295 && status_message == 'Invalid') {
+            // Special case handling an audio capture error which GFE doesn't
+            // provide any useful status message for.
+            status_code = 418;
+            status_message = 'Missing audio capture device. Reinstall GeForce Experience.';
+          }
+          snackbarLog('Error ' + status_code + ': ' + status_message);
           showApps(host);
           return;
         }
