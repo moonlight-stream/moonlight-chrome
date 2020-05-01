@@ -1,8 +1,8 @@
-# Moonlight for Chrome
+# Moonlight for ChromeOS
 
-[Moonlight for Chrome](https://moonlight-stream.org) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield, but built to run in the Chrome browser.
+[Moonlight for ChromeOS](https://moonlight-stream.org) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield, but built to run on ChromeOS.
 
-Moonlight for Chrome allows you to stream your full collection of games from your powerful desktop to another PC or laptop running Chrome OS.
+Moonlight for ChromeOS allows you to stream your full collection of games from your powerful desktop to another PC or laptop running ChromeOS.
 
 For Windows, Mac, and Linux, we recommend running the [new PC port](https://github.com/moonlight-stream/moonlight-qt) for maximum performance.
 
@@ -10,7 +10,7 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 
 ## Features
 
-* Streams Steam Big Picture and all of your games from your PC to your Chrome browser
+* Streams Steam Big Picture and all of your games from your PC to your ChromeOS system
 * Keyboard and mouse support
 * Hardware-accelerated video decoding
 * Full support for Xbox controllers and PlayStation controllers, and some other HID gamepads
@@ -26,7 +26,7 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 * Install the [latest release](https://github.com/moonlight-stream/moonlight-chrome/releases)
 
 ## Requirements
-* Chrome browser
+* ChromeOS
 * [GameStream-compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600+ series desktop or mobile GPU (for the PC from which you're streaming)
 * High-end wireless router (802.11n dual-band recommended) or wired network
 * Hardware acceleration enabled under `chrome://settings/system`
