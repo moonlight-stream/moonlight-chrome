@@ -6,31 +6,11 @@ Moonlight for ChromeOS allows you to stream your full collection of games from y
 
 For Windows, Mac, and Linux, we recommend running the [new PC port](https://github.com/moonlight-stream/moonlight-qt) for maximum performance.
 
-Moonlight also has mobile versions for [Android](https://github.com/moonlight-stream/moonlight-android) and [iOS](https://github.com/moonlight-stream/moonlight-ios).
+Moonlight also has mobile versions for [Android](https://github.com/moonlight-stream/moonlight-android) and [iOS/tvOS](https://github.com/moonlight-stream/moonlight-ios).
 
-## Features
+Check out [the Moonlight wiki](https://github.com/moonlight-stream/moonlight-docs/wiki) for more detailed project information, setup guide, or troubleshooting steps.
 
-* Streams Steam Big Picture and all of your games from your PC to your ChromeOS system
-* Keyboard and mouse support
-* Hardware-accelerated video decoding
-* Full support for Xbox controllers and PlayStation controllers, and some other HID gamepads
-* Use mDNS to scan for compatible GeForce Experience (GFE) machines on the network
-
-## Features to come
-* Gamepad mapping
-* Improved UI
-* Better error handling
-
-## Installation
-* Download [GeForce Experience](http://www.geforce.com/geforce-experience) and install on your GameStream-compatible PC
-* Install the [latest release](https://github.com/moonlight-stream/moonlight-chrome/releases)
-
-## Requirements
-* ChromeOS
-* [GameStream-compatible](http://shield.nvidia.com/play-pc-games/) computer with GTX 600+ series desktop or mobile GPU (for the PC from which you're streaming)
-* High-end wireless router (802.11n dual-band recommended) or wired network
-* Hardware acceleration enabled under `chrome://settings/system`
-* For Linux users, ensure your Chrome/Chromium package was built with NaCl support. Google's official packages are, but your distro's packages may not be.
+[![Moonlight for ChromeOS](https://moonlight-stream.org/images/chrome_webstore.png)](https://chrome.google.com/webstore/detail/moonlight-game-streaming/gemamigbbenahjlfnmlfdjhdnkpbkfjj)
 
 ## Building
 1. Install the Chrome Native Client SDK and download the current Pepper SDK
@@ -44,16 +24,3 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 3. Click 'Load unpacked extension' and point it at your built moonlight-chrome repo
 4. Run Moonlight from the extensions page
 5. If making changes, make sure to click the Reload button on the Extensions page
-
-## Streaming
-Simply type the hostname or IP into the textbox, pair, choose an app to run, then begin streaming.  Once paired, the host will be remembered in a dropdown menu.  To exit a stream, press Ctrl+Alt+Shift+Q. To remove focus from the stream, press Ctrl+Alt+Shift.
-
-## Contribute
-
-This project is being actively developed at [XDA Developers](http://forum.xda-developers.com/showthread.php?t=2505510)
-
-1. Fork us
-2. Write code
-3. Send Pull Requests
-
-Check out our [website](http://moonlight-stream.com) for project links and information.
