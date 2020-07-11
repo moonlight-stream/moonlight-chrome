@@ -5,6 +5,7 @@
 #include <http.h>
 #include <errors.h>
 #include <string.h>
+#include <sys/mount.h>
 
 #include <mkcert.h>
 #include <openssl/bio.h>
@@ -100,6 +101,9 @@ void MoonlightInstance::NvHTTPInit(int32_t callbackId, pp::VarArray args)
     std::string _cert = args.Get(0).AsString();
     std::string _key = args.Get(1).AsString();
     std::string _uniqueId = args.Get(2).AsString();
+
+    // Mount resource directory where CA bundle resides
+    mount("static/curl", "/curl", "httpfs", 0, "");
 
     // This will initialize OpenSSL
     curl_global_init(CURL_GLOBAL_DEFAULT);

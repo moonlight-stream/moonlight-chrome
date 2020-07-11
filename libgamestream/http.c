@@ -67,9 +67,7 @@ int http_request(const char* url, const char* ppkstr, PHTTP_DATA data) {
   if (!curl)
     return GS_FAILED;
 
-  curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
-  curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE,"PEM");
-  curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
+  curl_easy_setopt(curl, CURLOPT_CAINFO, "/curl/ca-bundle.crt");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _write_curl);
   curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
   curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, *sslctx_function);
