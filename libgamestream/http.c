@@ -67,7 +67,6 @@ int http_request(const char* url, const char* ppkstr, PHTTP_DATA data) {
   if (!curl)
     return GS_FAILED;
 
-  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
   curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
   curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE,"PEM");
   curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
@@ -103,6 +102,8 @@ int http_request(const char* url, const char* ppkstr, PHTTP_DATA data) {
   }
 
   CURLcode res = curl_easy_perform(curl);
+
+  printf("CURL: %s (PPK: '%s') -> %s\n", url, ppkstr ? ppkstr : "<NULL>", curl_easy_strerror(res));
   
   if (res == CURLE_SSL_PINNEDPUBKEYNOTMATCH) {
     ret = GS_CERT_MISMATCH;
