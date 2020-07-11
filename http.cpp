@@ -142,7 +142,7 @@ void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, pp
         goto clean_data;
     }
     
-    err = http_request(url.c_str(), ppkstr.c_str(), data);
+    err = http_request(url.c_str(), ppkstr.empty() ? NULL : ppkstr.c_str(), data);
     if (err) {
         pp::VarDictionary ret;
         ret.Set("callbackId", pp::Var(callbackId));
