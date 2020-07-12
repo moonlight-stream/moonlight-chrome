@@ -14,14 +14,30 @@ function uniqueid() {
 }
 
 function generateRemoteInputKey() {
-  return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[x]/g, function(c) {
-    var r = Math.random() * 16 | 0;
-    return r.toString(16);
-  });
+  var array = new Uint8Array(16);
+  window.crypto.getRandomValues(array);
+  return Array.from(array, function(byte) {
+    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+  }).join('');
 }
 
 function generateRemoteInputKeyId() {
-  return ((Math.random() - 0.5) * 0x7FFFFFFF) | 0;
+  // Value must be signed 32-bit int for correct behavior
+  var array = new Int32Array(1);
+  window.crypto.getRandomValues(array);
+  return array[0];
+}
+
+// Based on OpenBSD arc4random_uniform()
+function cryptoRand(upper_bound) {
+  var min = (Math.pow(2, 32) - upper_bound) % upper_bound;
+  var array = new Uint32Array(1);
+
+  do {
+    window.crypto.getRandomValues(array);
+  } while (array[0] < min);
+
+  return array[0] % upper_bound;
 }
 
 function getConnectedGamepadMask() {
