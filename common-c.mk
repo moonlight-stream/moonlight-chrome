@@ -24,6 +24,7 @@ COMMON_C_SOURCE := \
 	$(COMMON_C_DIR)/AudioStream.c         \
 	$(COMMON_C_DIR)/ByteBuffer.c          \
 	$(COMMON_C_DIR)/Connection.c          \
+	$(COMMON_C_DIR)/ConnectionTester.c    \
 	$(COMMON_C_DIR)/ControlStream.c       \
 	$(COMMON_C_DIR)/FakeCallbacks.c       \
 	$(COMMON_C_DIR)/InputStream.c         \
