@@ -42,13 +42,21 @@ function handleMessage(msg) {
 
       // Show a termination snackbar message if the termination was unexpected
       var errorCode = parseInt(msg.data.replace('streamTerminated: ', ''));
-      if (errorCode !== 0) {
-        if (errorCode === -100) { // ML_ERROR_NO_VIDEO_TRAFFIC
+      switch (errorCode) {
+        case 0: // ML_ERROR_GRACEFUL_TERMINATION
+          break;
+
+        case -100: // ML_ERROR_NO_VIDEO_TRAFFIC
           snackbarLogLong("No video received from host. Check the host PC's firewall and port forwarding rules.");
-        }
-        else {
+          break;
+
+        case -101: // ML_ERROR_NO_VIDEO_FRAME
+          snackbarLogLong("Your network connection isn't performing well. Reduce your video bitrate setting or try a faster connection.");
+          break;
+
+        default:
           snackbarLogLong("Connection terminated");
-        }
+          break;
       }
 
       api.refreshServerInfo().then(function(ret) {
