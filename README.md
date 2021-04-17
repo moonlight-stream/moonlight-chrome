@@ -10,6 +10,8 @@ Moonlight also has mobile versions for [Android](https://github.com/moonlight-st
 
 Check out [the Moonlight wiki](https://github.com/moonlight-stream/moonlight-docs/wiki) for more detailed project information, setup guide, or troubleshooting steps.
 
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/w716mt9ulyww68c5/branch/master?svg=true)](https://ci.appveyor.com/project/cgutman/moonlight-chrome/branch/master)
+
 [![Moonlight for ChromeOS](https://moonlight-stream.org/images/chrome_webstore.png)](https://chrome.google.com/webstore/detail/moonlight-game-streaming/gemamigbbenahjlfnmlfdjhdnkpbkfjj)
 
 ## Building
