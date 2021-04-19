@@ -31,6 +31,7 @@ COMMON_C_SOURCE := \
 	$(COMMON_C_DIR)/LinkedBlockingQueue.c \
 	$(COMMON_C_DIR)/Misc.c                \
 	$(COMMON_C_DIR)/Platform.c            \
+	$(COMMON_C_DIR)/PlatformCrypto.c      \
 	$(COMMON_C_DIR)/PlatformSockets.c     \
 	$(COMMON_C_DIR)/RtpFecQueue.c         \
 	$(COMMON_C_DIR)/RtpReorderQueue.c     \
