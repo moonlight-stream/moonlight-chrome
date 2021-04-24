@@ -231,7 +231,11 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
     m_StreamConfig.streamingRemotely = STREAM_CFG_AUTO;
     m_StreamConfig.packetSize = 1392;
-    
+
+    // TODO: If/when video encryption is added, we'll probably want to
+    // limit that to devices that support AES instructions.
+    m_StreamConfig.encryptionFlags = ENCFLG_AUDIO;
+
     // Load the rikey and rikeyid into the stream configuration
     hexStringToBytes(rikey.c_str(), m_StreamConfig.remoteInputAesKey);
     int rikeyiv = htonl(stoi(rikeyid));
