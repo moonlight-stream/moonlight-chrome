@@ -33,8 +33,8 @@ COMMON_C_SOURCE := \
 	$(COMMON_C_DIR)/Platform.c            \
 	$(COMMON_C_DIR)/PlatformCrypto.c      \
 	$(COMMON_C_DIR)/PlatformSockets.c     \
-	$(COMMON_C_DIR)/RtpFecQueue.c         \
-	$(COMMON_C_DIR)/RtpReorderQueue.c     \
+	$(COMMON_C_DIR)/RtpAudioQueue.c       \
+	$(COMMON_C_DIR)/RtpVideoQueue.c       \
 	$(COMMON_C_DIR)/RtspConnection.c      \
 	$(COMMON_C_DIR)/RtspParser.c          \
 	$(COMMON_C_DIR)/SdpGenerator.c        \
