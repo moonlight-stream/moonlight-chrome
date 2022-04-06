@@ -1,6 +1,6 @@
 # Moonlight for ChromeOS
 
-[Moonlight for ChromeOS](https://moonlight-stream.org) is an open source implementation of NVIDIA's GameStream, as used by the NVIDIA Shield, but built to run on ChromeOS.
+[Moonlight for ChromeOS](https://moonlight-stream.org) is an open source client for NVIDIA GameStream, as used by the NVIDIA Shield.
 
 Moonlight for ChromeOS allows you to stream your full collection of games from your powerful desktop to another PC or laptop running ChromeOS.
 
