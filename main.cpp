@@ -223,8 +223,8 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     PostMessage(response);
     response = ("Setting gfeversion... to: " + gfeversion);
     PostMessage(response);
-    // response = ("Setting mouse lock to: " + mouse_lock);
-    // PostMessage(response);
+    response = ("Setting mouse lock to: " + mouse_lock);
+    PostMessage(response);
     
     // Populate the stream configuration
     LiInitializeStreamConfiguration(&m_StreamConfig);
@@ -249,7 +249,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_Host = host;
     m_AppVersion = appversion;
     m_GfeVersion = gfeversion;
-    m_MouseLockingFeatureEnabled = 1; //stoi(mouse_lock);
+    m_MouseLockingFeatureEnabled = stoi(mouse_lock);
     
     // Initialize the rendering surface before starting the connection
     if (InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height)) {

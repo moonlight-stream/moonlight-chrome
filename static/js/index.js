@@ -687,7 +687,7 @@ function startGame(host, appID) {
       var streamHeight = $('#selectResolution').data('value').split(':')[1];
       // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
       var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
-      var mouse_lock_enabled = $("#mouseLockEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
+      var mouse_lock_enabled = $("#mouseLockEnabledSwitch").parent().hasClass('is-checked') ? "1" : "0";
       console.log('%c[index.js, startGame]', 'color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate + ":" + optimize + ":" + mouse_lock_enabled);
 
       var rikey = generateRemoteInputKey();
