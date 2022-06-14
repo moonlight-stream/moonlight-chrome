@@ -40,7 +40,7 @@ void MoonlightInstance::OnConnectionStarted(uint32_t unused) {
     PostMessage(response);
     
     // Start receiving input events
-    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_TOUCH | PP_INPUTEVENT_CLASS_IME);
+    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_WHEEL | PP_INPUTEVENT_CLASS_TOUCH);
     
     // Filtering is suboptimal but it ensures that we can pass keyboard events
     // to the browser when mouse lock is disabled. This is neccessary for Esc
@@ -56,8 +56,7 @@ void MoonlightInstance::OnConnectionStopped(uint32_t error) {
     ClearInputEventRequest(PP_INPUTEVENT_CLASS_MOUSE |
                            PP_INPUTEVENT_CLASS_WHEEL |
                            PP_INPUTEVENT_CLASS_KEYBOARD |
-                           PP_INPUTEVENT_CLASS_TOUCH |
-			   PP_INPUTEVENT_CLASS_IME);
+                           PP_INPUTEVENT_CLASS_TOUCH);
     
     // Unlock the mouse
     UnlockMouse();
@@ -221,7 +220,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     PostMessage(response);
     response = ("Setting appversion to: " + appversion);
     PostMessage(response);
-    response = ("Setting gfeversion... to: " + gfeversion);
+    response = ("Setting gfeversion to: " + gfeversion);
     PostMessage(response);
     response = ("Setting mouse lock to: " + mouse_lock);
     PostMessage(response);
