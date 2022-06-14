@@ -711,7 +711,7 @@ function startGame(host, appID) {
           }
 
           sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-            bitrate.toString(), rikey, rikeyid.toString(), host.appVersion, host.gfeVersion //, mouse_lock_enabled
+            bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, host.appVersion, host.gfeVersion
           ]);
         }, function(failedResumeApp) {
           console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
@@ -721,7 +721,6 @@ function startGame(host, appID) {
       }
 
       var remote_audio_enabled = $("#remoteAudioEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
-      var mouse_lock_enabled = $("#mouseLockEnabledSwitch").parent().hasClass('is-checked') ? 1 : 0;
 
       host.launchApp(appID,
         streamWidth + "x" + streamHeight + "x" + frameRate,
@@ -749,7 +748,7 @@ function startGame(host, appID) {
         }
 
         sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-          bitrate.toString(), rikey, rikeyid.toString(), host.appVersion// , host.gfeVersion, mouse_lock_enabled
+          bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, host.appVersion
         ]);
       }, function(failedLaunchApp) {
         console.error('%c[index.js, launchApp]', 'color: green;', 'Failed to launch app width id: ' + appID + '\nReturned error was: ' + failedLaunchApp);

@@ -201,9 +201,9 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     std::string bitrate = args.Get(4).AsString();
     std::string rikey = args.Get(5).AsString();
     std::string rikeyid = args.Get(6).AsString();
-    std::string appversion = args.Get(7).AsString();
-    std::string gfeversion = args.Get(8).AsString();
-    //std::string mouse_lock = args.Get(9).AsString();
+    std::string mouse_lock = args.Get(7).AsString();
+    std::string appversion = args.Get(8).AsString();
+    std::string gfeversion = args.Get(9).AsString();
     
     pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
