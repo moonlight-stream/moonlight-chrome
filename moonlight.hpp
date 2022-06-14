@@ -66,6 +66,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             m_AccumulatedTicks(0),
             m_MouseDeltaX(0),
             m_MouseDeltaY(0),
+            m_MousePositionX(0),
+            m_MousePositionY(0),
             m_LastTouchUpTime(0),
             m_HttpThreadPoolSequence(0) {
             // This function MUST be used otherwise sockets don't work (nacl_io_init() doesn't work!)            
@@ -170,6 +172,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         std::string m_Host;
         std::string m_AppVersion;
         std::string m_GfeVersion;
+        bool m_MouseLockingFeatureEnabled;
         STREAM_CONFIGURATION m_StreamConfig;
         bool m_Running;
         
@@ -199,6 +202,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool m_WaitingForAllModifiersUp;
         float m_AccumulatedTicks;
         int32_t m_MouseDeltaX, m_MouseDeltaY;
+        int32_t m_MousePositionX, m_MousePositionY;
         PP_TimeTicks m_LastTouchUpTime;
         pp::FloatPoint m_LastTouchUpPoint;
     

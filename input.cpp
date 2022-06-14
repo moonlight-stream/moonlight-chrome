@@ -1,6 +1,7 @@
 #include "moonlight.hpp"
 
 #include "ppapi/c/ppb_input_event.h"
+#include "ppapi/cpp/mouse_cursor.h"
 
 #include "ppapi/cpp/input_event.h"
 
@@ -123,6 +124,8 @@ void MoonlightInstance::ReportMouseMovement() {
     if (m_MouseDeltaX != 0 || m_MouseDeltaY != 0) {
         LiSendMouseMoveEvent(m_MouseDeltaX, m_MouseDeltaY);
         m_MouseDeltaX = m_MouseDeltaY = 0;
+    } else if (m_MousePositionX != 0 || m_MousePositionY != 0) {
+        LiSendMousePositionEvent(m_MousePositionX, m_MousePositionY, m_PluginRect.width(), m_PluginRect.height());
     }
     if (m_AccumulatedTicks != 0) {
         // We can have fractional ticks here, so multiply by WHEEL_DELTA
@@ -136,39 +139,43 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
     switch (event.GetType()) {
         case PP_INPUTEVENT_TYPE_MOUSEDOWN: {
             // Lock the mouse cursor when the user clicks on the stream
-            if (!m_MouseLocked) {
-                LockMouse(m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
-                
-                // Assume it worked until we get a callback telling us otherwise
-                m_MouseLocked = true;
-                return true;
-            }
+            // if (!m_MouseLocked) {
+            //     LockMouse(m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
+            //     
+            //     // Assume it worked until we get a callback telling us otherwise
+            //     m_MouseLocked = true;
+            //     return true;
+            // }
             
             pp::MouseInputEvent mouseEvent(event);
+            pp::MouseCursor::SetCursor(this, PP_MOUSECURSOR_TYPE_NONE);
             
             LiSendMouseButtonEvent(BUTTON_ACTION_PRESS, ConvertPPButtonToLiButton(mouseEvent.GetButton()));
             return true;
         }
         
         case PP_INPUTEVENT_TYPE_MOUSEMOVE: {
-            if (!m_MouseLocked) {
-                return false;
-            }
-            
             pp::MouseInputEvent mouseEvent(event);
             pp::Point posDelta = mouseEvent.GetMovement();
+            pp::Point position = mouseEvent.GetPosition();
             
             // Wait to report mouse movement until the next input polling window
             // to allow batching to occur which reduces overall input lag.
-            m_MouseDeltaX += posDelta.x();
-            m_MouseDeltaY += posDelta.y();
+            if (m_MouseLocked) {
+                m_MouseDeltaX += posDelta.x();
+                m_MouseDeltaY += posDelta.y();
+            } else {
+                m_MousePositionX = position.x();
+                m_MousePositionY = position.y();
+            }
+            
             return true;
         }
         
         case PP_INPUTEVENT_TYPE_MOUSEUP: {
-            if (!m_MouseLocked) {
-                return false;
-            }
+            // if (!m_MouseLocked) {
+            //     return false;
+            // }
             
             pp::MouseInputEvent mouseEvent(event);
             
@@ -177,9 +184,9 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_WHEEL: {
-            if (!m_MouseLocked) {
-                return false;
-            }
+            // if (!m_MouseLocked) {
+            //     return false;
+            // }
             
             pp::WheelInputEvent wheelEvent(event);
             
@@ -189,9 +196,9 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_KEYDOWN: {
-            if (!m_MouseLocked) {
-                return false;
-            }
+            // if (!m_MouseLocked) {
+            //     return false;
+            // }
             
             pp::KeyboardInputEvent keyboardEvent(event);
             char modifiers = GetModifierFlags(event);
@@ -219,9 +226,9 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_KEYUP: {
-            if (!m_MouseLocked) {
-                return false;
-            }
+            // if (!m_MouseLocked) {
+            //     return false;
+            // }
             
             pp::KeyboardInputEvent keyboardEvent(event);
             char modifiers = GetModifierFlags(event);
