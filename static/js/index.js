@@ -978,7 +978,7 @@ function onWindowLoad() {
     // Load stored mouse lock prefs
     chrome.storage.sync.get('mouseLock', function(previousValue) {
       if (previousValue.mouseLock == null) {
-        document.querySelector('#mouseLockBtn').MaterialIconToggle.uncheck();
+        document.querySelector('#mouseLockBtn').MaterialIconToggle.check();
       } else if (previousValue.mouseLock == false) {
         document.querySelector('#mouseLockBtn').MaterialIconToggle.uncheck();
       } else {
