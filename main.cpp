@@ -59,7 +59,7 @@ void MoonlightInstance::OnConnectionStopped(uint32_t error) {
                            PP_INPUTEVENT_CLASS_TOUCH);
     
     // Unlock the mouse
-    UnlockMouse();
+    UnlockMouseOrJustReleaseInput();
     
     // Notify the JS code that the stream has ended
     pp::Var response(std::string(MSG_STREAM_TERMINATED) + std::to_string((int)error));

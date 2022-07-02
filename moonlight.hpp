@@ -111,6 +111,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         
         void MouseLockLost();
         void DidLockMouse(int32_t result);
+        void LockMouseOrJustCaptureInput();
+        void UnlockMouseOrJustReleaseInput();
         
         void OnConnectionStopped(uint32_t unused);
         void OnConnectionStarted(uint32_t error);

@@ -30,6 +30,28 @@ static int ConvertPPButtonToLiButton(PP_InputEvent_MouseButton ppButton) {
     }
 }
 
+void MoonlightInstance::LockMouseOrJustCaptureInput() {
+    if (m_MouseLockingFeatureEnabled) {
+        LockMouse(m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
+    }
+    else {
+        pp::MouseCursor::SetCursor(this, PP_MOUSECURSOR_TYPE_NONE);
+    }
+
+    // Assume it worked until we get a callback telling us otherwise;
+    // if not locking mouse this just serves to tell us whether to capture input
+    m_MouseLocked = true;
+}
+
+void MoonlightInstance::UnlockMouseOrJustReleaseInput() {
+    if (m_MouseLockingFeatureEnabled) {
+        UnlockMouse();
+    } else {
+        pp::MouseCursor::SetCursor(this, PP_MOUSECURSOR_TYPE_POINTER);
+    }
+    m_MouseLocked = false;
+}
+
 void MoonlightInstance::DidLockMouse(int32_t result) {
     m_MouseLocked = (result == PP_OK);
     if (m_MouseLocked) {
@@ -141,25 +163,19 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
     switch (event.GetType()) {
         case PP_INPUTEVENT_TYPE_MOUSEDOWN: {
             // Lock the mouse cursor when the user clicks on the stream
-            if (m_MouseLockingFeatureEnabled && !m_MouseLocked) {
-                LockMouse(m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
-                
-                // Assume it worked until we get a callback telling us otherwise
-                m_MouseLocked = true;
+            if (!m_MouseLocked) {
+                LockMouseOrJustCaptureInput();
                 return true;
             }
             
             pp::MouseInputEvent mouseEvent(event);
-            if (!m_MouseLockingFeatureEnabled) {
-                pp::MouseCursor::SetCursor(this, PP_MOUSECURSOR_TYPE_NONE);
-            }
             
             LiSendMouseButtonEvent(BUTTON_ACTION_PRESS, ConvertPPButtonToLiButton(mouseEvent.GetButton()));
             return true;
         }
         
         case PP_INPUTEVENT_TYPE_MOUSEMOVE: {
-            if (m_MouseLockingFeatureEnabled && !m_MouseLocked) {
+            if (!m_MouseLocked) {
                 return false;
             }
 
@@ -170,18 +186,20 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             // Wait to report mouse movement until the next input polling window
             // to allow batching to occur which reduces overall input lag.
             if (m_MouseLocked) {
-                m_MouseDeltaX += posDelta.x();
-                m_MouseDeltaY += posDelta.y();
-            } else if(!m_MouseLockingFeatureEnabled) {
-                m_MousePositionX = position.x();
-                m_MousePositionY = position.y();
+                if (m_MouseLockingFeatureEnabled) {
+                    m_MouseDeltaX += posDelta.x();
+                    m_MouseDeltaY += posDelta.y();
+                } else {
+                    m_MousePositionX = position.x();
+                    m_MousePositionY = position.y();
+                }
             }
             
             return true;
         }
         
         case PP_INPUTEVENT_TYPE_MOUSEUP: {
-            if (m_MouseLockingFeatureEnabled && !m_MouseLocked) {
+            if (!m_MouseLocked) {
                 return false;
             }
             
@@ -192,7 +210,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_WHEEL: {
-            if (m_MouseLockingFeatureEnabled && !m_MouseLocked) {
+            if (!m_MouseLocked) {
                 return false;
             }
             
@@ -204,7 +222,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_KEYDOWN: {
-            if (m_MouseLockingFeatureEnabled && !m_MouseLocked) {
+            if (!m_MouseLocked) {
                 return false;
             }
             
@@ -234,7 +252,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         }
         
         case PP_INPUTEVENT_TYPE_KEYUP: {
-            if (m_MouseLockingFeatureEnabled && !m_MouseLocked) {
+            if (!m_MouseLocked) {
                 return false;
             }
             
@@ -244,8 +262,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
              
             // Check if all modifiers are up now
             if (m_WaitingForAllModifiersUp && modifiers == 0) {
-                UnlockMouse();
-                m_MouseLocked = false;
+                UnlockMouseOrJustReleaseInput();
                 m_WaitingForAllModifiersUp = false;
             }
             
