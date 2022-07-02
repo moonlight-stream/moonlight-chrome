@@ -50,6 +50,7 @@ void MoonlightInstance::UnlockMouseOrJustReleaseInput() {
         pp::MouseCursor::SetCursor(this, PP_MOUSECURSOR_TYPE_POINTER);
     }
     m_MouseLocked = false;
+    m_WaitingForAllModifiersUp = false;
 }
 
 void MoonlightInstance::DidLockMouse(int32_t result) {
@@ -263,7 +264,6 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             // Check if all modifiers are up now
             if (m_WaitingForAllModifiersUp && modifiers == 0) {
                 UnlockMouseOrJustReleaseInput();
-                m_WaitingForAllModifiersUp = false;
             }
             
             LiSendKeyboardEvent(KEY_PREFIX << 8 | keyCode,
