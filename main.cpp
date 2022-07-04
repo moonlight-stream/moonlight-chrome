@@ -59,7 +59,7 @@ void MoonlightInstance::OnConnectionStopped(uint32_t error) {
                            PP_INPUTEVENT_CLASS_TOUCH);
     
     // Unlock the mouse
-    UnlockMouse();
+    UnlockMouseOrJustReleaseInput();
     
     // Notify the JS code that the stream has ended
     pp::Var response(std::string(MSG_STREAM_TERMINATED) + std::to_string((int)error));
@@ -200,8 +200,9 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     std::string bitrate = args.Get(4).AsString();
     std::string rikey = args.Get(5).AsString();
     std::string rikeyid = args.Get(6).AsString();
-    std::string appversion = args.Get(7).AsString();
-    std::string gfeversion = args.Get(8).AsString();
+    std::string mouse_lock = args.Get(7).AsString();
+    std::string appversion = args.Get(8).AsString();
+    std::string gfeversion = args.Get(9).AsString();
     
     pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
@@ -220,6 +221,8 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     response = ("Setting appversion to: " + appversion);
     PostMessage(response);
     response = ("Setting gfeversion to: " + gfeversion);
+    PostMessage(response);
+    response = ("Setting mouse lock to: " + mouse_lock);
     PostMessage(response);
     
     // Populate the stream configuration
@@ -245,6 +248,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_Host = host;
     m_AppVersion = appversion;
     m_GfeVersion = gfeversion;
+    m_MouseLockingFeatureEnabled = stoi(mouse_lock);
     
     // Initialize the rendering surface before starting the connection
     if (InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height)) {

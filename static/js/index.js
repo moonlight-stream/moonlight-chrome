@@ -15,6 +15,7 @@ function attachListeners() {
   $('#bitrateSlider').on('input', updateBitrateField); // input occurs every notch you slide
   //$('#bitrateSlider').on('change', saveBitrate); //FIXME: it seems not working
   $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
+  $("#mouseLockEnabledSwitch").on('click', saveMouseLock);
   $('#optimizeGamesSwitch').on('click', saveOptimize);
   $('#addHostCell').on('click', addHost);
   $('#backIcon').on('click', showHostsAndSettingsMode);
@@ -597,6 +598,7 @@ function showHostsAndSettingsMode() {
   $("#main-navigation").show();
   $(".nav-menu-parent").show();
   $("#externalAudioBtn").show();
+  $("#mouseLockBtn").show();
   $("#main-content").children().not("#listener, #loadingSpinner, #naclSpinner").show();
   $('#game-grid').hide();
   $('#backIcon').hide();
@@ -615,6 +617,7 @@ function showAppsMode() {
   $("#streamSettings").hide();
   $(".nav-menu-parent").hide();
   $("#externalAudioBtn").hide();
+  $("#mouseLockBtn").hide();
   $("#host-grid").hide();
   $("#settings").hide();
   $("#main-content").removeClass("fullscreen");
@@ -684,7 +687,8 @@ function startGame(host, appID) {
       var streamHeight = $('#selectResolution').data('value').split(':')[1];
       // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
       var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
-      console.log('%c[index.js, startGame]', 'color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate + ":" + optimize);
+      var mouse_lock_enabled = $("#mouseLockEnabledSwitch").parent().hasClass('is-checked') ? "1" : "0";
+      console.log('%c[index.js, startGame]', 'color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate + ":" + optimize + ":" + mouse_lock_enabled);
 
       var rikey = generateRemoteInputKey();
       var rikeyid = generateRemoteInputKeyId();
@@ -707,7 +711,7 @@ function startGame(host, appID) {
           }
 
           sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-            bitrate.toString(), rikey, rikeyid.toString(), host.appVersion, host.gfeVersion
+            bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, host.appVersion, host.gfeVersion
           ]);
         }, function(failedResumeApp) {
           console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
@@ -744,7 +748,7 @@ function startGame(host, appID) {
         }
 
         sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-          bitrate.toString(), rikey, rikeyid.toString(), host.appVersion
+          bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, host.appVersion
         ]);
       }, function(failedLaunchApp) {
         console.error('%c[index.js, launchApp]', 'color: green;', 'Failed to launch app width id: ' + appID + '\nReturned error was: ' + failedLaunchApp);
@@ -901,6 +905,16 @@ function saveRemoteAudio() {
   }, 100);
 }
 
+function saveMouseLock() {
+  // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
+  // checking the new state
+  setTimeout(function() {
+    var mouseLockState = $("#mouseLockEnabledSwitch").parent().hasClass('is-checked');
+    console.log('%c[index.js, saveMouseLock]', 'color: green;', 'Saving mouse lock state : ' + mouseLockState);
+    storeData('mouseLock', mouseLockState, null);
+  }, 100);
+}
+
 function updateDefaultBitrate() {
   var res = $('#selectResolution').data('value');
   var frameRate = $('#selectFramerate').data('value').toString();
@@ -958,6 +972,17 @@ function onWindowLoad() {
         document.querySelector('#externalAudioBtn').MaterialIconToggle.uncheck();
       } else {
         document.querySelector('#externalAudioBtn').MaterialIconToggle.check();
+      }
+    });
+
+    // Load stored mouse lock prefs
+    chrome.storage.sync.get('mouseLock', function(previousValue) {
+      if (previousValue.mouseLock == null) {
+        document.querySelector('#mouseLockBtn').MaterialIconToggle.check();
+      } else if (previousValue.mouseLock == false) {
+        document.querySelector('#mouseLockBtn').MaterialIconToggle.uncheck();
+      } else {
+        document.querySelector('#mouseLockBtn').MaterialIconToggle.check();
       }
     });
 

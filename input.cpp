@@ -1,6 +1,7 @@
 #include "moonlight.hpp"
 
 #include "ppapi/c/ppb_input_event.h"
+#include "ppapi/cpp/mouse_cursor.h"
 
 #include "ppapi/cpp/input_event.h"
 
@@ -27,6 +28,29 @@ static int ConvertPPButtonToLiButton(PP_InputEvent_MouseButton ppButton) {
         default:
             return 0;
     }
+}
+
+void MoonlightInstance::LockMouseOrJustCaptureInput() {
+    if (m_MouseLockingFeatureEnabled) {
+        LockMouse(m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
+    }
+    else {
+        pp::MouseCursor::SetCursor(this, PP_MOUSECURSOR_TYPE_NONE);
+    }
+
+    // Assume it worked until we get a callback telling us otherwise;
+    // if not locking mouse this just serves to tell us whether to capture input
+    m_MouseLocked = true;
+}
+
+void MoonlightInstance::UnlockMouseOrJustReleaseInput() {
+    if (m_MouseLockingFeatureEnabled) {
+        UnlockMouse();
+    } else {
+        pp::MouseCursor::SetCursor(this, PP_MOUSECURSOR_TYPE_POINTER);
+    }
+    m_MouseLocked = false;
+    m_WaitingForAllModifiersUp = false;
 }
 
 void MoonlightInstance::DidLockMouse(int32_t result) {
@@ -123,6 +147,10 @@ void MoonlightInstance::ReportMouseMovement() {
     if (m_MouseDeltaX != 0 || m_MouseDeltaY != 0) {
         LiSendMouseMoveEvent(m_MouseDeltaX, m_MouseDeltaY);
         m_MouseDeltaX = m_MouseDeltaY = 0;
+    } else if (m_MousePositionX != 0 || m_MousePositionY != 0) {
+        LiSendMousePositionEvent(m_MousePositionX, m_MousePositionY, m_PluginRect.width(), m_PluginRect.height());
+        m_MousePositionX = 0;
+        m_MousePositionY = 0;
     }
     if (m_AccumulatedTicks != 0) {
         // We can have fractional ticks here, so multiply by WHEEL_DELTA
@@ -137,10 +165,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
         case PP_INPUTEVENT_TYPE_MOUSEDOWN: {
             // Lock the mouse cursor when the user clicks on the stream
             if (!m_MouseLocked) {
-                LockMouse(m_CallbackFactory.NewCallback(&MoonlightInstance::DidLockMouse));
-                
-                // Assume it worked until we get a callback telling us otherwise
-                m_MouseLocked = true;
+                LockMouseOrJustCaptureInput();
                 return true;
             }
             
@@ -154,14 +179,23 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
             if (!m_MouseLocked) {
                 return false;
             }
-            
+
             pp::MouseInputEvent mouseEvent(event);
             pp::Point posDelta = mouseEvent.GetMovement();
+            pp::Point position = mouseEvent.GetPosition();
             
             // Wait to report mouse movement until the next input polling window
             // to allow batching to occur which reduces overall input lag.
-            m_MouseDeltaX += posDelta.x();
-            m_MouseDeltaY += posDelta.y();
+            if (m_MouseLocked) {
+                if (m_MouseLockingFeatureEnabled) {
+                    m_MouseDeltaX += posDelta.x();
+                    m_MouseDeltaY += posDelta.y();
+                } else {
+                    m_MousePositionX = position.x();
+                    m_MousePositionY = position.y();
+                }
+            }
+            
             return true;
         }
         
@@ -229,9 +263,7 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
              
             // Check if all modifiers are up now
             if (m_WaitingForAllModifiersUp && modifiers == 0) {
-                UnlockMouse();
-                m_MouseLocked = false;
-                m_WaitingForAllModifiersUp = false;
+                UnlockMouseOrJustReleaseInput();
             }
             
             LiSendKeyboardEvent(KEY_PREFIX << 8 | keyCode,
