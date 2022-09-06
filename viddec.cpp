@@ -221,24 +221,24 @@ void MoonlightInstance::VidDecCleanup(void) {
 }
 
 static void WriteSpsNalu(PLENTRY nalu, unsigned char* outBuffer, unsigned int* offset) {
-    const char naluHeader[] = {0x00, 0x00, 0x00, 0x01};
+    int start_len = nalu->data[2] == 0x01 ? 3 : 4;
     h264_stream_t* stream = h264_new();
     
     // Read the old NALU
     read_nal_unit(stream,
-                  (unsigned char *)&nalu->data[sizeof(naluHeader)],
-                  nalu->length - sizeof(naluHeader));
+                  (unsigned char *)&nalu->data[start_len],
+                  nalu->length - start_len);
     
     // Fixup the SPS to what OS X needs to use hardware acceleration
     stream->sps->num_ref_frames = 1;
     stream->sps->vui.max_dec_frame_buffering = 1;
     
     // Copy the NALU prefix over from the original SPS
-    memcpy(&outBuffer[*offset], naluHeader, sizeof(naluHeader));
-    *offset += sizeof(naluHeader);
+    memcpy(&outBuffer[*offset], nalu->data, start_len);
+    *offset += start_len;
     
     // Copy the modified NALU data
-    *offset += write_nal_unit(stream, &outBuffer[*offset], nalu->length + 32 - sizeof(naluHeader));
+    *offset += write_nal_unit(stream, &outBuffer[*offset], nalu->length + 32 - start_len);
     
     h264_free(stream);
 }
