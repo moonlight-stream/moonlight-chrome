@@ -58,7 +58,7 @@ void MoonlightInstance::DidLockMouse(int32_t result) {
     if (m_MouseLocked) {
         // Request an IDR frame to dump the frame queue that may have
         // built up from the GL pipeline being stalled.
-        g_Instance->m_RequestIdrFrame = true;
+        LiRequestIdrFrame();
     }
 }
 

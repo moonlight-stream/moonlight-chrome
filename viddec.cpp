@@ -62,7 +62,7 @@ void MoonlightInstance::DidChangeFocus(bool got_focus) {
     // Request an IDR frame to dump the frame queue that may have
     // built up from the GL pipeline being stalled.
     if (got_focus) {
-        g_Instance->m_RequestIdrFrame = true;
+        LiRequestIdrFrame();
     }
 }
 
@@ -247,12 +247,6 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     PLENTRY entry;
     unsigned int offset;
     unsigned int totalLength;
-
-    // Request an IDR frame if needed
-    if (g_Instance->m_RequestIdrFrame) {
-        g_Instance->m_RequestIdrFrame = false;
-        return DR_NEED_IDR;
-    }
 
     totalLength = decodeUnit->fullLength;
     if (decodeUnit->frameType == FRAME_TYPE_IDR) {

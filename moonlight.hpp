@@ -58,7 +58,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
             pp::MouseLock(this),
             m_HasNextPicture(false),
             m_IsPainting(false),
-            m_RequestIdrFrame(false),
             m_OpusDecoder(NULL),
             m_CallbackFactory(this),
             m_MouseLocked(false),
@@ -190,7 +189,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         bool m_HasNextPicture;
         PP_VideoPicture m_CurrentPicture;
         bool m_IsPainting;
-        bool m_RequestIdrFrame;
 
         pp::Rect m_PluginRect;
     
