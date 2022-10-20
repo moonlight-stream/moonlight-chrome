@@ -137,6 +137,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void ClDisplayMessage(const char* message);
         static void ClDisplayTransientMessage(const char* message);
         static void ClLogMessage(const char* format, ...);
+        static void ClControllerRumble(unsigned short controllerNumber, unsigned short lowFreqMotor, unsigned short highFreqMotor);
         
         static Shader CreateProgram(const char* vertexShader, const char* fragmentShader);
         static void CreateShader(GLuint program, GLenum type, const char* source, int size);

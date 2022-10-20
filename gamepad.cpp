@@ -4,6 +4,8 @@
 
 #include <Limelight.h>
 
+#include <sstream>
+
 static const unsigned short k_StandardGamepadButtonMapping[] = {
     A_FLAG, B_FLAG, X_FLAG, Y_FLAG,
     LB_FLAG, RB_FLAG,
@@ -126,4 +128,15 @@ void MoonlightInstance::PollGamepads() {
                                    leftStickX, leftStickY, rightStickX, rightStickY);
         controllerIndex++;
     }
+}
+
+void MoonlightInstance::ClControllerRumble(unsigned short controllerNumber, unsigned short lowFreqMotor, unsigned short highFreqMotor)
+{
+    const float weakMagnitude = static_cast<float>(highFreqMotor) / static_cast<float>(UINT16_MAX);
+    const float strongMagnitude = static_cast<float>(lowFreqMotor) / static_cast<float>(UINT16_MAX);
+
+    std::ostringstream ss;
+    ss << controllerNumber << "," << weakMagnitude << "," << strongMagnitude;
+    pp::Var response(std::string("controllerRumble: ") + ss.str());
+    g_Instance->PostMessage(response);
 }

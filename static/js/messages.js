@@ -81,6 +81,18 @@ function handleMessage(msg) {
       snackbarLogLong(msg.data.replace('DialogMsg: ', ''));
     } else if (msg.data === 'displayVideo') {
       $("#listener").addClass("fullscreen");
+    } else if (msg.data.indexOf('controllerRumble: ' ) === 0) {
+      const eventData = msg.data.split( ' ' )[1].split(',');
+      const gamepadIdx = parseInt(eventData[0]);
+      const weakMagnitude = parseFloat(eventData[1]);
+      const strongMagnitude = parseFloat(eventData[2]);
+      console.log("Playing rumble on gamepad " + gamepadIdx + " with weakMagnitude " + weakMagnitude + " and strongMagnitude " + strongMagnitude);
+      navigator.getGamepads()[gamepadIdx].vibrationActuator.playEffect('dual-rumble', {
+        startDelay: 0,
+        duration: 5000, // Moonlight should be sending another rumble event when stopping.
+        weakMagnitude: weakMagnitude,
+        strongMagnitude: strongMagnitude,
+      });
     }
   }
 }
