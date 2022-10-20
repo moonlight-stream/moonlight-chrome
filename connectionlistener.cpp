@@ -61,4 +61,5 @@ CONNECTION_LISTENER_CALLBACKS MoonlightInstance::s_ClCallbacks = {
     .connectionStarted = MoonlightInstance::ClConnectionStarted,
     .connectionTerminated = MoonlightInstance::ClConnectionTerminated,
     .logMessage = MoonlightInstance::ClLogMessage,
+    .rumble = MoonlightInstance::ClControllerRumble,
 };
