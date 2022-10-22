@@ -718,6 +718,7 @@ function playGameMode() {
   $("#main-navigation").hide();
   $("#main-content").children().not("#listener, #loadingSpinner").hide();
   $("#main-content").addClass("fullscreen");
+  $("#listener").addClass("fullscreen");
 
   fullscreenNaclModule();
   $('#loadingSpinner').css('display', 'inline-block');
