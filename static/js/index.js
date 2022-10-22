@@ -4,7 +4,6 @@ var pairingCert;
 var myUniqueid = '0123456789ABCDEF'; // Use the same UID as other Moonlight clients to allow them to quit each other's games
 var api; // `api` should only be set if we're in a host-specific screen. on the initial screen it should always be null.
 var isInGame = false; // flag indicating whether the game stream started
-var windowState = 'normal'; // chrome's windowState, possible values: 'normal' or 'fullscreen'
 
 // Called by the common.js module.
 function attachListeners() {
@@ -21,49 +20,6 @@ function attachListeners() {
   $('#backIcon').on('click', showHostsAndSettingsMode);
   $('#quitCurrentApp').on('click', stopGameWithConfirmation);
   $(window).resize(fullscreenNaclModule);
-  chrome.app.window.current().onMaximized.addListener(fullscreenChromeWindow);
-}
-
-function fullscreenChromeWindow() {
-  // when the user clicks the maximize button on the window,
-  // FIRST restore it to the previous size, then fullscreen it to the whole screen
-  // this prevents the previous window size from being 'maximized',
-  // and allows us to functionally retain two window sizes
-  // so that when the user hits `esc`, they go back to the "restored" size,
-  // instead of "maximized", which would immediately go to fullscreen
-  chrome.app.window.current().restore();
-  chrome.app.window.current().fullscreen();
-}
-
-function loadWindowState() {
-  if (!chrome.storage) {
-    return;
-  }
-
-  chrome.storage.sync.get('windowState', function(item) {
-    // load stored window state
-    windowState = (item && item.windowState) ?
-      item.windowState :
-      windowState;
-
-    // subscribe to chrome's windowState events
-    chrome.app.window.current().onFullscreened.addListener(onFullscreened);
-    chrome.app.window.current().onBoundsChanged.addListener(onBoundsChanged);
-  });
-}
-
-function onFullscreened() {
-  if (!isInGame && windowState == 'normal') {
-    storeData('windowState', 'fullscreen', null);
-    windowState = 'fullscreen';
-  }
-}
-
-function onBoundsChanged() {
-  if (!isInGame && windowState == 'fullscreen') {
-    storeData('windowState', 'normal', null);
-    windowState = 'normal';
-  }
 }
 
 function changeUiModeForNaClLoad() {
@@ -625,11 +581,6 @@ function showAppsMode() {
   $('#loadingSpinner').css('display', 'none');
   $('body').css('backgroundColor', '#282C38');
 
-  // Restore back to a window
-  if (windowState == 'normal') {
-    chrome.app.window.current().restore();
-  }
-
   isInGame = false;
 
   // FIXME: We want to eventually poll on the app screen but we can't now
@@ -768,10 +719,8 @@ function playGameMode() {
   $("#main-content").children().not("#listener, #loadingSpinner").hide();
   $("#main-content").addClass("fullscreen");
 
-  chrome.app.window.current().fullscreen();
   fullscreenNaclModule();
   $('#loadingSpinner').css('display', 'inline-block');
-
 }
 
 // Maximize the size of the nacl module by scaling and resizing appropriately
@@ -949,8 +898,6 @@ function onWindowLoad() {
   console.log('%c[index.js]', 'color: green;', 'Moonlight\'s main window loaded');
   // don't show the game selection div
   $('#gameSelection').css('display', 'none');
-
-  loadWindowState();
 
   if (chrome.storage) {
     // load stored resolution prefs
