@@ -1,19 +1,8 @@
+const windowId = "1337";
 function createWindow(state) {
   chrome.app.window.create('index.html', {
-    state: state,
-    bounds: {
-      width: 960,
-      height: 540
-    }
-  }, function(window) {
-    // workaround:
-    // state = 'normal' in some cases not work (e.g. starting app from 'chrome://extensions' always open window in fullscreen mode)
-    // it requires manually restoring window state to 'normal'
-    if (state == 'normal') {
-      setTimeout(function() {
-        window.restore();
-      }, 1000);
-    }
+    state: "normal",
+    id: windowId,
   });
 }
 
