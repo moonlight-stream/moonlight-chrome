@@ -26,7 +26,8 @@
         "pointerLock",
         "system.network",
         "fullscreen",
-        "power", {
+        "power",
+        "overrideEscFullscreen", {
         "socket": [
             "tcp-connect",
             "resolve-host",
