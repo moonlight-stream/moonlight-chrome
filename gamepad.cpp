@@ -132,6 +132,14 @@ void MoonlightInstance::PollGamepads() {
 
 void MoonlightInstance::ClControllerRumble(unsigned short controllerNumber, unsigned short lowFreqMotor, unsigned short highFreqMotor)
 {
+    PP_GamepadsSampleData gamepadData;
+    g_Instance->m_GamepadApi->Sample(g_Instance->pp_instance(), &gamepadData);
+
+    // We must determine which gamepads are connected before sending rumble events.
+    const unsigned short activeGamepadMask = static_cast<unsigned short>(GetActiveGamepadMask(gamepadData));
+    if ((activeGamepadMask & (1 << controllerNumber)) == 0)
+        return;
+
     const float weakMagnitude = static_cast<float>(highFreqMotor) / static_cast<float>(UINT16_MAX);
     const float strongMagnitude = static_cast<float>(lowFreqMotor) / static_cast<float>(UINT16_MAX);
 
