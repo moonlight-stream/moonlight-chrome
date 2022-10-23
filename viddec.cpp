@@ -218,6 +218,11 @@ bool MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_curveTexture);
 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     GLint existingUnpackAlignment;
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &existingUnpackAlignment);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -482,8 +487,12 @@ void MoonlightInstance::PaintPicture(void) {
     
     // Only rebind our texture if we've changed since last time
     if (m_CurrentPicture.texture_id != s_LastTextureId || m_CurrentPicture.texture_target != originalTextureTarget) {
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(m_CurrentPicture.texture_target, m_CurrentPicture.texture_id);
         s_LastTextureId = m_CurrentPicture.texture_id;
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_curveTexture);
     }
     
     // Draw the image
