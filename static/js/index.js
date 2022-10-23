@@ -15,6 +15,7 @@ function attachListeners() {
   //$('#bitrateSlider').on('change', saveBitrate); //FIXME: it seems not working
   $("#remoteAudioEnabledSwitch").on('click', saveRemoteAudio);
   $("#mouseLockEnabledSwitch").on('click', saveMouseLock);
+  $("#blackCrushMitigationEnabledSwitch").on('click', saveBlackCrushMitigate);
   $('#optimizeGamesSwitch').on('click', saveOptimize);
   $('#addHostCell').on('click', addHost);
   $('#backIcon').on('click', showHostsAndSettingsMode);
@@ -639,7 +640,8 @@ function startGame(host, appID) {
       // we told the user it was in Mbps. We're dirty liars and use Kbps behind their back.
       var bitrate = parseInt($("#bitrateSlider").val()) * 1000;
       var mouse_lock_enabled = $("#mouseLockEnabledSwitch").parent().hasClass('is-checked') ? "1" : "0";
-      console.log('%c[index.js, startGame]', 'color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate + ":" + optimize + ":" + mouse_lock_enabled);
+      var black_crush_mitigation_enabled = $("#blackCrushMitigationEnabledSwitch").parent().hasClass('is-checked') ? "1" : "0";
+      console.log('%c[index.js, startGame]', 'color:green;', 'startRequest:' + host.address + ":" + streamWidth + ":" + streamHeight + ":" + frameRate + ":" + bitrate + ":" + optimize + ":" + mouse_lock_enabled + ":" + black_crush_mitigation_enabled);
 
       var rikey = generateRemoteInputKey();
       var rikeyid = generateRemoteInputKeyId();
@@ -662,7 +664,7 @@ function startGame(host, appID) {
           }
 
           sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-            bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, host.appVersion, host.gfeVersion
+            bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, black_crush_mitigation_enabled, host.appVersion, host.gfeVersion
           ]);
         }, function(failedResumeApp) {
           console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
@@ -699,7 +701,7 @@ function startGame(host, appID) {
         }
 
         sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-          bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, host.appVersion
+          bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, black_crush_mitigation_enabled, host.appVersion
         ]);
       }, function(failedLaunchApp) {
         console.error('%c[index.js, launchApp]', 'color: green;', 'Failed to launch app width id: ' + appID + '\nReturned error was: ' + failedLaunchApp);
@@ -865,6 +867,16 @@ function saveMouseLock() {
   }, 100);
 }
 
+function saveBlackCrushMitigate() {
+  // MaterialDesignLight uses the mouseup trigger, so we give it some time to change the class name before
+  // checking the new state
+  setTimeout(function() {
+    var blackCrushMitigateState = $("#blackCrushMitigationEnabledSwitch").parent().hasClass('is-checked');
+    console.log('%c[index.js, saveBlackCrushMitigation]', 'color: green;', 'Saving black crush mitigation state : ' + blackCrushMitigateState);
+    storeData('blackCrushMitigate', blackCrushMitigateState, null);
+  }, 100);
+}
+
 function updateDefaultBitrate() {
   var res = $('#selectResolution').data('value');
   var frameRate = $('#selectFramerate').data('value').toString();
@@ -931,6 +943,16 @@ function onWindowLoad() {
         document.querySelector('#mouseLockBtn').MaterialIconToggle.uncheck();
       } else {
         document.querySelector('#mouseLockBtn').MaterialIconToggle.check();
+      }
+    });
+
+    chrome.storage.sync.get('blackCrushMitigate', function(previousValue) {
+      if (previousValue.mouseLock == null) {
+        document.querySelector('#blackCrushMitigateBtn').MaterialIconToggle.check();
+      } else if (previousValue.mouseLock == false) {
+        document.querySelector('#blackCrushMitigateBtn').MaterialIconToggle.uncheck();
+      } else {
+        document.querySelector('#blackCrushMitigateBtn').MaterialIconToggle.check();
       }
     });
 

@@ -201,8 +201,9 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     std::string rikey = args.Get(5).AsString();
     std::string rikeyid = args.Get(6).AsString();
     std::string mouse_lock = args.Get(7).AsString();
-    std::string appversion = args.Get(8).AsString();
-    std::string gfeversion = args.Get(9).AsString();
+    std::string blackCrushMitigationEnable = args.Get(8).AsString();
+    std::string appversion = args.Get(9).AsString();
+    std::string gfeversion = args.Get(10).AsString();
     
     pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
@@ -249,6 +250,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_AppVersion = appversion;
     m_GfeVersion = gfeversion;
     m_MouseLockingFeatureEnabled = stoi(mouse_lock);
+    m_BlackCrushMitigationEnable = stoi(blackCrushMitigationEnable);
     
     // Initialize the rendering surface before starting the connection
     if (InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height)) {
