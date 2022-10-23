@@ -56,6 +56,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         explicit MoonlightInstance(PP_Instance instance) :
             pp::Instance(instance),
             pp::MouseLock(this),
+            m_BlackCrushMitigationEnable(false),
+            m_curveTexture(-1u),
             m_HasNextPicture(false),
             m_IsPainting(false),
             m_OpusDecoder(NULL),
@@ -187,6 +189,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         Shader m_RectangleArbShader;
         Shader m_ExternalOesShader;
         PP_VideoPicture m_NextPicture;
+        bool m_BlackCrushMitigationEnable;
+        GLuint m_curveTexture;
         bool m_HasNextPicture;
         PP_VideoPicture m_CurrentPicture;
         bool m_IsPainting;

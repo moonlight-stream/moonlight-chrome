@@ -22,27 +22,27 @@ static uint64_t s_LastPaintFinishedTime;
 // After conversion to XYZ space, curve the Y value up to brighten dark values and
 // then convert back to sRGB.
 #define fragmentShader_BlackCrushMitigation() \
-    "const vec3 CIE_X_FROM_RGB_WEIGHTS = vec3(0.4124f, 0.3576f, 0.1805f);                                                                                       \n" \
-    "const vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126f, 0.7152f, 0.0722f);                                                                                       \n" \
-    "const vec3 CIE_Z_FROM_RGB_WEIGHTS = vec3(0.0193f, 0.1192f, 0.9505f);                                                                                       \n" \
-    "const vec3 R_FROM_CIEXYZ_WEIGHTS = vec3(3.2406f, -1.5372f, -0.4986f);                                                                                      \n" \
-    "const vec3 G_FROM_CIEXYZ_WEIGHTS = vec3(-0.9689f, 1.8758f, 0.0415f);                                                                                       \n" \
-    "const vec3 B_FROM_CIEXYZ_WEIGHTS = vec3(0.0557f, -0.2040f, 1.0570f);                                                                                       \n" \
-    "const float TEXEL_WIDTH_HEIGHT = 0.0625f;                                                                                                                  \n" \
-    "const float CURVE_TEXTURE_WIDTH = 16.0f;                                                                                                                   \n" \
-    "const float CURVE_TEXTURE_HEIGHT = 16.0f;                                                                                                                  \n" \
+    "vec3 CIE_X_FROM_RGB_WEIGHTS = vec3(0.4124, 0.3576, 0.1805);                                                                                       \n" \
+    "vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126, 0.7152, 0.0722);                                                                                       \n" \
+    "vec3 CIE_Z_FROM_RGB_WEIGHTS = vec3(0.0193, 0.1192, 0.9505);                                                                                       \n" \
+    "vec3 R_FROM_CIEXYZ_WEIGHTS = vec3(3.2406, -1.5372, -0.4986);                                                                                      \n" \
+    "vec3 G_FROM_CIEXYZ_WEIGHTS = vec3(-0.9689, 1.8758, 0.0415);                                                                                       \n" \
+    "vec3 B_FROM_CIEXYZ_WEIGHTS = vec3(0.0557, -0.2040, 1.0570);                                                                                       \n" \
+    "float TEXEL_WIDTH_HEIGHT = 0.0625;                                                                                                                  \n" \
+    "float CURVE_TEXTURE_WIDTH = 16.0;                                                                                                                   \n" \
+    "float CURVE_TEXTURE_HEIGHT = 16.0;                                                                                                                  \n" \
     "vec3 linearRGB = texColor.rgb * texColor.rgb;                                                                                                              \n" \
     "float cieX = dot(CIE_X_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
     "float cieY = dot(CIE_Y_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
     "float cieZ = dot(CIE_Z_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
-    "float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0f);                                                                        \n" \
+    "float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0);                                                                        \n" \
     "float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                                \n" \
     "float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                                          \n" \
-    "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5f) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5f) * TEXEL_WIDTH_HEIGHT);                  \n" \
+    "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT);                  \n" \
     "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                                           \n" \
     "vec3 cieXYZCurved = vec3(cieX, cieYCurved, cieZ);                                                                                                          \n" \
     "vec3 linearRGBCurved = vec3(dot(R_FROM_CIEXYZ_WEIGHTS, cieXYZCurved), dot(G_FROM_CIEXYZ_WEIGHTS, cieXYZCurved), dot(B_FROM_CIEXYZ_WEIGHTS, cieXYZCurved)); \n" \
-    "gl_FragColor.rgb = sqrt(linearRGBCurved);"                                                                                                                 
+    "gl_FragColor = vec4(sqrt(linearRGBCurved), texColor.a);"                                                                                                                 
 
 static const char k_VertexShader[] =
     "varying vec2 v_texCoord;            \n"
@@ -93,6 +93,47 @@ static const char k_FragmentShaderExternal[] =
       fragmentShader_BlackCrushMitigation()
       "}";
 
+
+static const unsigned char k_BlackCrushMitigationCurve[] =
+{
+    0,4,6,8,10,11,12,13,14,15,16,17,18,19,20,21,
+    22,23,24,24,25,25,26,26,27,27,28,28,29,29,30,31,
+    32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,
+    48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,
+    64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,
+    80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
+    96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,
+    112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,
+    128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
+    144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,
+    160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,
+    176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,
+    192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,
+    208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,
+    224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
+    240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255
+};
+
+static const unsigned char k_IdentityCurve[] =
+{
+    0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
+    16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
+    32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,
+    48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,
+    64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,
+    80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
+    96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,
+    112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,
+    128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
+    144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,
+    160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,
+    176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,
+    192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,
+    208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,
+    224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
+    240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255
+};
+
 void MoonlightInstance::DidChangeFocus(bool got_focus) {
     // Request an IDR frame to dump the frame queue that may have
     // built up from the GL pipeline being stalled.
@@ -109,6 +150,8 @@ bool MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     if (!glInitializePPAPI(pp::Module::Get()->get_browser_interface())) {
         return false;
     }
+
+    g_Instance->PostMessage(pp::Var("Initializing rendering surface."));
     
     int32_t contextAttributes[] = {
         PP_GRAPHICS3DATTRIB_ALPHA_SIZE,     8,
@@ -167,6 +210,21 @@ bool MoonlightInstance::InitializeRenderingSurface(int width, int height) {
                  k_Vertices,
                  GL_STATIC_DRAW);
     assertNoGLError();
+
+    if (m_curveTexture != -1u)
+        glDeleteTextures(1, &m_curveTexture);
+    glGenTextures(1, &m_curveTexture);
+    
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_curveTexture);
+
+    GLint existingUnpackAlignment;
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &existingUnpackAlignment);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 16, 16, 0, GL_ALPHA, GL_UNSIGNED_BYTE, m_BlackCrushMitigationEnable ? k_BlackCrushMitigationCurve : k_IdentityCurve);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, existingUnpackAlignment);
+
+    glActiveTexture(GL_TEXTURE0);
     
     g_Instance->m_Graphics3D.SwapBuffers(pp::BlockUntilComplete());
     return true;
@@ -324,6 +382,21 @@ void MoonlightInstance::CreateShader(GLuint program, GLenum type,
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, &size);
     glCompileShader(shader);
+
+    GLint compileSuccess;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compileSuccess);
+    if (type == GL_FRAGMENT_SHADER && compileSuccess == GL_FALSE)
+    {
+        pp::Var response(std::string("Compile shader: \n") + source);
+        g_Instance->PostMessage(response);
+
+        GLchar compileInfoLog[2048];
+        GLsizei actualInfoLogLength;
+        glGetShaderInfoLog(shader, 2048, &actualInfoLogLength, compileInfoLog);
+        response = compileInfoLog;
+        g_Instance->PostMessage(response);
+    }
+    
     glAttachShader(program, shader);
     glDeleteShader(shader);
 }
@@ -338,6 +411,7 @@ Shader MoonlightInstance::CreateProgram(const char* vertexShader, const char* fr
     glUseProgram(shader.program);
     
     glUniform1i(glGetUniformLocation(shader.program, "s_texture"), 0);
+    glUniform1i(glGetUniformLocation(shader.program, "s_curveTexture"), 1);
     assertNoGLError();
     
     shader.texcoord_scale_location = glGetUniformLocation(shader.program, "v_scale");
