@@ -35,12 +35,15 @@ static uint64_t s_LastPaintFinishedTime;
     "float cieX = dot(CIE_X_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
     "float cieY = dot(CIE_Y_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
     "float cieZ = dot(CIE_Z_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
+    "float cieXYZSum = cieX + cieY + cieZ;                                                                                                                      \n" \
+    "vec2 cie_xy = vec2( cieX / cieXYZSum, cieY / cieXYZSum );                                                                                                  \n" \
     "float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0);                                                                        \n" \
     "float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                                \n" \
     "float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                                          \n" \
     "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT);                  \n" \
     "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                                           \n" \
-    "vec3 cieXYZCurved = vec3(cieX, cieYCurved, cieZ);                                                                                                          \n" \
+    "float cie_xy_conversionFactor = (cieYCurved / cie_xy.y);                                                                                                   \n" \
+    "vec3 cieXYZCurved = vec3( cie_xy_conversionFactor * cie_xy.x, cieYCurved, cie_xy_conversionFactor * (1.0 - cie_xy.x - cie_xy.y));                          \n" \
     "vec3 linearRGBCurved = vec3(dot(R_FROM_CIEXYZ_WEIGHTS, cieXYZCurved), dot(G_FROM_CIEXYZ_WEIGHTS, cieXYZCurved), dot(B_FROM_CIEXYZ_WEIGHTS, cieXYZCurved)); \n" \
     "gl_FragColor = vec4(sqrt(linearRGBCurved), texColor.a);"                                                                                                                 
 
