@@ -18,6 +18,32 @@ static uint64_t s_LastPaintFinishedTime;
 
 #define assertNoGLError() assert(!glGetError())
 
+// Assume gl_FragColor is in sRGB space and do a poor approximate conversion to linear.
+// After conversion to XYZ space, curve the Y value up to brighten dark values and
+// then convert back to sRGB.
+#define fragmentShader_BlackCrushMitigation() \
+    "const vec3 CIE_X_FROM_RGB_WEIGHTS = vec3(0.4124f, 0.3576f, 0.1805f);                                                                                       \n" \
+    "const vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126f, 0.7152f, 0.0722f);                                                                                       \n" \
+    "const vec3 CIE_Z_FROM_RGB_WEIGHTS = vec3(0.0193f, 0.1192f, 0.9505f);                                                                                       \n" \
+    "const vec3 R_FROM_CIEXYZ_WEIGHTS = vec3(3.2406f, -1.5372f, -0.4986f);                                                                                      \n" \
+    "const vec3 G_FROM_CIEXYZ_WEIGHTS = vec3(-0.9689f, 1.8758f, 0.0415f);                                                                                       \n" \
+    "const vec3 B_FROM_CIEXYZ_WEIGHTS = vec3(0.0557f, -0.2040f, 1.0570f);                                                                                       \n" \
+    "const float TEXEL_WIDTH_HEIGHT = 0.0625f;                                                                                                                  \n" \
+    "const float CURVE_TEXTURE_WIDTH = 16.0f;                                                                                                                   \n" \
+    "const float CURVE_TEXTURE_HEIGHT = 16.0f;                                                                                                                  \n" \
+    "vec3 linearRGB = texColor.rgb * texColor.rgb;                                                                                                              \n" \
+    "float cieX = dot(CIE_X_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
+    "float cieY = dot(CIE_Y_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
+    "float cieZ = dot(CIE_Z_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
+    "float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0f);                                                                        \n" \
+    "float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                                \n" \
+    "float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                                          \n" \
+    "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5f) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5f) * TEXEL_WIDTH_HEIGHT);                  \n" \
+    "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                                           \n" \
+    "vec3 cieXYZCurved = vec3(cieX, cieYCurved, cieZ);                                                                                                          \n" \
+    "vec3 linearRGBCurved = vec3(dot(R_FROM_CIEXYZ_WEIGHTS, cieXYZCurved), dot(G_FROM_CIEXYZ_WEIGHTS, cieXYZCurved), dot(B_FROM_CIEXYZ_WEIGHTS, cieXYZCurved)); \n" \
+    "gl_FragColor.rgb = sqrt(linearRGBCurved);"                                                                                                                 
+
 static const char k_VertexShader[] =
     "varying vec2 v_texCoord;            \n"
     "attribute vec4 a_position;          \n"
@@ -33,9 +59,12 @@ static const char k_FragmentShader2D[] =
     "precision mediump float;            \n"
     "varying vec2 v_texCoord;            \n"
     "uniform sampler2D s_texture;        \n"
+    "uniform sampler2D s_curveTexture;   \n"
     "void main()                         \n"
     "{"
-    "    gl_FragColor = texture2D(s_texture, v_texCoord); \n"
+    "    vec4 texColor = texture2D(s_texture, v_texCoord); \n"
+    "    gl_FragColor = texColor;        \n"
+    fragmentShader_BlackCrushMitigation()
     "}";
     
 static const char k_FragmentShaderRectangle[] =
@@ -43,9 +72,12 @@ static const char k_FragmentShaderRectangle[] =
     "precision mediump float;            \n"
     "varying vec2 v_texCoord;            \n"
     "uniform sampler2DRect s_texture;    \n"
+    "uniform sampler2D s_curveTexture;   \n"
     "void main()                         \n"
     "{"
-    "    gl_FragColor = texture2DRect(s_texture, v_texCoord).rgba; \n"
+    "    vec4 texColor = texture2DRect(s_texture, v_texCoord).rgba; \n"
+    "    gl_FragColor = texColor;        \n"
+    fragmentShader_BlackCrushMitigation()
     "}";
     
 static const char k_FragmentShaderExternal[] =
@@ -53,9 +85,12 @@ static const char k_FragmentShaderExternal[] =
       "precision mediump float;            \n"
       "varying vec2 v_texCoord;            \n"
       "uniform samplerExternalOES s_texture; \n"
+      "uniform sampler2D s_curveTexture;   \n"
       "void main()                         \n"
       "{"
-      "    gl_FragColor = texture2D(s_texture, v_texCoord); \n"
+      "    vec4 texColor = texture2D(s_texture, v_texCoord); \n"
+      "    gl_FragColor = texColor;        \n"
+      fragmentShader_BlackCrushMitigation()
       "}";
 
 void MoonlightInstance::DidChangeFocus(bool got_focus) {
