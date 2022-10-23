@@ -225,6 +225,8 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     PostMessage(response);
     response = ("Setting mouse lock to: " + mouse_lock);
     PostMessage(response);
+    response = ("Setting black crush mitigation to: " + blackCrushMitigationEnable);
+    PostMessage(response);
     
     // Populate the stream configuration
     LiInitializeStreamConfiguration(&m_StreamConfig);
