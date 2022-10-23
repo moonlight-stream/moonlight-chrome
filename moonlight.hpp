@@ -168,6 +168,9 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void NvHTTPInit(int32_t callbackId, pp::VarArray args);
         void NvHTTPRequest(int32_t, int32_t callbackId, pp::VarArray args);
         
+    public:
+        const PPB_Gamepad* m_GamepadApi;
+        
     private:
         static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
         static DECODER_RENDERER_CALLBACKS s_DrCallbacks;
@@ -201,7 +204,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         pp::Audio m_AudioPlayer;
         
         double m_LastPadTimestamps[4];
-        const PPB_Gamepad* m_GamepadApi;
         pp::CompletionCallbackFactory<MoonlightInstance> m_CallbackFactory;
         bool m_MouseLocked;
         bool m_WaitingForAllModifiersUp;
