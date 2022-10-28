@@ -22,30 +22,20 @@ static uint64_t s_LastPaintFinishedTime;
 // After conversion to XYZ space, curve the Y value up to brighten dark values and
 // then convert back to sRGB.
 #define fragmentShader_BlackCrushMitigation() \
-    "vec3 CIE_X_FROM_RGB_WEIGHTS = vec3(0.4124, 0.3576, 0.1805);                                                                                       \n" \
-    "vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126, 0.7152, 0.0722);                                                                                       \n" \
-    "vec3 CIE_Z_FROM_RGB_WEIGHTS = vec3(0.0193, 0.1192, 0.9505);                                                                                       \n" \
-    "vec3 R_FROM_CIEXYZ_WEIGHTS = vec3(3.2406, -1.5372, -0.4986);                                                                                      \n" \
-    "vec3 G_FROM_CIEXYZ_WEIGHTS = vec3(-0.9689, 1.8758, 0.0415);                                                                                       \n" \
-    "vec3 B_FROM_CIEXYZ_WEIGHTS = vec3(0.0557, -0.2040, 1.0570);                                                                                       \n" \
-    "float TEXEL_WIDTH_HEIGHT = 0.0625;                                                                                                                  \n" \
-    "float CURVE_TEXTURE_WIDTH = 16.0;                                                                                                                   \n" \
-    "float CURVE_TEXTURE_HEIGHT = 16.0;                                                                                                                  \n" \
-    "vec3 linearRGB = texColor.rgb * texColor.rgb;                                                                                                              \n" \
-    "float cieX = dot(CIE_X_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
-    "float cieY = dot(CIE_Y_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
-    "float cieZ = dot(CIE_Z_FROM_RGB_WEIGHTS, linearRGB);                                                                                                       \n" \
-    "float cieXYZSum = cieX + cieY + cieZ;                                                                                                                      \n" \
-    "vec2 cie_xy = vec2( cieX / cieXYZSum, cieY / cieXYZSum );                                                                                                  \n" \
-    "float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0);                                                                        \n" \
-    "float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                                \n" \
-    "float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                                          \n" \
-    "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT);                  \n" \
-    "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                                           \n" \
-    "float cie_xy_conversionFactor = (cieYCurved / cie_xy.y);                                                                                                   \n" \
-    "vec3 cieXYZCurved = vec3( cie_xy_conversionFactor * cie_xy.x, cieYCurved, cie_xy_conversionFactor * (1.0 - cie_xy.x - cie_xy.y));                          \n" \
-    "vec3 linearRGBCurved = vec3(dot(R_FROM_CIEXYZ_WEIGHTS, cieXYZCurved), dot(G_FROM_CIEXYZ_WEIGHTS, cieXYZCurved), dot(B_FROM_CIEXYZ_WEIGHTS, cieXYZCurved)); \n" \
-    "gl_FragColor = vec4(sqrt(linearRGBCurved), texColor.a);"                                                                                                                 
+    "vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126, 0.7152, 0.0722);                                                                                \n" \
+    "float TEXEL_WIDTH_HEIGHT = 0.0625;                                                                                                         \n" \
+    "float CURVE_TEXTURE_WIDTH = 16.0;                                                                                                          \n" \
+    "float CURVE_TEXTURE_HEIGHT = 16.0;                                                                                                         \n" \
+    "vec3 gammaRGB = texColor.rgb;                                                                                                              \n" \
+    "float cieY = dot(CIE_Y_FROM_RGB_WEIGHTS, gammaRGB);                                                                                        \n" \
+    "float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0);                                                         \n" \
+    "float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                \n" \
+    "float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                          \n" \
+    "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT);    \n" \
+    "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                           \n" \
+    "float rgbScale = (cieY == 0.0) ? 1.0 : cieYCurved / cieY;                                                                                    \n" \
+    "float rgbOffset = (cieY == 0.0) ? cieYCurved : 0.0;                                                                                          \n" \
+    "gl_FragColor = vec4(gammaRGB * rgbScale + vec3(rgbOffset, rgbOffset, rgbOffset), texColor.a);"
 
 static const char k_VertexShader[] =
     "varying vec2 v_texCoord;            \n"
@@ -99,12 +89,12 @@ static const char k_FragmentShaderExternal[] =
 
 static const unsigned char k_BlackCrushMitigationCurve[] =
 {
-    0,4,6,8,10,11,12,13,14,15,16,17,18,19,20,21,
-    22,23,24,24,25,25,26,26,27,27,28,28,29,29,30,31,
-    32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,
-    48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,
-    64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,
-    80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
+    16,16,17,18,19,20,20,21,22,23,24,24,25,26,27,28,
+    28,29,30,31,32,32,33,34,35,36,36,37,38,39,40,40,
+    41,42,43,44,44,45,46,47,48,48,49,50,51,54,54,55,
+    56,57,58,59,59,60,61,62,63,63,64,65,66,67,67,68,
+    69,70,71,71,72,73,74,75,75,76,77,78,79,79,80,81,
+    82,83,83,84,85,86,87,87,88,89,90,91,92,93,94,95,
     96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,
     112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,
     128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,

@@ -947,9 +947,9 @@ function onWindowLoad() {
     });
 
     chrome.storage.sync.get('blackCrushMitigate', function(previousValue) {
-      if (previousValue.mouseLock == null) {
+      if (previousValue.blackCrushMitigate == null) {
         document.querySelector('#blackCrushMitigateBtn').MaterialIconToggle.check();
-      } else if (previousValue.mouseLock == false) {
+      } else if (previousValue.blackCrushMitigate == false) {
         document.querySelector('#blackCrushMitigateBtn').MaterialIconToggle.uncheck();
       } else {
         document.querySelector('#blackCrushMitigateBtn').MaterialIconToggle.check();
