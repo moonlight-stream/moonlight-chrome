@@ -18,9 +18,15 @@ static uint64_t s_LastPaintFinishedTime;
 
 #define assertNoGLError() assert(!glGetError())
 
-// Assume gl_FragColor is in sRGB space and do a poor approximate conversion to linear.
-// After conversion to XYZ space, curve the Y value up to brighten dark values and
-// then convert back to sRGB.
+// Given RGB values in gamma space, compute per-pixel luminance and then apply a correction curve
+// to boost near black values. Working in gamma space is important because gamma corrected (OETF 
+// adjusted) values allocate far more bits to dimmer values than linear because the human visual
+// system is more sensitive to changes in darks than in lights (e.g. sRGB's OETF effectively
+// allocates 50% of the 0-255 bit values to represent the 0-0.25 linear light values).
+//
+// One thing to watch out for is that video encoding can introduce false color in near black values
+// and that will be emphasized when trying to apply the curve so we manually neutralize near black
+// values to prevent introduction of false color.
 #define fragmentShader_BlackCrushMitigation() \
     "vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126, 0.7152, 0.0722);                                                                                \n" \
     "float TEXEL_WIDTH_HEIGHT = 0.0625;                                                                                                         \n" \
@@ -32,10 +38,11 @@ static uint64_t s_LastPaintFinishedTime;
     "float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                \n" \
     "float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                          \n" \
     "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT);    \n" \
-    "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                           \n" \
+    "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                          \n" \
     "float rgbScale = (cieY == 0.0) ? 1.0 : cieYCurved / cieY;                                                                                    \n" \
     "float rgbOffset = (cieY == 0.0) ? cieYCurved : 0.0;                                                                                          \n" \
-    "gl_FragColor = vec4(gammaRGB * rgbScale + vec3(rgbOffset, rgbOffset, rgbOffset), texColor.a);"
+    "gammaRGB = (cieY <= 0.015625) ? vec3(cieY, cieY, cieY) : gammaRGB;                                                                         \n" \
+    "gl_FragColor = vec4(gammaRGB * rgbScale + vec3(rgbOffset, rgbOffset, rgbOffset), texColor.a);       \n"
 
 static const char k_VertexShader[] =
     "varying vec2 v_texCoord;            \n"
@@ -54,7 +61,7 @@ static const char k_FragmentShader2D[] =
     "uniform sampler2D s_texture;        \n"
     "uniform sampler2D s_curveTexture;   \n"
     "void main()                         \n"
-    "{"
+    "{                                   \n"
     "    vec4 texColor = texture2D(s_texture, v_texCoord); \n"
     "    gl_FragColor = texColor;        \n"
     fragmentShader_BlackCrushMitigation()
@@ -67,7 +74,7 @@ static const char k_FragmentShaderRectangle[] =
     "uniform sampler2DRect s_texture;    \n"
     "uniform sampler2D s_curveTexture;   \n"
     "void main()                         \n"
-    "{"
+    "{                                  \n"
     "    vec4 texColor = texture2DRect(s_texture, v_texCoord).rgba; \n"
     "    gl_FragColor = texColor;        \n"
     fragmentShader_BlackCrushMitigation()
@@ -80,7 +87,7 @@ static const char k_FragmentShaderExternal[] =
       "uniform samplerExternalOES s_texture; \n"
       "uniform sampler2D s_curveTexture;   \n"
       "void main()                         \n"
-      "{"
+      "{                                    \n"
       "    vec4 texColor = texture2D(s_texture, v_texCoord); \n"
       "    gl_FragColor = texColor;        \n"
       fragmentShader_BlackCrushMitigation()
