@@ -56,6 +56,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         explicit MoonlightInstance(PP_Instance instance) :
             pp::Instance(instance),
             pp::MouseLock(this),
+            m_BlackCrushMitigationEnable(false),
+            m_curveTexture(-1u),
             m_HasNextPicture(false),
             m_IsPainting(false),
             m_OpusDecoder(NULL),
@@ -137,6 +139,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         static void ClDisplayMessage(const char* message);
         static void ClDisplayTransientMessage(const char* message);
         static void ClLogMessage(const char* format, ...);
+        static void ClControllerRumble(unsigned short controllerNumber, unsigned short lowFreqMotor, unsigned short highFreqMotor);
         
         static Shader CreateProgram(const char* vertexShader, const char* fragmentShader);
         static void CreateShader(GLuint program, GLenum type, const char* source, int size);
@@ -165,6 +168,9 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void NvHTTPInit(int32_t callbackId, pp::VarArray args);
         void NvHTTPRequest(int32_t, int32_t callbackId, pp::VarArray args);
         
+    public:
+        const PPB_Gamepad* m_GamepadApi;
+        
     private:
         static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
         static DECODER_RENDERER_CALLBACKS s_DrCallbacks;
@@ -186,6 +192,8 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         Shader m_RectangleArbShader;
         Shader m_ExternalOesShader;
         PP_VideoPicture m_NextPicture;
+        bool m_BlackCrushMitigationEnable;
+        GLuint m_curveTexture;
         bool m_HasNextPicture;
         PP_VideoPicture m_CurrentPicture;
         bool m_IsPainting;
@@ -196,7 +204,6 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         pp::Audio m_AudioPlayer;
         
         double m_LastPadTimestamps[4];
-        const PPB_Gamepad* m_GamepadApi;
         pp::CompletionCallbackFactory<MoonlightInstance> m_CallbackFactory;
         bool m_MouseLocked;
         bool m_WaitingForAllModifiersUp;

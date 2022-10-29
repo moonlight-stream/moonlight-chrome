@@ -18,6 +18,32 @@ static uint64_t s_LastPaintFinishedTime;
 
 #define assertNoGLError() assert(!glGetError())
 
+// Given RGB values in gamma space, compute per-pixel luminance and then apply a correction curve
+// to boost near black values. Working in gamma space is important because gamma corrected (OETF 
+// adjusted) values allocate far more bits to dimmer values than linear because the human visual
+// system is more sensitive to changes in darks than in lights (e.g. sRGB's OETF effectively
+// allocates 50% of the 0-255 bit values to represent the 0-0.25 linear light values).
+//
+// One thing to watch out for is that video encoding can introduce false color in near black values
+// and that will be emphasized when trying to apply the curve so we manually neutralize near black
+// values to prevent introduction of false color.
+#define fragmentShader_BlackCrushMitigation() \
+    "vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126, 0.7152, 0.0722);                                                                                \n" \
+    "float TEXEL_WIDTH_HEIGHT = 0.0625;                                                                                                         \n" \
+    "float CURVE_TEXTURE_WIDTH = 16.0;                                                                                                          \n" \
+    "float CURVE_TEXTURE_HEIGHT = 16.0;                                                                                                         \n" \
+    "vec3 gammaRGB = texColor.rgb;                                                                                                              \n" \
+    "float cieY = dot(CIE_Y_FROM_RGB_WEIGHTS, gammaRGB);                                                                                        \n" \
+    "float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0);                                                         \n" \
+    "float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                \n" \
+    "float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                          \n" \
+    "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT);    \n" \
+    "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                          \n" \
+    "float rgbScale = (cieY == 0.0) ? 1.0 : cieYCurved / cieY;                                                                                    \n" \
+    "float rgbOffset = (cieY == 0.0) ? cieYCurved : 0.0;                                                                                          \n" \
+    "gammaRGB = (cieY <= 0.015625) ? vec3(cieY, cieY, cieY) : gammaRGB;                                                                         \n" \
+    "gl_FragColor = vec4(gammaRGB * rgbScale + vec3(rgbOffset, rgbOffset, rgbOffset), texColor.a);       \n"
+
 static const char k_VertexShader[] =
     "varying vec2 v_texCoord;            \n"
     "attribute vec4 a_position;          \n"
@@ -33,9 +59,12 @@ static const char k_FragmentShader2D[] =
     "precision mediump float;            \n"
     "varying vec2 v_texCoord;            \n"
     "uniform sampler2D s_texture;        \n"
+    "uniform sampler2D s_curveTexture;   \n"
     "void main()                         \n"
-    "{"
-    "    gl_FragColor = texture2D(s_texture, v_texCoord); \n"
+    "{                                   \n"
+    "    vec4 texColor = texture2D(s_texture, v_texCoord); \n"
+    "    gl_FragColor = texColor;        \n"
+    fragmentShader_BlackCrushMitigation()
     "}";
     
 static const char k_FragmentShaderRectangle[] =
@@ -43,9 +72,12 @@ static const char k_FragmentShaderRectangle[] =
     "precision mediump float;            \n"
     "varying vec2 v_texCoord;            \n"
     "uniform sampler2DRect s_texture;    \n"
+    "uniform sampler2D s_curveTexture;   \n"
     "void main()                         \n"
-    "{"
-    "    gl_FragColor = texture2DRect(s_texture, v_texCoord).rgba; \n"
+    "{                                  \n"
+    "    vec4 texColor = texture2DRect(s_texture, v_texCoord).rgba; \n"
+    "    gl_FragColor = texColor;        \n"
+    fragmentShader_BlackCrushMitigation()
     "}";
     
 static const char k_FragmentShaderExternal[] =
@@ -53,10 +85,54 @@ static const char k_FragmentShaderExternal[] =
       "precision mediump float;            \n"
       "varying vec2 v_texCoord;            \n"
       "uniform samplerExternalOES s_texture; \n"
+      "uniform sampler2D s_curveTexture;   \n"
       "void main()                         \n"
-      "{"
-      "    gl_FragColor = texture2D(s_texture, v_texCoord); \n"
+      "{                                    \n"
+      "    vec4 texColor = texture2D(s_texture, v_texCoord); \n"
+      "    gl_FragColor = texColor;        \n"
+      fragmentShader_BlackCrushMitigation()
       "}";
+
+
+static const unsigned char k_BlackCrushMitigationCurve[] =
+{
+    16,16,17,18,19,20,20,21,22,23,24,24,25,26,27,28,
+    28,29,30,31,32,32,33,34,35,36,36,37,38,39,40,40,
+    41,42,43,44,44,45,46,47,48,48,49,50,51,54,54,55,
+    56,57,58,59,59,60,61,62,63,63,64,65,66,67,67,68,
+    69,70,71,71,72,73,74,75,75,76,77,78,79,79,80,81,
+    82,83,83,84,85,86,87,87,88,89,90,91,92,93,94,95,
+    96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,
+    112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,
+    128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
+    144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,
+    160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,
+    176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,
+    192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,
+    208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,
+    224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
+    240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255
+};
+
+static const unsigned char k_IdentityCurve[] =
+{
+    0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
+    16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
+    32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,
+    48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,
+    64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,
+    80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
+    96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,
+    112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,
+    128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
+    144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,
+    160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,
+    176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,
+    192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,
+    208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,
+    224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
+    240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255
+};
 
 void MoonlightInstance::DidChangeFocus(bool got_focus) {
     // Request an IDR frame to dump the frame queue that may have
@@ -74,6 +150,8 @@ bool MoonlightInstance::InitializeRenderingSurface(int width, int height) {
     if (!glInitializePPAPI(pp::Module::Get()->get_browser_interface())) {
         return false;
     }
+
+    g_Instance->PostMessage(pp::Var("Initializing rendering surface."));
     
     int32_t contextAttributes[] = {
         PP_GRAPHICS3DATTRIB_ALPHA_SIZE,     8,
@@ -132,6 +210,26 @@ bool MoonlightInstance::InitializeRenderingSurface(int width, int height) {
                  k_Vertices,
                  GL_STATIC_DRAW);
     assertNoGLError();
+
+    if (m_curveTexture != -1u)
+        glDeleteTextures(1, &m_curveTexture);
+    glGenTextures(1, &m_curveTexture);
+    
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_curveTexture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    GLint existingUnpackAlignment;
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &existingUnpackAlignment);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 16, 16, 0, GL_ALPHA, GL_UNSIGNED_BYTE, m_BlackCrushMitigationEnable ? k_BlackCrushMitigationCurve : k_IdentityCurve);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, existingUnpackAlignment);
+
+    glActiveTexture(GL_TEXTURE0);
     
     g_Instance->m_Graphics3D.SwapBuffers(pp::BlockUntilComplete());
     return true;
@@ -289,6 +387,21 @@ void MoonlightInstance::CreateShader(GLuint program, GLenum type,
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, &size);
     glCompileShader(shader);
+
+    GLint compileSuccess;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compileSuccess);
+    if (type == GL_FRAGMENT_SHADER && compileSuccess == GL_FALSE)
+    {
+        pp::Var response(std::string("Compile shader: \n") + source);
+        g_Instance->PostMessage(response);
+
+        GLchar compileInfoLog[2048];
+        GLsizei actualInfoLogLength;
+        glGetShaderInfoLog(shader, 2048, &actualInfoLogLength, compileInfoLog);
+        response = compileInfoLog;
+        g_Instance->PostMessage(response);
+    }
+    
     glAttachShader(program, shader);
     glDeleteShader(shader);
 }
@@ -303,6 +416,7 @@ Shader MoonlightInstance::CreateProgram(const char* vertexShader, const char* fr
     glUseProgram(shader.program);
     
     glUniform1i(glGetUniformLocation(shader.program, "s_texture"), 0);
+    glUniform1i(glGetUniformLocation(shader.program, "s_curveTexture"), 1);
     assertNoGLError();
     
     shader.texcoord_scale_location = glGetUniformLocation(shader.program, "v_scale");
@@ -373,8 +487,12 @@ void MoonlightInstance::PaintPicture(void) {
     
     // Only rebind our texture if we've changed since last time
     if (m_CurrentPicture.texture_id != s_LastTextureId || m_CurrentPicture.texture_target != originalTextureTarget) {
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(m_CurrentPicture.texture_target, m_CurrentPicture.texture_id);
         s_LastTextureId = m_CurrentPicture.texture_id;
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_curveTexture);
     }
     
     // Draw the image
