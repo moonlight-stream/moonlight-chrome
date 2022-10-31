@@ -715,7 +715,7 @@ function startGame(host, appID) {
             $root.find('sessionUrl0').text().trim()
           ]);
         }, function(failedResumeApp) {
-          console.eror('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
+          console.error('%c[index.js, startGame]', 'color:green;', 'Failed to resume the app! Returned error was' + failedResumeApp);
           showApps(host);
           return;
         });
