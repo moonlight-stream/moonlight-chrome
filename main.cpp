@@ -130,6 +130,7 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
     serverInfo.address = me->m_Host.c_str();
     serverInfo.serverInfoAppVersion = me->m_AppVersion.c_str();
     serverInfo.serverInfoGfeVersion = me->m_GfeVersion.c_str();
+    serverInfo.rtspSessionUrl = me->m_RtspUrl.c_str();
     
     err = LiStartConnection(&serverInfo,
                             &me->m_StreamConfig,
@@ -203,6 +204,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     std::string mouse_lock = args.Get(7).AsString();
     std::string appversion = args.Get(8).AsString();
     std::string gfeversion = args.Get(9).AsString();
+    std::string rtspurl = args.Get(10).AsString();
     
     pp::Var response("Setting stream width to: " + width);
     PostMessage(response);
@@ -223,6 +225,8 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     response = ("Setting gfeversion to: " + gfeversion);
     PostMessage(response);
     response = ("Setting mouse lock to: " + mouse_lock);
+    PostMessage(response);
+    response = ("Setting RTSP URL to: " + rtspurl);
     PostMessage(response);
     
     // Populate the stream configuration
@@ -248,6 +252,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_Host = host;
     m_AppVersion = appversion;
     m_GfeVersion = gfeversion;
+    m_RtspUrl = rtspurl;
     m_MouseLockingFeatureEnabled = stoi(mouse_lock);
     
     // Initialize the rendering surface before starting the connection
