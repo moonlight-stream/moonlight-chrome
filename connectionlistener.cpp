@@ -45,9 +45,14 @@ void MoonlightInstance::ClDisplayTransientMessage(const char* message) {
 
 void MoonlightInstance::ClLogMessage(const char* format, ...) {
     va_list va;
+    char message[1024];
+
     va_start(va, format);
-    vfprintf(stderr, format, va);
+    vsnprintf(message, sizeof(message), format, va);
     va_end(va);
+
+    pp::Var response(std::string("LogMsg: ") + std::string(message));
+    g_Instance->PostMessage(response);
 }
 
 CONNECTION_LISTENER_CALLBACKS MoonlightInstance::s_ClCallbacks = {
