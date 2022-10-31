@@ -179,6 +179,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         std::string m_Host;
         std::string m_AppVersion;
         std::string m_GfeVersion;
+        std::string m_RtspUrl;
         bool m_MouseLockingFeatureEnabled;
         STREAM_CONFIGURATION m_StreamConfig;
         bool m_Running;
