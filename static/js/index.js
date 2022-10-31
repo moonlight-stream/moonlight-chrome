@@ -749,7 +749,7 @@ function startGame(host, appID) {
         }
 
         sendMessage('startRequest', [host.address, streamWidth, streamHeight, frameRate,
-          bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, host.appVersion,
+          bitrate.toString(), rikey, rikeyid.toString(), mouse_lock_enabled, host.appVersion, host.gfeVersion,
           $root.find('sessionUrl0').text().trim()
         ]);
       }, function(failedLaunchApp) {

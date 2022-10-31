@@ -95,7 +95,7 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
 
   this.userEnteredAddress = userEnteredAddress; // if the user entered an address, we keep it on hand to try when polling
   this.serverUid = '';
-  this.GfeVersion = '';
+  this.gfeVersion = '';
   this.supportedDisplayModes = {}; // key: y-resolution:x-resolution, value: array of supported framerates (only ever seen 30 or 60, here)
   this.gputype = '';
   this.numofapps = 0;
@@ -261,7 +261,7 @@ NvHTTP.prototype = {
     string += 'current game: ' + this.currentGame + '\r\n';
     string += 'server major version: ' + this.serverMajorVersion + '\r\n';
     string += 'appversion: ' + this.appVersion + '\r\n';
-    string += 'GFE version: ' + this.GfeVersion + '\r\n';
+    string += 'GFE version: ' + this.gfeVersion + '\r\n';
     string += 'gpu type: ' + this.gputype + '\r\n';
     string += 'number of apps: ' + this.numofapps + '\r\n';
     string += 'supported display modes: ' + '\r\n';
@@ -301,7 +301,7 @@ NvHTTP.prototype = {
     }
 
     try { //  these aren't critical for functionality, and don't necessarily exist in older GFE versions.
-      this.GfeVersion = $root.find('GfeVersion').text().trim();
+      this.gfeVersion = $root.find('GfeVersion').text().trim();
       this.gputype = $root.find('gputype').text().trim();
       this.numofapps = $root.find('numofapps').text().trim();
       // now for the hard part: parsing the supported streaming
