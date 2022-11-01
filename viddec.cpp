@@ -24,25 +24,32 @@ static uint64_t s_LastPaintFinishedTime;
 // system is more sensitive to changes in darks than in lights (e.g. sRGB's OETF effectively
 // allocates 50% of the 0-255 bit values to represent the 0-0.25 linear light values).
 //
-// One thing to watch out for is that video encoding can introduce false color in near black values
-// and that will be emphasized when trying to apply the curve so we manually neutralize near black
-// values to prevent introduction of false color.
+// One thing to watch out for is that video compression can introduce negative RGB values.
 #define fragmentShader_BlackCrushMitigation() \
     "vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126, 0.7152, 0.0722);                                                                                \n" \
     "float TEXEL_WIDTH_HEIGHT = 0.0625;                                                                                                         \n" \
     "float CURVE_TEXTURE_WIDTH = 16.0;                                                                                                          \n" \
     "float CURVE_TEXTURE_HEIGHT = 16.0;                                                                                                         \n" \
-    "vec3 gammaRGB = texColor.rgb;                                                                                                              \n" \
-    "float cieY = dot(CIE_Y_FROM_RGB_WEIGHTS, gammaRGB);                                                                                        \n" \
-    "float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0);                                                         \n" \
+    "vec3 gammaRGB = max(texColor.rgb, vec3(0,0,0));                                                                                             \n" \
+    "float maxRGB = max(gammaRGB.r, max(gammaRGB.g, gammaRGB.b)); \n"\
+    "float curveTexCoord1D = maxRGB * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0);                                                         \n" \
     "float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                \n" \
     "float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                          \n" \
     "vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT);    \n" \
-    "float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                          \n" \
-    "float rgbScale = (cieY == 0.0) ? 1.0 : cieYCurved / cieY;                                                                                    \n" \
-    "float rgbOffset = (cieY == 0.0) ? cieYCurved : 0.0;                                                                                          \n" \
-    "gammaRGB = (cieY <= 0.015625) ? vec3(cieY, cieY, cieY) : gammaRGB;                                                                         \n" \
+    "float maxRGBCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                          \n" \
+    "float rgbScale = (maxRGB == 0.0) ? 1.0 : maxRGBCurved / maxRGB;                                                                                    \n" \
+    "float rgbOffset = (maxRGB == 0.0) ? maxRGBCurved : 0.0;                                                                                          \n" \
     "gl_FragColor = vec4(gammaRGB * rgbScale + vec3(rgbOffset, rgbOffset, rgbOffset), texColor.a);       \n"
+    //"float cieY = dot(CIE_Y_FROM_RGB_WEIGHTS, gammaRGB);                                                                                        \n" \
+    //"float curveTexCoord1D = cieY * (CURVE_TEXTURE_WIDTH * CURVE_TEXTURE_HEIGHT - 1.0);                                                         \n" \
+    //"float curveTexCoord2DRowIdx = floor(curveTexCoord1D / CURVE_TEXTURE_WIDTH);                                                                \n" \
+    //"float curveTexCoord2DSubRowIdx = (curveTexCoord1D - curveTexCoord2DRowIdx * CURVE_TEXTURE_WIDTH);                                          \n" \
+    //"vec2 curveTexCoord2D = vec2((curveTexCoord2DSubRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT, (curveTexCoord2DRowIdx + 0.5) * TEXEL_WIDTH_HEIGHT);    \n" \
+    //"float cieYCurved = texture2D(s_curveTexture, curveTexCoord2D).a;                                                                          \n" \
+    //"float rgbScale = (cieY == 0.0) ? 1.0 : cieYCurved / cieY;                                                                                    \n" \
+    //"float rgbOffset = (cieY == 0.0) ? cieYCurved : 0.0;                                                                                          \n" \
+    //"gammaRGB = mix(vec3(cieY, cieY, cieY), gammaRGB, min( cieY / 0.03125, 1.0 ));                                                                         \n" \
+    //"gl_FragColor = vec4(gammaRGB * rgbScale + vec3(rgbOffset, rgbOffset, rgbOffset), texColor.a);       \n"
 
 static const char k_VertexShader[] =
     "varying vec2 v_texCoord;            \n"
@@ -113,6 +120,27 @@ static const unsigned char k_BlackCrushMitigationCurve[] =
     224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
     240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255
 };
+
+/*
+static const unsigned char k_BlackCrushMitigationCurve[] =
+{
+    0,2,3,4,5,6,7,8,10,11,12,13,14,15,16,18,
+    19,20,21,22,24,25,26,27,29,30,31,32,34,35,36,37,
+    39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,
+    55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,
+    70,71,71,72,72,73,73,74,74,75,75,76,76,77,78,79,
+    80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,
+    96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,
+    112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,
+    128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
+    144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,
+    160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,
+    176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,
+    192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,
+    208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,
+    224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
+    240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255
+};*/
 
 static const unsigned char k_IdentityCurve[] =
 {
