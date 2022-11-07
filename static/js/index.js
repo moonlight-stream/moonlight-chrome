@@ -722,6 +722,9 @@ function playGameMode() {
   $("#main-content").addClass("fullscreen");
   $("#listener").addClass("fullscreen");
 
+  // Hide the NaCl module until the first frame is rendered
+  $("#nacl_module")[0].style.opacity = 0.0
+
   fullscreenNaclModule();
   $('#loadingSpinner').css('display', 'inline-block');
 }
