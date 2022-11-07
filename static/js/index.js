@@ -741,7 +741,7 @@ function fullscreenNaclModule() {
   var module = $("#nacl_module")[0];
   module.width = zoom * streamWidth;
   module.height = zoom * streamHeight;
-  module.style.paddingTop = ((screenHeight - module.height) / 2) + "px";
+  module.style.marginTop = ((screenHeight - module.height) / 2) + "px";
 }
 
 function stopGameWithConfirmation() {

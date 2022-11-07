@@ -283,11 +283,8 @@ bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
                 sqrt(pow(m_LastTouchUpPoint.x() - touchPoint.x(), 2) +
                      pow(m_LastTouchUpPoint.y() - touchPoint.y(), 2)) > TOUCH_DEAD_ZONE_RADIUS) {
                 // Scale the touch coordinates to the video rect
-                //
-                // For some reason, the x coordinate is already relative to the plugin rect,
-                // while the y coordinate is not. No clue why that is the case but oh well...
                 short x = MIN(MAX(touchPoint.x(), 0), m_PluginRect.width());
-                short y = MIN(MAX(touchPoint.y() - m_PluginRect.y(), 0), m_PluginRect.height());
+                short y = MIN(MAX(touchPoint.y(), 0), m_PluginRect.height());
 
                 // Update the mouse position prior to sending the button down
                 LiSendMousePositionEvent(x, y, m_PluginRect.width(), m_PluginRect.height());
