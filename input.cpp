@@ -148,7 +148,10 @@ void MoonlightInstance::ReportMouseMovement() {
         LiSendMouseMoveEvent(m_MouseDeltaX, m_MouseDeltaY);
         m_MouseDeltaX = m_MouseDeltaY = 0;
     } else if (m_MousePositionX != 0 || m_MousePositionY != 0) {
-        LiSendMousePositionEvent(m_MousePositionX, m_MousePositionY, m_PluginRect.width(), m_PluginRect.height());
+        // Clamp the input coordinates to the plugin area
+        short x = MIN(MAX(m_MousePositionX, 0), m_PluginRect.width());
+        short y = MIN(MAX(m_MousePositionY, 0), m_PluginRect.height());
+        LiSendMousePositionEvent(x, y, m_PluginRect.width(), m_PluginRect.height());
         m_MousePositionX = 0;
         m_MousePositionY = 0;
     }
