@@ -80,7 +80,8 @@ function handleMessage(msg) {
       // FIXME: Really use a dialog
       snackbarLogLong(msg.data.replace('DialogMsg: ', ''));
     } else if (msg.data === 'displayVideo') {
-      $("#listener").addClass("fullscreen");
+      // Show the video stream now
+      $("#nacl_module")[0].style.opacity = 1.0;
     } else if (msg.data.indexOf('controllerRumble: ' ) === 0) {
       const eventData = msg.data.split( ' ' )[1].split(',');
       const gamepadIdx = parseInt(eventData[0]);
