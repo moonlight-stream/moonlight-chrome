@@ -87,7 +87,10 @@ function handleMessage(msg) {
       const weakMagnitude = parseFloat(eventData[1]);
       const strongMagnitude = parseFloat(eventData[2]);
       console.log("Playing rumble on gamepad " + gamepadIdx + " with weakMagnitude " + weakMagnitude + " and strongMagnitude " + strongMagnitude);
-      navigator.getGamepads()[gamepadIdx].vibrationActuator.playEffect('dual-rumble', {
+
+      // We may not actually have a gamepad at this index.
+      // Even if we do have a gamepad, it may not have a vibrationActuator associated with it.
+      navigator.getGamepads()[gamepadIdx]?.vibrationActuator?.playEffect('dual-rumble', {
         startDelay: 0,
         duration: 5000, // Moonlight should be sending another rumble event when stopping.
         weakMagnitude: weakMagnitude,
