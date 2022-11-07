@@ -11,8 +11,8 @@
 // at a time.
 
 static short s_CircularBuffer[CIRCULAR_BUFFER_SIZE][FRAME_SIZE * MAX_CHANNEL_COUNT];
-static int s_ReadIndex = 0;
-static int s_WriteIndex = 0;
+static int s_ReadIndex;
+static int s_WriteIndex;
 
 static void AudioPlayerSampleCallback(void* samples, uint32_t buffer_size, void* data) {
     // It should only ask us for complete buffers
@@ -36,6 +36,9 @@ static void AudioPlayerSampleCallback(void* samples, uint32_t buffer_size, void*
 
 int MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig, void* context, int flags) {
     int rc;
+
+    // Reset the ring buffer to empty
+    s_ReadIndex = s_WriteIndex = 0;
     
     g_Instance->m_OpusDecoder = opus_multistream_decoder_create(opusConfig->sampleRate,
                                                                 opusConfig->channelCount,
