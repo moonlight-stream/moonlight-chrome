@@ -26,6 +26,7 @@ static uint64_t s_LastPaintFinishedTime;
 //
 // One thing to watch out for is that video compression can introduce negative RGB values.
 #define fragmentShader_BlackCrushMitigation() \
+    "if (!s_blackCrushMitigate) return;  \n" \
     "vec3 CIE_Y_FROM_RGB_WEIGHTS = vec3(0.2126, 0.7152, 0.0722);                                                                                \n" \
     "float TEXEL_WIDTH_HEIGHT = 0.0625;                                                                                                         \n" \
     "float CURVE_TEXTURE_WIDTH = 16.0;                                                                                                          \n" \
@@ -67,6 +68,7 @@ static const char k_FragmentShader2D[] =
     "varying vec2 v_texCoord;            \n"
     "uniform sampler2D s_texture;        \n"
     "uniform sampler2D s_curveTexture;   \n"
+    "uniform bool s_blackCrushMitigate;  \n"
     "void main()                         \n"
     "{                                   \n"
     "    vec4 texColor = texture2D(s_texture, v_texCoord); \n"
@@ -80,6 +82,7 @@ static const char k_FragmentShaderRectangle[] =
     "varying vec2 v_texCoord;            \n"
     "uniform sampler2DRect s_texture;    \n"
     "uniform sampler2D s_curveTexture;   \n"
+    "uniform bool s_blackCrushMitigate;  \n"
     "void main()                         \n"
     "{                                  \n"
     "    vec4 texColor = texture2DRect(s_texture, v_texCoord).rgba; \n"
@@ -93,6 +96,7 @@ static const char k_FragmentShaderExternal[] =
       "varying vec2 v_texCoord;            \n"
       "uniform samplerExternalOES s_texture; \n"
       "uniform sampler2D s_curveTexture;   \n"
+      "uniform bool s_blackCrushMitigate;  \n"
       "void main()                         \n"
       "{                                    \n"
       "    vec4 texColor = texture2D(s_texture, v_texCoord); \n"
@@ -485,10 +489,13 @@ void MoonlightInstance::PaintPicture(void) {
     
     // Only make these state changes if we've changed from the last texture type
     if (m_CurrentPicture.texture_target != s_LastTextureType) {
+        GLuint activeShaderProgram = 0;
+        
         if (m_CurrentPicture.texture_target == GL_TEXTURE_2D) {
             if (!g_Instance->m_Texture2DShader.program) {
                 g_Instance->m_Texture2DShader = CreateProgram(k_VertexShader, k_FragmentShader2D);
             }
+            activeShaderProgram = g_Instance->m_Texture2DShader.program;
             glUseProgram(g_Instance->m_Texture2DShader.program);
             glUniform2f(g_Instance->m_Texture2DShader.texcoord_scale_location, 1.0, 1.0);
         }
@@ -496,6 +503,7 @@ void MoonlightInstance::PaintPicture(void) {
             if (!g_Instance->m_RectangleArbShader.program) {
                 g_Instance->m_RectangleArbShader = CreateProgram(k_VertexShader, k_FragmentShaderRectangle);
             }
+            activeShaderProgram = g_Instance->m_RectangleArbShader.program;
             glUseProgram(g_Instance->m_RectangleArbShader.program);
             glUniform2f(g_Instance->m_RectangleArbShader.texcoord_scale_location,
                         m_CurrentPicture.texture_size.width, m_CurrentPicture.texture_size.height);
@@ -504,10 +512,15 @@ void MoonlightInstance::PaintPicture(void) {
             if (!g_Instance->m_ExternalOesShader.program) {
                 g_Instance->m_ExternalOesShader = CreateProgram(k_VertexShader, k_FragmentShaderExternal);
             }
+            activeShaderProgram = g_Instance->m_ExternalOesShader.program;
             glUseProgram(g_Instance->m_ExternalOesShader.program);
             glUniform2f(g_Instance->m_ExternalOesShader.texcoord_scale_location, 1.0, 1.0);
         }
 
+        glUniform1i(glGetUniformLocation(activeShaderProgram, "s_blackCrushMitigate"), m_BlackCrushMitigationEnable);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_curveTexture);
+        
         glActiveTexture(GL_TEXTURE0);
 
         s_LastTextureType = m_CurrentPicture.texture_target;
