@@ -55,6 +55,7 @@ OPUS_SOURCE := \
     $(OPUS_DIR)/silk/lin2log.c \
     $(OPUS_DIR)/silk/log2lin.c \
     $(OPUS_DIR)/silk/LPC_analysis_filter.c \
+    $(OPUS_DIR)/silk/LPC_fit.c \
     $(OPUS_DIR)/silk/LPC_inv_pred_gain.c \
     $(OPUS_DIR)/silk/LP_variable_cutoff.c \
     $(OPUS_DIR)/silk/NLSF2A.c \
@@ -114,14 +115,12 @@ OPUS_SOURCE := \
     $(OPUS_DIR)/silk/fixed/LTP_scale_ctrl_FIX.c \
     $(OPUS_DIR)/silk/fixed/noise_shape_analysis_FIX.c \
     $(OPUS_DIR)/silk/fixed/pitch_analysis_core_FIX.c \
-    $(OPUS_DIR)/silk/fixed/prefilter_FIX.c \
     $(OPUS_DIR)/silk/fixed/process_gains_FIX.c \
     $(OPUS_DIR)/silk/fixed/regularize_correlations_FIX.c \
     $(OPUS_DIR)/silk/fixed/residual_energy16_FIX.c \
     $(OPUS_DIR)/silk/fixed/residual_energy_FIX.c \
     $(OPUS_DIR)/silk/fixed/schur64_FIX.c \
     $(OPUS_DIR)/silk/fixed/schur_FIX.c \
-    $(OPUS_DIR)/silk/fixed/solve_LS_FIX.c \
     $(OPUS_DIR)/silk/fixed/vector_ops_FIX.c \
     $(OPUS_DIR)/silk/fixed/warped_autocorrelation_FIX.c \
     $(OPUS_DIR)/src/analysis.c \
