@@ -131,6 +131,7 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
     serverInfo.serverInfoAppVersion = me->m_AppVersion.c_str();
     serverInfo.serverInfoGfeVersion = me->m_GfeVersion.c_str();
     serverInfo.rtspSessionUrl = me->m_RtspUrl.c_str();
+    serverInfo.serverCodecModeSupport = SCM_H264;
     
     err = LiStartConnection(&serverInfo,
                             &me->m_StreamConfig,
@@ -238,6 +239,7 @@ void MoonlightInstance::HandleStartStream(int32_t callbackId, pp::VarArray args)
     m_StreamConfig.audioConfiguration = AUDIO_CONFIGURATION_STEREO;
     m_StreamConfig.streamingRemotely = STREAM_CFG_AUTO;
     m_StreamConfig.packetSize = 1392;
+    m_StreamConfig.supportedVideoFormats = VIDEO_FORMAT_H264;
 
     // TODO: If/when video encryption is added, we'll probably want to
     // limit that to devices that support AES instructions.
