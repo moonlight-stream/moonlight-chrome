@@ -163,7 +163,53 @@ void MoonlightInstance::ReportMouseMovement() {
     }
 }
 
+bool MoonlightInstance::TryHandleNativeTouchEvent(const pp::InputEvent& event) {
+    // Check if the host supports native pen/touch events
+    if (!(LiGetHostFeatureFlags() & LI_FF_PEN_TOUCH_EVENTS)) {
+        return false;
+    }
+
+    uint8_t eventType;
+    switch (event.GetType()) {
+    case PP_INPUTEVENT_TYPE_TOUCHSTART:
+        eventType = LI_TOUCH_EVENT_DOWN;
+        break;
+    case PP_INPUTEVENT_TYPE_TOUCHMOVE:
+        eventType = LI_TOUCH_EVENT_MOVE;
+        break;
+    case PP_INPUTEVENT_TYPE_TOUCHEND:
+        eventType = LI_TOUCH_EVENT_UP;
+        break;
+    case PP_INPUTEVENT_TYPE_TOUCHCANCEL:
+        eventType = LI_TOUCH_EVENT_CANCEL;
+        break;
+    default:
+        // Not a touch event
+        return false;
+    }
+
+    pp::TouchInputEvent touchEvent(event);
+    uint32_t count = touchEvent.GetTouchCount(PP_TOUCHLIST_TYPE_CHANGEDTOUCHES);
+    for (uint32_t i = 0; i < count; i++) {
+        pp::TouchPoint touchPoint = touchEvent.GetTouchByIndex(PP_TOUCHLIST_TYPE_CHANGEDTOUCHES, i);
+        pp::FloatPoint touchPos = touchPoint.position();
+        LiSendTouchEvent(eventType, touchPoint.id(),
+                         MIN(MAX(touchPos.x(), 0), m_PluginRect.width()),
+                         MIN(MAX(touchPos.y(), 0), m_PluginRect.height()),
+                         touchPoint.pressure(),
+                         0.0f, 0.0f,
+                         touchPoint.rotation_angle());
+    }
+
+    return true;
+}
+
 bool MoonlightInstance::HandleInputEvent(const pp::InputEvent& event) {
+    // If the host can handle native touch events, send them natively
+    if (TryHandleNativeTouchEvent(event)) {
+        return true;
+    }
+
     switch (event.GetType()) {
         case PP_INPUTEVENT_TYPE_MOUSEDOWN: {
             // Lock the mouse cursor when the user clicks on the stream

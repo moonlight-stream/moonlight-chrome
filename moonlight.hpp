@@ -103,6 +103,7 @@ class MoonlightInstance : public pp::Instance, public pp::MouseLock {
         void PairCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args);
         void STUNCallback(int32_t /*result*/, int32_t callbackId, pp::VarArray args);
     
+        bool TryHandleNativeTouchEvent(const pp::InputEvent& event);
         bool HandleInputEvent(const pp::InputEvent& event);
         void ReportMouseMovement();
         
