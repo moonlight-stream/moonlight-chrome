@@ -2,11 +2,11 @@ version: 0.0.0.{build}
 
 clone_depth: 1
 
-image: Ubuntu2004
+image: Previous Ubuntu2004
 
 install:
   - 'pushd $HOME'
-  - 'wget https://github.com/Kagami/nacl_sdk/archive/refs/heads/master.zip -O nacl_sdk.zip'
+  - 'wget https://github.com/cgutman/nacl_sdk/archive/refs/heads/master.zip -O nacl_sdk.zip'
   - 'unzip nacl_sdk.zip'
   - 'cd nacl_sdk-master'
   - 'source $HOME/venv2.7/bin/activate'
@@ -18,10 +18,9 @@ before_build:
   - 'git submodule update --init --recursive'
 
 build_script:
-  - 'make -j$(nproc)'
+  - './do-release.sh'
 
 after_build:
-  - 'zip -r moonlight-chrome.zip . -x ".git/*"'
   - 'appveyor PushArtifact moonlight-chrome.zip'
 
 deploy: off
