@@ -194,8 +194,8 @@ bool MoonlightInstance::TryHandleNativeTouchEvent(const pp::InputEvent& event) {
         pp::TouchPoint touchPoint = touchEvent.GetTouchByIndex(PP_TOUCHLIST_TYPE_CHANGEDTOUCHES, i);
         pp::FloatPoint touchPos = touchPoint.position();
         LiSendTouchEvent(eventType, touchPoint.id(),
-                         MIN(MAX(touchPos.x(), 0), m_PluginRect.width()),
-                         MIN(MAX(touchPos.y(), 0), m_PluginRect.height()),
+                         MIN(MAX(touchPos.x(), 0), m_PluginRect.width()) / m_PluginRect.width(),
+                         MIN(MAX(touchPos.y(), 0), m_PluginRect.height()) / m_PluginRect.height(),
                          touchPoint.pressure(),
                          0.0f, 0.0f,
                          touchPoint.rotation_angle());
