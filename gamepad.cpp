@@ -86,7 +86,7 @@ void MoonlightInstance::PollGamepads() {
         
         m_LastPadTimestamps[p] = padData.timestamp;
         
-        short buttonFlags = 0;
+        int buttonFlags = 0;
         unsigned char leftTrigger = 0, rightTrigger = 0;
         short leftStickX = 0, leftStickY = 0;
         short rightStickX = 0, rightStickY = 0;
