@@ -16,7 +16,7 @@ Check out [the Moonlight wiki](https://github.com/moonlight-stream/moonlight-doc
 
 Moonlight for ChromeOS is a legacy client that depends on the [deprecated NaCl runtime](https://blog.chromium.org/2021/10/extending-chrome-app-support-on-chrome.html). It is receiving only basic bugfixes and little/no feature work.
 
-For ChromeOS systems, we recommend migrating to the [Android](https://github.com/moonlight-stream/moonlight-android) app for additional features, functionality, and active support. Please reach out in the [GitHub tracker](https://github.com/moonlight-stream/moonlight-android) if there are any functionality or performance regressions when moving to the Android client on ChromeOS systems.
+For ChromeOS systems, we recommend migrating to the [Android](https://github.com/moonlight-stream/moonlight-android) app for additional features, functionality, and active support. Please reach out in the [GitHub tracker](https://github.com/moonlight-stream/moonlight-android/issues) if there are any functionality or performance regressions when moving to the Android client on ChromeOS systems.
 
 For Windows, Mac, and Linux clients, we recommend running the [native PC port](https://github.com/moonlight-stream/moonlight-qt).
 
