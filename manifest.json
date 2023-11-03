@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Moonlight Game Streaming",
     "short_name": "Moonlight",
-    "version": "0.10.25",
+    "version": "0.10.26",
     "description": "Open-source client for NVIDIA GameStream",
     "icons": {
         "128": "icons/icon128.png",
