@@ -132,6 +132,11 @@ void MoonlightInstance::NvHTTPRequest(int32_t /*result*/, int32_t callbackId, pp
     std::string ppkstr = args.Get(1).AsString();
     bool binaryResponse = args.Get(2).AsBool();
 
+    // For launch/resume requests, append the additional query parameters
+    if (url.find("/launch?") != std::string::npos || url.find("/resume?") != std::string::npos) {
+        url += LiGetLaunchUrlQueryParameters();
+    }
+
     PostMessage(pp::Var(url.c_str()));
 
     PHTTP_DATA data = http_create_data();
